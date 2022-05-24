@@ -1,0 +1,38 @@
+{
+    "name": "scrawler/arca",
+    "description": "Arca ORM by Scrawler",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Pranjal Pandey",
+            "email": "pranjal@corpusvision.com",
+            "homepage": "https://github.com/ipranjal",
+            "role": "Owner"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Scrawler\\Arca\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.1.0",
+        "doctrine/dbal": "^3.3",
+        "filp/whoops": "^2.14",
+        "loophp/collection": "^6.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.6",
+        "pestphp/pest": "^1.21",
+        "pestphp/pest-plugin-faker": "^1.0",
+        "loophp/phpunit-iterable-assertions": "^1.0",
+        "doctrine/collections": "^1.6",
+        "phpstan/phpstan": "^1.6",
+        "phpmd/phpmd": "^2.12"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
