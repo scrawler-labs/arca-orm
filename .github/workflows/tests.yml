@@ -33,4 +33,4 @@ jobs:
       - name: Run Composer Install
         run: composer install --no-interaction
       - name: run tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest --coverage
