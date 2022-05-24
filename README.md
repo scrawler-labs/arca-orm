@@ -6,7 +6,7 @@
 
 A low code / Zero Configuration / NoSQL like ORM 
 
-## Why user Arca Orm ?
+## Why use Arca Orm ?
 - Automatically creates tables and columns as you go
 - No configuration, just fire and forget
 - Save loads of time while working on database
