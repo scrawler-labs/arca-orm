@@ -5,7 +5,7 @@ function db()
 {
     $connectionParams = array(
         'dbname' => 'test_database',
-        'user' => 'root',
+        'user' => 'admin',
         'password' => 'rootpass',
         'host' => 'localhost',
         'driver' => 'pdo_mysql',
