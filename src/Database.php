@@ -17,7 +17,7 @@ class Database
     {
         $this->connection = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
         $this->platform = $this->connection->getDatabasePlatform();
-        $this->manager = $this->connection->getSchemaManager();
+        $this->manager = $this->connection->createSchemaManager();
         $this->tableManager = new Manager\TableManager($this);
         $this->recordManager = new Manager\RecordManager($this);
         self::$instance = $this;
@@ -67,7 +67,6 @@ class Database
      */
     public function save(\Scrawler\Arca\Model $model) : int
     {
-        $id = 0;
         if ($model->hasForeign('oto')) {
             $this->saveForeignOto($model);
         }
@@ -102,15 +101,6 @@ class Database
         }
     }
 
-    private function createRelationalTables($model, $foreign)
-    {
-        if (!$this->isFroozen) {
-            $table = $this->tableManager->createRelationalTable($model, $foreign);
-            $this->tableManager->saveOrUpdateTable($model->getName()+'_'+$foreign->getName(), $table);
-        }
-    }
-
-
     private function createRecords($model)
     {
         if ($model->isLoaded()) {
@@ -125,7 +115,6 @@ class Database
      */
     private function saveForeignOto(\Scrawler\Arca\Model $model): void
     {
-        $foreignfields = [];
         foreach ($model->getForeignModels('oto') as $foreign) {
             $this->createTables($foreign);
         }
