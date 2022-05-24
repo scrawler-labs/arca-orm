@@ -1,2 +1,2 @@
-# arca orm
- low code / zero configration / nosql like ORM
+# Arca ORM
+A low code / Zero Configuration / NoSQL like ORM 
