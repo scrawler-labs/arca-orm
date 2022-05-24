@@ -24,8 +24,8 @@ class Model
     /**
      * adds the key to properties
      *
-     * @param [type] $key
-     * @param [type] $val
+     * @param String $key
+     * @param Mixed $val
      */
     public function __set(string $key, mixed $val): void
     {
@@ -155,7 +155,7 @@ class Model
     /**
      * call when model is loaded from database
      *
-     * @return array
+     * @return Model
      */
     public function setLoaded() : Model
     {

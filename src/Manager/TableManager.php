@@ -21,7 +21,7 @@ class TableManager
 
     /**
      * Creates a table schema from table instance
-     * @param Scrawler\Arca\Model $model
+     * @param \Scrawler\Arca\Model $model
      * @return \Doctrine\DBAL\Schema\Schema
      */
     public function createTableSchema(Table $table): Schema
@@ -51,7 +51,7 @@ class TableManager
 
     /**
      * Create table from model
-     * @param Scrawler\Arca\Model $model
+     * @param \Scrawler\Arca\Model $model
      * @return \Doctrine\DBAL\Schema\Table
      */
     public function createTable($model) : Table
@@ -78,7 +78,7 @@ class TableManager
         $schema = $this->createTableSchema($table);
         $queries = $schema->toSql($this->db->platform);
         foreach ($queries as $query) {
-            $this->db->connection->query($query);
+            $this->db->connection->executeQuery($query);
         }
     }
 
@@ -86,7 +86,7 @@ class TableManager
      * Add missing column to existing table from given table
      * @param String $table_name (table name of existing table)
      * @param \Doctrine\DBAL\Schema\Table  $new_table (table schema of new table)
-     * @return voif
+     * @return void
      */
     public function updateTable(String $table_name, Table $new_table) : void
     {
@@ -101,12 +101,12 @@ class TableManager
                 $mod_table->addColumn($column->getName(), $column->getType()->getName(), ['notnull' => false, 'comment' => $column->getName()]);
             }
             $new_schema = $this->createTableSchema($mod_table);
-            $schemaDiff = $comparator->compare($old_schema, $new_schema);
+            $schemaDiff = $comparator->compareSchemas($old_schema, $new_schema);
 
             $queries = $schemaDiff->toSaveSql($this->db->platform);
         
             foreach ($queries as $query) {
-                $this->db->connection->query($query);
+                $this->db->connection->executeQuery($query);
             }
         }
     }
@@ -128,7 +128,7 @@ class TableManager
      */
     public function saveOrUpdateTable(String $table_name, Table $new_table): void
     {
-        if ($this->tableExists($table_name, $new_table)) {
+        if ($this->tableExists($table_name)) {
             $this->updateTable($table_name, $new_table);
             return;
         }

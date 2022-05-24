@@ -31,7 +31,7 @@ class RecordManager
      */
     public function insert(Model $model) : int
     {
-        $value = $this->db->connection->insert($model->getName(), $model->getProperties());
+        $this->db->connection->insert($model->getName(), $model->getProperties());
         return (int) $this->db->connection->lastInsertId();
     }
 
@@ -74,7 +74,8 @@ class RecordManager
                  ->select('*')
                  ->from($model->getName(), 't')
                  ->where('t.id = '.$id);
-        $result = $this->db->connection->query($query)->fetchAssociative();
+        $result = $this->db->connection->executeQuery($query)->fetchAssociative();
+        $result ? $result : [];
         $model->setProperties($result)->setLoaded();
         return $model;
     }
