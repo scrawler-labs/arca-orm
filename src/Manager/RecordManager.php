@@ -75,7 +75,7 @@ class RecordManager
                  ->from($model->getName(), 't')
                  ->where('t.id = '.$id);
         $result = $this->db->connection->executeQuery($query)->fetchAssociative();
-        $result ? $result : [];
+        $result = $result ? $result : [];
         $model->setProperties($result)->setLoaded();
         return $model;
     }
