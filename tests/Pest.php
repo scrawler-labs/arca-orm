@@ -7,7 +7,7 @@ function db()
         'dbname' => 'test_database',
         'user' => 'admin',
         'password' => 'rootpass',
-        'host' => 'localhost',
+        'host' => '127.0.0.1',
         'driver' => 'pdo_mysql',
     );
 
