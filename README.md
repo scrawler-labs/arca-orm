@@ -35,10 +35,10 @@ composer require scrawler/arca
     include './vendor/autoload.php'
     
     $connectionParams = array(
-        'dbname' => YOUR_DB_NAME,
-        'user' => YOUR_DB_USER',
-        'password' => YOUR_DB_PASSWORD,
-        'host' => YOUR_DB_HOST,
+        'dbname' => 'YOUR_DB_NAME',
+        'user' => 'YOUR_DB_USER',
+        'password' => 'YOUR_DB_PASSWORD',
+        'host' => 'YOUR_DB_HOST',
         'driver' => 'pdo_mysql', //You can use other supported driver this is the most basic mysql driver
     );
 
@@ -89,16 +89,15 @@ composer require scrawler/arca
   }
   
   // Get only single record
-  $user = 
-  $db->find('user')
-     ->where('name = "Pranjal Pandey"')
-     ->first();  
+  $users = $db->find('user')
+             ->where('name = "Pranjal Pandey"')
+             ->first();  
 
   // Using limit in query
-  $db->find('user')
-     ->setFirstResult(10)
-     ->setMaxResults(20);
-     ->get()
+  $users = $db->find('user')
+              ->setFirstResult(10)
+              ->setMaxResults(20);
+              ->get()
 
 ```
 
