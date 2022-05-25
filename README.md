@@ -7,6 +7,8 @@
 <br><br>
    
 ![arca-orm](https://user-images.githubusercontent.com/7591484/170266248-62e23e46-241c-4063-93b8-772eb0de51b0.gif)
+ 
+ Complete documentation can be found [here](https://github.com/scrawler-labs/arca-orm/wiki)
 </div>
 <br><br>
 
@@ -106,6 +108,7 @@ composer require scrawler/arca
               ->get()
 
 ```
+For complete documentation visit the [wiki](https://github.com/scrawler-labs/arca-orm/wiki)
 <br><br>
 ## 👏 Supporters
 If you have reached here consider giving a star to help this project ❤️ 
