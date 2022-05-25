@@ -27,7 +27,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
     public function first() : Model
     {
         $table = $this->table;
-        $result = $this->fetchAssociative() ? $this->fetchAssociative() : []
+        $result = $this->fetchAssociative() ? $this->fetchAssociative() : [];
         return (Database::getInstance()->create($table))->setProperties($result)->setLoaded();
     }
 }
