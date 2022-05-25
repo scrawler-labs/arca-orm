@@ -4,7 +4,10 @@
 ![Packagist Version (including pre-releases)](https://img.shields.io/packagist/v/scrawler/arca?include_prereleases&style=flat-square)
 ![GitHub](https://img.shields.io/github/license/scrawler-labs/arca-orm?color=blue&style=flat-square)
 
+
 A low code / Zero Configuration / NoSQL like ORM 
+
+![arca-orm](https://user-images.githubusercontent.com/7591484/170266248-62e23e46-241c-4063-93b8-772eb0de51b0.gif)
 
 ## Why use Arca Orm ?
 - Automatically creates tables and columns as you go
@@ -100,6 +103,9 @@ composer require scrawler/arca
               ->get()
 
 ```
+## Thanks to all these people
+If you have reached here consider giving a star to help this project ❤️ 
+[![Stargazers repo roster for @scrawler-labs/arca-orm](https://reporoster.com/stars/dark/notext/scrawler-labs/arca-orm)](https://github.com/scrawler-labs/arca-orm/stargazers)
 
 ## Roadmap
 Here is list of few things that i would like to add in upcoming release
