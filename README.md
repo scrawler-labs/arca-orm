@@ -18,14 +18,14 @@
 - Save loads of time while working on database
 - Built upon stable foundation of Doctrine Dbal and extensively tested
 - Thanks to [loophp](https://github.com/loophp/collection) Arca comes with Lazy collection and tons of helper collection functions
-- Supports lots database of platform , you can see the complete list [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/platforms.html#platforms)
+- Supports lots database platforms , you can see the complete list [here](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)
 - Supports concurrent queries and connection pooling using swoole. Check the adapter at [https://github.com/scrawler-labs/swoole-postgresql-doctrine](https://github.com/scrawler-labs/swoole-postgresql-doctrine)
 <br><br>
 
 ## ❗Requirements
 - PHP 8.1 or greater
 - PHP PDO or other supported database adapter
-- Mysql, MariaDB, Sqlite or any other supported database. check the list [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/platforms.html#platforms) 
+- Mysql, MariaDB, Sqlite or any other supported database. check the list [here]([https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/platforms.html#platforms](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)) 
 <br><br>
 ## 💻 Installation
 You can install Arca ORM via Composer. If you don't have composer installed , you can download composer from [here](https://getcomposer.org/download/)
@@ -52,6 +52,7 @@ composer require scrawler/arca
 
     $db =  new \Scrawler\Arca\Database($connectionParams);
 ```
+For complete list of driver check [here](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)
     
 ### ✏️ CRUD
 ```php
