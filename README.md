@@ -1,15 +1,15 @@
-# Arca ORM
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/scrawler-labs/arca-orm/Tests?style=flat-square)
-![Scrutinizer code quality (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/quality/g/scrawler-labs/arca-orm?style=flat-square)
-![Packagist Version (including pre-releases)](https://img.shields.io/packagist/v/scrawler/arca?include_prereleases&style=flat-square)
-![GitHub](https://img.shields.io/github/license/scrawler-labs/arca-orm?color=blue&style=flat-square)
-
-
-A low code / Zero Configuration / NoSQL like ORM 
-
+<div align="center">
+<h1> 🚀 ARCA ORM</h1>
+<img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/scrawler-labs/arca-orm/Tests?style=flat-square">&nbsp;<img alt="Scrutinizer code quality (GitHub/Bitbucket)" src="https://img.shields.io/scrutinizer/quality/g/scrawler-labs/arca-orm?style=flat-square">&nbsp;<img alt="Packagist Version (including pre-releases)" src="https://img.shields.io/packagist/v/scrawler/arca?include_prereleases&style=flat-square">&nbsp;<img alt="GitHub License" src="https://img.shields.io/github/license/scrawler-labs/arca-orm?color=blue&style=flat-square">
+<br><br>
+🔥 A low code / Zero Configuration / NoSQL like ORM 🔥
+<br><br>
+   
 ![arca-orm](https://user-images.githubusercontent.com/7591484/170266248-62e23e46-241c-4063-93b8-772eb0de51b0.gif)
+</div>
+<br><br>
 
-## Why use Arca Orm ?
+## 🤔 Why use Arca Orm ?
 - Automatically creates tables and columns as you go
 - No configuration, just fire and forget
 - Save loads of time while working on database
@@ -17,22 +17,24 @@ A low code / Zero Configuration / NoSQL like ORM
 - Thanks to [loophp](https://github.com/loophp/collection) Arca comes with Lazy collection and tons of helper collection functions
 - Supports lots database of platform , you can see the complete list [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/platforms.html#platforms)
 - Supports concurrent queries and connection pooling using swoole. Check the adapter at [https://github.com/scrawler-labs/swoole-postgresql-doctrine](https://github.com/scrawler-labs/swoole-postgresql-doctrine)
+<br><br>
 
-## Requirements
+## ❗Requirements
 - PHP 8.1 or greater
 - PHP PDO or other supported database adapter
 - Mysql, MariaDB, Sqlite or any other supported database. check the list [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/platforms.html#platforms) 
-
-## Installation
+<br><br>
+## 💻 Installation
 You can install Arca ORM via Composer. If you don't have composer installed , you can download composer from [here](https://getcomposer.org/download/)
 
 ```
 composer require scrawler/arca
 ```
+<br>
 
-## QuickStart
+## 🏎️  QuickStart
 
-### Setup
+### ✨ Setup
 ```php
    <?php
     include './vendor/autoload.php'
@@ -48,7 +50,7 @@ composer require scrawler/arca
     $db =  new \Scrawler\Arca\Database($connectionParams);
 ```
     
-### CRUD
+### ✏️ CRUD
 ```php
 
     // Create new record
@@ -79,7 +81,7 @@ composer require scrawler/arca
 
 ```
 
-### Finding data with query
+### 🔎 Finding data with query
 ```php
 
   // Using where clause
@@ -103,22 +105,26 @@ composer require scrawler/arca
               ->get()
 
 ```
-## Thanks to all these people
+<br><br>
+## 👏 Supporters
 If you have reached here consider giving a star to help this project ❤️ 
 [![Stargazers repo roster for @scrawler-labs/arca-orm](https://reporoster.com/stars/dark/notext/scrawler-labs/arca-orm)](https://github.com/scrawler-labs/arca-orm/stargazers)
+<br><br>
 
-## Roadmap
+## ✅ Roadmap
 Here is list of few things that i would like to add in upcoming release
 - [ ] Models should be extendible with custom models
 - [ ] Validations for custom models
 - [ ] Automatically create migrations when table is updated or created
 - [ ] Support eager loading for relations
 - [ ] Better documentaions
+<br><br>
 
-## Similar projects and inspiration
+## 👍 Similar projects and inspiration
 - [Eloquent ORM](https://laravel.com/docs/5.0/eloquent)
 - [Redbean PHP](https://redbeanphp.com/index.php)
 - [Doctrine ORM](https://www.doctrine-project.org/projects/doctrine-orm/en/2.11/index.html)
+<br><br>
 
-## License
+## 📄 License
 Arca ORM is created by [Pranjal Pandey](https://www.github.com/ipranjal) and released under the [Apache 2.0 License](https://github.com/scrawler-labs/arca-orm/blob/main/LICENSE).
