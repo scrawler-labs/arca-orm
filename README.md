@@ -2,7 +2,8 @@
 <h1> 🚀 ARCA ORM</h1>
 <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/scrawler-labs/arca-orm/Tests?style=flat-square">&nbsp;<img alt="Scrutinizer code quality (GitHub/Bitbucket)" src="https://img.shields.io/scrutinizer/quality/g/scrawler-labs/arca-orm?style=flat-square">&nbsp;<img alt="Packagist Version (including pre-releases)" src="https://img.shields.io/packagist/v/scrawler/arca?include_prereleases&style=flat-square">&nbsp;<img alt="GitHub License" src="https://img.shields.io/github/license/scrawler-labs/arca-orm?color=blue&style=flat-square">
 <br><br>
-🔥 A low code / Zero Configuration / NoSQL like ORM 🔥
+🔥 A low code / Zero Configuration / NoSQL like ORM 🔥<br>
+ 🇮🇳 Made in India 🇮🇳
 <br><br>
    
 ![arca-orm](https://user-images.githubusercontent.com/7591484/170266248-62e23e46-241c-4063-93b8-772eb0de51b0.gif)
@@ -32,7 +33,7 @@ composer require scrawler/arca
 ```
 <br>
 
-## 🏎️  QuickStart
+## 🏁  QuickStart
 
 ### ✨ Setup
 ```php
