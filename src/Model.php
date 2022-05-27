@@ -144,6 +144,16 @@ class Model
     }
 
     /**
+     * Get all properties in array form
+     *
+     * @return array
+     */
+    public function toArray() : array
+    {
+        return $this->getProperties();
+    }
+
+    /**
      *  check if model loaded from db
      * @return array
      */
