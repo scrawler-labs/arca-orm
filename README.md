@@ -2,7 +2,7 @@
 <h1> 🚀 ARCA ORM</h1>
 <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/scrawler-labs/arca-orm/Tests?style=flat-square">&nbsp;<img alt="Scrutinizer code quality (GitHub/Bitbucket)" src="https://img.shields.io/scrutinizer/quality/g/scrawler-labs/arca-orm?style=flat-square">&nbsp;<img alt="Packagist Version (including pre-releases)" src="https://img.shields.io/packagist/v/scrawler/arca?include_prereleases&style=flat-square">&nbsp;<img alt="GitHub License" src="https://img.shields.io/github/license/scrawler-labs/arca-orm?color=blue&style=flat-square">
 <br><br>
-🔥 A low code / Zero Configuration / NoSQL like ORM 🔥<br>
+🔥 Low code , Zero Configuration ORM that creates models, config, database and tables on the fly. 🔥<br>
  🇮🇳 Made in India 🇮🇳
 <br><br>
    
