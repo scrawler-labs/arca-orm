@@ -57,7 +57,11 @@ class TableManager
     public function createTable($model) : Table
     {
         $table = new Table($model->getName());
-        $table->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
+        if ($this->db->isUsingUUID()) {
+            $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true,]);
+        } else {
+            $table->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
+        }
         $table->setPrimaryKey(array("id"));
         foreach ($model->getProperties() as $key => $value) {
             if ($key != 'id') {

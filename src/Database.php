@@ -12,6 +12,7 @@ class Database
     private Manager\RecordManager $recordManager;
     private bool $isFroozen = false;
     private static $instance;
+    private bool $useUUID = false;
 
     public function __construct(array $connectionParams)
     {
@@ -63,9 +64,9 @@ class Database
      * Save model into database
      *
      * @param \Scrawler\Arca\Model $model
-     * @return integer
+     * @return mixed returns int for id and string for uuid
      */
-    public function save(\Scrawler\Arca\Model $model) : int
+    public function save(\Scrawler\Arca\Model $model) : mixed
     {
         if ($model->hasForeign('oto')) {
             $this->saveForeignOto($model);
@@ -101,7 +102,7 @@ class Database
         }
     }
 
-    private function createRecords($model)
+    private function createRecords($model) : mixed
     {
         if ($model->isLoaded()) {
             return $this->recordManager->update($model);
@@ -136,7 +137,7 @@ class Database
     /**
      * Save One to Many related model into database
      */
-    private function saveForeignOtm(\Scrawler\Arca\Model $model, int $id): void
+    private function saveForeignOtm(\Scrawler\Arca\Model $model, mixed $id): void
     {
         foreach ($model->getForeignModels('otm') as $foreigns) {
             foreach ($foreigns as $foreign) {
@@ -162,15 +163,20 @@ class Database
     /**
      * Save Many to Many related model into database
      */
-    private function saveForeignMtm(\Scrawler\Arca\Model $model, int $id): void
+    private function saveForeignMtm(\Scrawler\Arca\Model $model, mixed $id): void
     {
         foreach ($model->getForeignModels('mtm') as $foreigns) {
             foreach ($foreigns as $foreign) {
                 $model_id = $model->getName().'_id';
                 $foreign_id = $foreign->getName().'_id';
                 $relational_table = $this->create($model->getName().'_'.$foreign->getName());
-                $relational_table->$model_id = 0;
-                $relational_table->$foreign_id = 0;
+                if ($this->isUsingUUID()) {
+                    $relational_table->$model_id = "";
+                    $relational_table->$foreign_id = "";
+                } else {
+                    $relational_table->$model_id = 0;
+                    $relational_table->$foreign_id = 0;
+                }
                 $this->createTables($relational_table);
                 $this->createTables($foreign);
             }
@@ -204,9 +210,9 @@ class Database
      * Delete record from database
      *
      * @param \Scrawler\Arca\Model $model
-     * @return integer
+     * @return mixed
      */
-    public function delete(\Scrawler\Arca\Model $model) : int
+    public function delete(\Scrawler\Arca\Model $model) : mixed
     {
         return $this->recordManager->delete($model);
     }
@@ -215,12 +221,13 @@ class Database
      * Get single
      *
      * @param String $table
-     * @param integer|null $id
+     * @param mixed|null $id
      * @return mixed
      */
-    public function get(String $table, int $id=null) : mixed
+    public function get(String $table, mixed $id=null) : mixed
     {
         if (is_null($id)) {
+            print('Get All Called \r \n');
             return $this->recordManager->getAll($table);
         }
 
@@ -254,5 +261,20 @@ class Database
     public function freeze() : void
     {
         $this->isFroozen = true;
+    }
+
+    public function useUUID() : void
+    {
+        $this->useUUID = true;
+    }
+
+    public function useID() : void
+    {
+        $this->useUUID = false;
+    }
+
+    public function isUsingUUID() : bool
+    {
+        return $this->useUUID;
     }
 }

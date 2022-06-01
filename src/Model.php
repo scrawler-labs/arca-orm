@@ -6,7 +6,7 @@ class Model
 {
     private array $properties = array();
     private String $table;
-    private int $_id = 0;
+    private $_id = 0;
     private array $__meta = [];
 
     public function __construct(String $name)
@@ -67,21 +67,20 @@ class Model
             $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
                 if (strtolower($parts[2])  == 'list') {
-                    return Database::getInstance()->find(strtolower($parts[1]))->where($this->getName() . '_id = ' . $this->_id)->get();
+                    return Database::getInstance()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->_id.'"')->get();
                 }
             }
             if (strtolower($parts[0]) == 'shared') {
                 if (strtolower($parts[2])  == 'list') {
                     $rel_table = Database::getInstance()->getTableManager()->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
-                    print('table: '.$rel_table);
-                    $relations = Database::getInstance()->find($rel_table)->where($this->getName() . '_id = ' . $this->_id)->get();
-                    $rel_ids = [];
+                    $relations = Database::getInstance()->find($rel_table)->where($this->getName() . '_id = "' . $this->_id.'"')->get();
+                    $rel_ids = '';
                     foreach ($relations as $relation) {
                         $key = strtolower($parts[1]) . '_id';
-                        array_push($rel_ids, $relation->$key);
+                        $rel_ids .= "'".$relation->$key . "',";
                     }
-                    print('near return');
-                    return Database::getInstance()->find(strtolower($parts[1]))->where('id IN (' . implode(',', $rel_ids) . ')')->get();
+                    $rel_ids = substr($rel_ids, 0, -1);
+                    return Database::getInstance()->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
                 }
             }
         }
@@ -184,11 +183,11 @@ class Model
     }
 
     /**
-     * Get current model Id
+     * Get current model Id or UUID
      *
-     * @return int
+     * @return mixed
      */
-    public function getId() : int
+    public function getId() : mixed
     {
         return $this->_id;
     }
@@ -197,9 +196,9 @@ class Model
     /**
      * Save model to database
      *
-     * @return int $id
+     * @return mixed returns int when id is used else returns string for uuid
      */
-    public function save() : int
+    public function save() : mixed
     {
         $id = Database::getInstance()->save($this);
         $this->id = $id;

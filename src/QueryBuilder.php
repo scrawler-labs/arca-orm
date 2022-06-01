@@ -20,6 +20,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
     public function get() : Collection
     {
         $table = $this->table;
+        $query = $this->getSQL();
         return Collection::fromIterable($this->fetchAllAssociative())
         ->map(static fn ($value): Model => (Database::getInstance()->create($table))->setProperties($value)->setLoaded());
     }
