@@ -3,11 +3,11 @@ use function Pest\Faker\faker;
 
 beforeAll(function () {
     $connectionParams = array(
-       'dbname' => 'scrawtest',
-       'user' => 'root',
-       'password' => 'root1432',
-       'host' => 'localhost',
-       'driver' => 'pdo_mysql',
+        'dbname' => 'test_database',
+         'user' => 'admin',
+         'password' => 'rootpass',
+         'host' => '127.0.0.1',        
+         'driver' => 'pdo_mysql',
    );
    
     $db = new \Scrawler\Arca\Database($connectionParams);
