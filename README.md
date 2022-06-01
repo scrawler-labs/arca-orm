@@ -19,7 +19,7 @@
 - Built upon stable foundation of Doctrine Dbal and extensively tested
 - Thanks to [loophp](https://github.com/loophp/collection) Arca comes with Lazy collection and tons of helper collection functions
 - Supports lots database platforms , you can see the complete list [here](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)
-- Supports concurrent queries and connection pooling using swoole. Check the adapter at [https://github.com/scrawler-labs/swoole-postgresql-doctrine](https://github.com/scrawler-labs/swoole-postgresql-doctrine)
+- Supports concurrent queries and connection pooling with swoole and async with amphp. Check out integration docs [here](https://github.com/scrawler-labs/arca-orm/wiki/7.-Using-with-Swoole-and-Amphp)
 <br><br>
 
 ## ❗Requirements
