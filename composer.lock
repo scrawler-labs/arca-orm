@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d2c2ac921bafd1c546cbe556517aab65",
+    "content-hash": "a0da3676f1f038682291c0a2d3483c9f",
     "packages": [
         {
             "name": "brick/math",
@@ -1249,16 +1249,16 @@
         },
         {
             "name": "loophp/iterators",
-            "version": "1.6.13",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/iterators.git",
-                "reference": "4c04f6a5449603817d9ea8806cef40df962dc6af"
+                "reference": "17a86214c12ee5284a5faa5203ba2a98c65e56bb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/iterators/zipball/4c04f6a5449603817d9ea8806cef40df962dc6af",
-                "reference": "4c04f6a5449603817d9ea8806cef40df962dc6af",
+                "url": "https://api.github.com/repos/loophp/iterators/zipball/17a86214c12ee5284a5faa5203ba2a98c65e56bb",
+                "reference": "17a86214c12ee5284a5faa5203ba2a98c65e56bb",
                 "shasum": ""
             },
             "require": {
@@ -1266,6 +1266,7 @@
             },
             "require-dev": {
                 "drupol/php-conventions": "^5",
+                "ext-pcov": "*",
                 "infection/infection": "^0.26",
                 "phpbench/phpbench": "^1.2",
                 "phpstan/phpstan-strict-rules": "^1.0",
@@ -1305,29 +1306,30 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-06-25T17:45:18+00:00"
+            "time": "2022-09-11T06:25:54+00:00"
         },
         {
             "name": "loophp/phpunit-iterable-assertions",
-            "version": "1.0.1",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/phpunit-iterable-assertions.git",
-                "reference": "3e0abb2e2af8931e5aef4fc7b318978dd55c700f"
+                "reference": "2dd53022ed25e87e5fec0d38c5bba92f147c63af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/phpunit-iterable-assertions/zipball/3e0abb2e2af8931e5aef4fc7b318978dd55c700f",
-                "reference": "3e0abb2e2af8931e5aef4fc7b318978dd55c700f",
+                "url": "https://api.github.com/repos/loophp/phpunit-iterable-assertions/zipball/2dd53022ed25e87e5fec0d38c5bba92f147c63af",
+                "reference": "2dd53022ed25e87e5fec0d38c5bba92f147c63af",
                 "shasum": ""
             },
             "require": {
-                "loophp/iterators": "^1.5.13",
+                "loophp/iterators": "^2",
                 "php": ">= 7.4"
             },
             "require-dev": {
                 "drupol/php-conventions": "^5",
-                "infection/infection": ">= 0.24.0",
+                "ext-pcov": "*",
+                "infection/infection": "^0.26",
                 "phpstan/phpstan-strict-rules": "^1.0",
                 "phpunit/php-code-coverage": "^9.2",
                 "phpunit/phpunit": "^9.5"
@@ -1365,7 +1367,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-01-29T21:01:20+00:00"
+            "time": "2022-09-11T19:41:39+00:00"
         },
         {
             "name": "myclabs/deep-copy",
