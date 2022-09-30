@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d959fd78be011e41291881ae703577c9",
+    "content-hash": "2992d2c4a0cb26eb25e654b5843ef4ed",
     "packages": [
         {
             "name": "brick/math",
@@ -971,16 +971,16 @@
         },
         {
             "name": "doctrine/collections",
-            "version": "2.0.0",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/collections.git",
-                "reference": "fbc051ebfdb0d11560c86491867cb9268a4d1a8e"
+                "reference": "d766a450ba818dacc4b1f50a56cfaad4683cefef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/collections/zipball/fbc051ebfdb0d11560c86491867cb9268a4d1a8e",
-                "reference": "fbc051ebfdb0d11560c86491867cb9268a4d1a8e",
+                "url": "https://api.github.com/repos/doctrine/collections/zipball/d766a450ba818dacc4b1f50a56cfaad4683cefef",
+                "reference": "d766a450ba818dacc4b1f50a56cfaad4683cefef",
                 "shasum": ""
             },
             "require": {
@@ -998,7 +998,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "Doctrine\\Common\\Collections\\": "lib/Doctrine/Common/Collections"
+                    "Doctrine\\Common\\Collections\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -1037,9 +1037,23 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/collections/issues",
-                "source": "https://github.com/doctrine/collections/tree/2.0.0"
+                "source": "https://github.com/doctrine/collections/tree/2.0.1"
             },
-            "time": "2022-09-28T05:46:46+00:00"
+            "funding": [
+                {
+                    "url": "https://www.doctrine-project.org/sponsorship.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://www.patreon.com/phpdoctrine",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/doctrine%2Fcollections",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2022-09-30T08:03:04+00:00"
         },
         {
             "name": "doctrine/instantiator",
