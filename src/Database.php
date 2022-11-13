@@ -227,7 +227,6 @@ class Database
     public function get(String $table, mixed $id=null) : mixed
     {
         if (is_null($id)) {
-            print('Get All Called \r \n');
             return $this->recordManager->getAll($table);
         }
 
