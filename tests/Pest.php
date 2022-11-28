@@ -3,7 +3,16 @@ use function Pest\Faker\faker;
 
 function db($uuid = "ID")
 {
-    $db = \Scrawler\Arca\Database::getInstance();
+    $connectionParams = array(
+        'dbname' => 'test_database',
+         'user' => 'admin',
+         'password' => 'rootpass',
+         'host' => '127.0.0.1',
+         'driver' => 'pdo_mysql',
+    );
+    
+    $db = Scrawler\Arca\Facade\Database::connect($connectionParams);
+    
     if ($uuid == 'UUID') {
         $db->useUUID();
         return $db;

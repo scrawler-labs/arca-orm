@@ -1,17 +1,6 @@
 <?php
  use function Pest\Faker\faker;
 
- beforeAll(function () {
-     $connectionParams = array(
-        'dbname' => 'test_database',
-         'user' => 'admin',
-         'password' => 'rootpass',
-         'host' => '127.0.0.1',
-         'driver' => 'pdo_mysql',
-    );
-    
-     $db = new \Scrawler\Arca\Database($connectionParams);
- });
 
  beforeEach(function () {
      db()->connection->query("DROP TABLE IF EXISTS user; ");

@@ -1,16 +1,5 @@
 <?php
- beforeAll(function () {
-     $connectionParams = array(
-        'dbname' => 'test_database',
-         'user' => 'admin',
-         'password' => 'rootpass',
-         'host' => '127.0.0.1',        
-         'driver' => 'pdo_mysql',
-   );
-   
-     $db = Scrawler\Arca\Facade\Database::connect($connectionParams);
-     
- });
+
 
  beforeEach(function () {
      db()->connection->query("DROP TABLE IF EXISTS user; ");

@@ -12,9 +12,15 @@ class Database {
     private static $database;
 
     public static function connect(array $connectionParams){
+        
+        if(self::$database == null)
+        {
         $connection = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
         self::$database = new Database($connection);
         self::$database->setManagers(new TableManager(self::$database),new RecordManager(self::$database),new ModelManager(self::$database))
+        return self::$database;
+        }
+
         return self::$database;
     }
 }
