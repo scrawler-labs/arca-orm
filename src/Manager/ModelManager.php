@@ -6,7 +6,7 @@ use \Scrawler\Arca\Database;
 use \Scrawler\Arca\Model;
 
 class ModelManager {
-    private \Scrawler\Arca\Database $db;
+    private Database $db;
 
     /**
      * Create RecordManager

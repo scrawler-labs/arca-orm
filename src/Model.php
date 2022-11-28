@@ -115,6 +115,11 @@ class Model
      */
     public function __unset(string $key): void
     {
+        $this->unset($key);
+    }
+
+    public function unset(string $key): void
+    {
         unset($this->properties[$key]);
     }
 

@@ -25,17 +25,14 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 
     public function get() : Collection
     {
-        $table = $this->table;
-        $query = $this->getSQL();
-        $model = $this->db->create($table);
+        $model = $this->db->create($this->table);
         return Collection::fromIterable($this->fetchAllAssociative())
         ->map(static fn ($value): Model => ($model)->setProperties($value)->setLoaded());
     }
 
     public function first() : Model
     {
-        $table = $this->table;
         $result = $this->fetchAssociative() ? $this->fetchAssociative() : [];
-        return ($this->db->create($table))->setProperties($result)->setLoaded();
+        return ($this->db->create($this->table))->setProperties($result)->setLoaded();
     }
 }

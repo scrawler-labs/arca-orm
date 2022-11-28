@@ -2,24 +2,18 @@
 
 namespace Scrawler\Arca;
 
-use Closure;
-use Doctrine\Common\Collections\Criteria;
 use loophp\collection\Collection as LoopCollection;
 use loophp\collection\Contract\Collection as LoopCollectionInterface;
-use Psr\Cache\CacheItemPoolInterface;
 use Iterator;
 use Scrawler\Arca\Collection\CollectionInterface;
 
-use const INF;
-use const PHP_INT_MAX;
-use const PHP_INT_MIN;
 
 final class Collection implements CollectionInterface
 {
     /**
      * @var CollectionInterface<TKey, T>
      */
-    private CollectionInterface $loopcollection;
+    private LoopCollectionInterface $collection;
 
     private function __construct(?LoopCollectionInterface $collection = null)
     {

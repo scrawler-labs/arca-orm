@@ -10,7 +10,7 @@ use Ramsey\Uuid\Uuid;
 
 class RecordManager
 {
-    private \Scrawler\Arca\Database $db;
+    private Database $db;
     
     /**
      * Create RecordManager
@@ -74,15 +74,13 @@ class RecordManager
     */
     public function getById(Model $model, mixed $id): Model
     {
-        $qb = new QueryBuilder($this->db);
-        $query =  $qb
+        $query =  (new QueryBuilder($this->db))
                  ->select('*')
                  ->from($model->getName(), 't')
                  ->where("t.id = '".$id."'");
         $result = $this->db->connection->executeQuery($query)->fetchAssociative();
         $result = $result ? $result : [];
-        $model->setProperties($result)->setLoaded();
-        return $model;
+        return $model->setProperties($result)->setLoaded();
     }
 
 
@@ -94,8 +92,7 @@ class RecordManager
      */
     public function getAll(String $tableName): Collection
     {
-        $qb = new QueryBuilder($this->db);
-        return $qb
+        return (new QueryBuilder($this->db))
             ->select('*')
             ->from($tableName, 't')
             ->get();
@@ -109,10 +106,8 @@ class RecordManager
      */
     public function find(String $name) : QueryBuilder
     {
-        $qb = new QueryBuilder($this->db);
-        $query = $qb
+        return (new QueryBuilder($this->db))
         ->select('*')
         ->from($name, 't');
-        return $query;
     }
 }

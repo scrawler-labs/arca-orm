@@ -9,7 +9,7 @@ use \Scrawler\Arca\Database;
 
 class TableManager
 {
-    private \Scrawler\Arca\Database $db;
+    private Database $db;
 
     /**
      * create TableManager
