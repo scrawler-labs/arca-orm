@@ -6,10 +6,11 @@ use Scrawler\Arca\Manager\TableManager;
 use Scrawler\Arca\Manager\RecordManager;
 use Scrawler\Arca\Manager\ModelManager;
 use \Doctrine\DBAL\DriverManager;
+use \Doctrine\DBAL\Connection;
 
 class Database
 {
-    public \Doctrine\DBAL\Connection $connection;
+    public Connection $connection;
     public \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
     public \Doctrine\DBAL\Schema\AbstractSchemaManager $manager;
     private TableManager $tableManager;
@@ -18,7 +19,7 @@ class Database
     private bool $isFroozen = false;
     private bool $useUUID = false;
 
-    public function __construct(DriverManager $connection)
+    public function __construct(Connection $connection)
     {
         $this->connection = $connection;
         $this->platform = $this->connection->getDatabasePlatform();
@@ -26,7 +27,7 @@ class Database
         
     }
 
-    public function setManagers(TableManager $tableManger, RecordManager $recordManager, ModelManager $modelManager){
+    public function setManagers(TableManager $tableManager, RecordManager $recordManager, ModelManager $modelManager){
         $this->tableManager = $tableManager;
         $this->recordManager = $recordManager;
         $this->modelManager = $modelManager;
@@ -65,7 +66,7 @@ class Database
      */
     public function create(string $name) : Model
     {
-        return $this->modelManager->create($name)
+        return $this->modelManager->create($name);
     }
 
     /**

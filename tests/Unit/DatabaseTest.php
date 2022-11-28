@@ -10,7 +10,7 @@
 
 it(" checks db()->create() function ", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $model =  new \Scrawler\Arca\Model('user');
+    $model =  new \Scrawler\Arca\Model('user',db($useUUID));
     $this->assertObjectEquals($model, $user);
 })->with('useUUID');
 
@@ -261,10 +261,6 @@ it("checks if db()->find() returns correct records", function () {
     $this->assertInstanceOf(\Scrawler\Arca\Collection::class, $users);
 });
 
-it("checks if Database::getInstance() provide currect instance", function () {
-    $db =  \Scrawler\Arca\Database::getInstance();
-    $this->assertInstanceOf(\Scrawler\Arca\Database::class, $db);
-});
 
 it("checks if all public instance of database files are correct", function () {
     $this->assertInstanceOf(\Doctrine\DBAL\Connection::class, db()->connection);

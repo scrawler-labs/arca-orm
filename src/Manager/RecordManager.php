@@ -74,7 +74,7 @@ class RecordManager
     */
     public function getById(Model $model, mixed $id): Model
     {
-        $qb = new QueryBuilder($this->db->connection);
+        $qb = new QueryBuilder($this->db);
         $query =  $qb
                  ->select('*')
                  ->from($model->getName(), 't')
@@ -94,7 +94,7 @@ class RecordManager
      */
     public function getAll(String $tableName): Collection
     {
-        $qb = new QueryBuilder($this->db->connection);
+        $qb = new QueryBuilder($this->db);
         return $qb
             ->select('*')
             ->from($tableName, 't')
@@ -109,7 +109,7 @@ class RecordManager
      */
     public function find(String $name) : QueryBuilder
     {
-        $qb = new QueryBuilder($this->db->connection);
+        $qb = new QueryBuilder($this->db);
         $query = $qb
         ->select('*')
         ->from($name, 't');
