@@ -232,6 +232,21 @@ it("checks if db()->get() gets single record", function ($useUUID) {
     $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
 })->with('useUUID');
 
+it("checks if db()->getOne() gets single record", function ($useUUID) {
+    populateRandomUser($useUUID);
+    $id = createRandomUser($useUUID);
+    $user = db($useUUID)->getOne('user', $id);
+
+    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
+    $result = json_encode($stmt->executeQuery()->fetchAssociative());
+    $this->assertJsonStringEqualsJsonString(
+        $result,
+        $user->toString()
+    );
+    $this->assertIsString((string) $user);
+    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
+})->with('useUUID');
+
 it("checks if db()->get() gets all record", function ($useUUID) {
     populateRandomUser($useUUID);
     $users = db($useUUID)->get('user');

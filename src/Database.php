@@ -233,8 +233,13 @@ class Database
      * @param mixed|null $id
      * @return mixed
      */
-    public function get(String $table) : Collection
+    public function get(String $table,mixed $id = null) : Model|Collection
     {
+        // For backward compatibility reason
+        if($id != null){
+            return $this->getOne($table,$id);
+        }
+
         return $this->recordManager->getAll($table);
     }
 

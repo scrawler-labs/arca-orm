@@ -32,40 +32,49 @@ class Model
      */
     public function __set(string $key, mixed $val): void
     {
-       
-        //bug: fix issue with bool storage
-        if (gettype($val) == 'boolean') {
-            ($val) ? $val = 1 : $val = 0;
-        }
+       $this->set($key,$val);
+    }
 
-        if (preg_match('/[A-Z]/', $key)) {
-            $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if (strtolower($parts[0]) == 'own') {
-                if (gettype($val) == 'array') {
-                    array_push($this->__meta['foreign_models']['otm'], $val);
-                    $this->__meta['has_foreign']['otm'] = true;
+    public function set(string $key,mixed $val): void
+    {
+                //bug: fix issue with bool storage
+                if (gettype($val) == 'boolean') {
+                    ($val) ? $val = 1 : $val = 0;
                 }
-                return;
-            }
-            if (strtolower($parts[0]) == 'shared') {
-                if (gettype($val) == 'array') {
-                    array_push($this->__meta['foreign_models']['mtm'], $val);
-                    $this->__meta['has_foreign']['mtm'] = true;
+        
+                if (preg_match('/[A-Z]/', $key)) {
+                    $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
+                    if (strtolower($parts[0]) == 'own') {
+                        if (gettype($val) == 'array') {
+                            array_push($this->__meta['foreign_models']['otm'], $val);
+                            $this->__meta['has_foreign']['otm'] = true;
+                        }
+                        return;
+                    }
+                    if (strtolower($parts[0]) == 'shared') {
+                        if (gettype($val) == 'array') {
+                            array_push($this->__meta['foreign_models']['mtm'], $val);
+                            $this->__meta['has_foreign']['mtm'] = true;
+                        }
+                        return;
+                    }
                 }
-                return;
-            }
-        }
-        if ($val instanceof Model) {
-            $this->__meta['has_foreign']['oto'] = true;
-            array_push($this->__meta['foreign_models']['oto'], $val);
-            return;
-        }
-
-        $this->properties[$key] = $val;
+                if ($val instanceof Model) {
+                    $this->__meta['has_foreign']['oto'] = true;
+                    array_push($this->__meta['foreign_models']['oto'], $val);
+                    return;
+                }
+        
+                $this->properties[$key] = $val;
     }
 
     public function __get(string $key): mixed
     {
+         return $this->get($key);  
+    }
+
+    public function get(string $key){
+
         if (preg_match('/[A-Z]/', $key)) {
             $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
@@ -116,6 +125,17 @@ class Model
      * @return boolean
      */
     public function __isset(string $key): bool
+    {
+       return $this->isset($key);
+    }
+
+    /**
+     * Check if property exists
+     *
+     * @param string $key
+     * @return boolean
+     */
+    public function isset(string $key): bool
     {
         return array_key_exists($key, $this->properties);
     }
