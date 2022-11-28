@@ -23,4 +23,12 @@ class Database {
 
             return self::$database;
     }
+
+    private static function getDB(){
+        return self::$database;
+    }
+
+    public static function create($name){
+        return getDB()->create($name);
+    }
 }

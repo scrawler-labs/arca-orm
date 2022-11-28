@@ -227,20 +227,27 @@ class Database
     }
 
     /**
-     * Get single
+     * Get single multiplr
      *
      * @param String $table
      * @param mixed|null $id
      * @return mixed
      */
-    public function get(String $table, mixed $id=null) : mixed
+    public function get(String $table) : Collection
     {
-        if (is_null($id)) {
-            return $this->recordManager->getAll($table);
-        }
+        return $this->recordManager->getAll($table);
+    }
 
-        $model = $this->create($table);
-        return $this->recordManager->getById($model, $id);
+    /**
+     * Get single record
+     *
+     * @param String $table
+     * @param mixed $id
+     * @return mixed
+     */
+    public function getOne(String $table, mixed $id) : Model
+    {
+        return $this->recordManager->getById($this->create($table), $id);
     }
 
     /**
