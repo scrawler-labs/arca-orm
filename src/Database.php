@@ -2,26 +2,35 @@
 declare(strict_types=1);
 
 namespace Scrawler\Arca;
+use Scrawler\Arca\Manager\TableManager;
+use Scrawler\Arca\Manager\RecordManager;
+use Scrawler\Arca\Manager\ModelManager;
+use \Doctrine\DBAL\DriverManager;
 
 class Database
 {
     public \Doctrine\DBAL\Connection $connection;
     public \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
     public \Doctrine\DBAL\Schema\AbstractSchemaManager $manager;
-    private Manager\TableManager $tableManager;
-    private Manager\RecordManager $recordManager;
+    private TableManager $tableManager;
+    private RecordManager $recordManager;
+    private ModelManager $modelManager;
     private bool $isFroozen = false;
-    private static $instance;
     private bool $useUUID = false;
 
-    public function __construct(array $connectionParams)
+    public function __construct(DriverManager $connection)
     {
-        $this->connection = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+        $this->connection = $connection;
         $this->platform = $this->connection->getDatabasePlatform();
         $this->manager = $this->connection->createSchemaManager();
-        $this->tableManager = new Manager\TableManager($this);
-        $this->recordManager = new Manager\RecordManager($this);
-        self::$instance = $this;
+        
+    }
+
+    public function setManagers(TableManager $tableManger, RecordManager $recordManager, ModelManager $modelManager){
+        $this->tableManager = $tableManager;
+        $this->recordManager = $recordManager;
+        $this->modelManager = $modelManager;
+
     }
 
     /**
@@ -56,8 +65,7 @@ class Database
      */
     public function create(string $name) : Model
     {
-        $model = new Model($name);
-        return $model;
+        return $this->modelManager->create($name)
     }
 
     /**
@@ -244,17 +252,6 @@ class Database
     public function find(string $name) : QueryBuilder
     {
         return $this->recordManager->find($name);
-    }
-
-
-    /**
-     * Get current instance of database
-     *
-     * @return void
-     */
-    public static function getInstance() : Database
-    {
-        return self::$instance;
     }
 
     public function freeze() : void

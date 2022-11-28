@@ -8,7 +8,8 @@
          'driver' => 'pdo_mysql',
    );
    
-     $db = new \Scrawler\Arca\Database($connectionParams);
+     $db = Scrawler\Arca\Facade\Database::connect($connectionParams);
+     
  });
 
  beforeEach(function () {

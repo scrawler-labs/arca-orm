@@ -8,9 +8,12 @@ class Model
     private String $table;
     private $_id = 0;
     private array $__meta = [];
+    private \Scrawler\Arca\Database $db;
+    
 
-    public function __construct(String $name)
+    public function __construct(String $name, Database $db)
     {
+        $this->db = $db;
         $this->table = $name;
         $this->__meta['has_foreign']['oto'] = false;
         $this->__meta['has_foreign']['otm'] = false;
@@ -67,20 +70,20 @@ class Model
             $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
                 if (strtolower($parts[2])  == 'list') {
-                    return Database::getInstance()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->_id.'"')->get();
+                    return $this->db->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->_id.'"')->get();
                 }
             }
             if (strtolower($parts[0]) == 'shared') {
                 if (strtolower($parts[2])  == 'list') {
-                    $rel_table = Database::getInstance()->getTableManager()->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
-                    $relations = Database::getInstance()->find($rel_table)->where($this->getName() . '_id = "' . $this->_id.'"')->get();
+                    $rel_table = $this->db->getTableManager()->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
+                    $relations = $this->db->find($rel_table)->where($this->getName() . '_id = "' . $this->_id.'"')->get();
                     $rel_ids = '';
                     foreach ($relations as $relation) {
                         $key = strtolower($parts[1]) . '_id';
                         $rel_ids .= "'".$relation->$key . "',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    return Database::getInstance()->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
+                    return $this->db->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
                 }
             }
         }
@@ -90,7 +93,7 @@ class Model
         }
         
         if (array_key_exists($key.'_id', $this->properties)) {
-            return Database::getInstance()->get($key, $this->properties[$key.'_id']);
+            return $this->db->get($key, $this->properties[$key.'_id']);
         }
         
         throw new Exception\KeyNotFoundException();
@@ -200,7 +203,7 @@ class Model
      */
     public function save() : mixed
     {
-        $id = Database::getInstance()->save($this);
+        $id = $this->db->save($this);
         $this->id = $id;
         $this->_id = $id;
         return $id;
@@ -211,7 +214,7 @@ class Model
      */
     public function delete() : void
     {
-        Database::getInstance()->delete($this);
+        $this->db->delete($this);
     }
 
     /**
