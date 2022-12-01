@@ -53,7 +53,7 @@ composer require scrawler/arca
     // For Arca ORM 1.x
     // $db =  new \Scrawler\Arca\Database($connectionParams);
     
-    For Arca 2.x and later 
+    // For Arca 2.x and later 
     $db = \Scrawler\Arca\Facade\Database::connect($connectionParams);
     
 ```
