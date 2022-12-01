@@ -50,7 +50,12 @@ composer require scrawler/arca
         'driver' => 'pdo_mysql', //You can use other supported driver this is the most basic mysql driver
     );
 
-    $db =  new \Scrawler\Arca\Database($connectionParams);
+    // For Arca ORM 3.x
+    // $db =  new \Scrawler\Arca\Database($connectionParams);
+    
+    For Arca 4.x and later 
+    $db = \Scrawler\Arca\Facade\Database::connect($connectionParams);
+    
 ```
 For complete list of driver check [here](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)
     
@@ -122,7 +127,7 @@ Here is list of few things that i would like to add in upcoming release
 - [ ] Validations for custom models
 - [ ] Automatically create migrations when table is updated or created
 - [ ] Support eager loading for relations
-- [ ] Better documentaions
+- [X] Better documentaions
 <br><br>
 
 ## 👍 Similar projects and inspiration
