@@ -4,9 +4,9 @@ use function Pest\Faker\faker;
 function db($uuid = "ID")
 {
     $connectionParams = array(
-        'dbname' => 'test_database',
-         'user' => 'admin',
-         'password' => 'rootpass',
+        'dbname' => 'scrawtest',
+         'user' => 'root',
+         'password' => 'root1432',
          'host' => '127.0.0.1',
          'driver' => 'pdo_mysql',
     );

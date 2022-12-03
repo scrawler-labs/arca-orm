@@ -8,6 +8,9 @@ use \Scrawler\Arca\Model;
 use \Scrawler\Arca\Database;
 use Ramsey\Uuid\Uuid;
 
+/**
+ * Class responsible for manging single records
+ */
 class RecordManager
 {
     private Database $db;

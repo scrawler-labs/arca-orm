@@ -5,18 +5,53 @@ namespace Scrawler\Arca;
 use Scrawler\Arca\Manager\TableManager;
 use Scrawler\Arca\Manager\RecordManager;
 use Scrawler\Arca\Manager\ModelManager;
-use \Doctrine\DBAL\DriverManager;
 use \Doctrine\DBAL\Connection;
 
+/**
+ * 
+ * Class that manages all interaction with database
+ */
 class Database
 {
+    /**
+     * Doctrine DBAL connection instance
+     * @var \Doctrine\DBAL\Connection
+     */
     public Connection $connection;
+    /**
+     * Store the instance of current platform
+     * @var \Doctrine\DBAL\Platforms\AbstractPlatform
+     */
     public \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
+    /**
+     * Doctrine schema manager
+     * @var \Doctrine\DBAL\Schema\AbstractSchemaManager
+     */
     public \Doctrine\DBAL\Schema\AbstractSchemaManager $manager;
+    /**
+     * Instance of table manager responsible for working with tables
+     * @var \Scrawler\Arca\Manager\TableManager
+     */
     private TableManager $tableManager;
+    /**
+     * Instance of record manager responsible for working with records
+     * @var \Scrawler\Arca\Manager\RecordManager
+     */
     private RecordManager $recordManager;
+    /**
+     * Model manager rsponisble for bootstrapping model instance
+     * @var \Scrawler\Arca\Manager\ModelManager
+     */
     private ModelManager $modelManager;
+    /**
+     * When $isFrozen is set to true tables are not updated/created
+     * @var bool
+     */
     private bool $isFroozen = false;
+    /**
+     * You can switch between using uuid & id
+     * @var bool
+     */
     private bool $useUUID = false;
 
     public function __construct(Connection $connection)
@@ -27,6 +62,13 @@ class Database
         
     }
 
+    /**
+     * Once you initialize database, use this to set all manager for database class to work correctly
+     * @param TableManager $tableManager
+     * @param RecordManager $recordManager
+     * @param ModelManager $modelManager
+     * @return void
+     */
     public function setManagers(TableManager $tableManager, RecordManager $recordManager, ModelManager $modelManager){
         $this->tableManager = $tableManager;
         $this->recordManager = $recordManager;
@@ -120,8 +162,11 @@ class Database
         return $this->recordManager->insert($model);
     }
 
+
     /**
      * Save One to One related model into database
+     * @param Model $model
+     * @return void
      */
     private function saveForeignOto(\Scrawler\Arca\Model $model): void
     {
@@ -143,8 +188,12 @@ class Database
         }
     }
 
+
     /**
      * Save One to Many related model into database
+     * @param Model $model
+     * @param mixed $id
+     * @return void
      */
     private function saveForeignOtm(\Scrawler\Arca\Model $model, mixed $id): void
     {
@@ -169,8 +218,12 @@ class Database
         }
     }
 
+
     /**
      * Save Many to Many related model into database
+     * @param Model $model
+     * @param mixed $id
+     * @return void
      */
     private function saveForeignMtm(\Scrawler\Arca\Model $model, mixed $id): void
     {
@@ -227,7 +280,7 @@ class Database
     }
 
     /**
-     * Get single multiplr
+     * Get collection of all records from table
      *
      * @param String $table
      * @param mixed|null $id
@@ -267,21 +320,37 @@ class Database
         return $this->recordManager->find($name);
     }
 
+    /**
+     * Freezes table for production
+     * @return void
+     */
     public function freeze() : void
     {
         $this->isFroozen = true;
     }
 
+    /**
+     * Call this to useUUID over normal id
+     * @return void
+     */
     public function useUUID() : void
     {
         $this->useUUID = true;
     }
 
+    /**
+     * Call this to use id (id is used by default)
+     * @return void
+     */
     public function useID() : void
     {
         $this->useUUID = false;
     }
 
+    /**
+     * Checks if database is currently using uuid rather than id
+     * @return bool
+     */
     public function isUsingUUID() : bool
     {
         return $this->useUUID;

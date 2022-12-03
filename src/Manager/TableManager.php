@@ -7,6 +7,9 @@ use \Doctrine\DBAL\Schema\Table;
 use \Doctrine\DBAL\Schema\Comparator;
 use \Scrawler\Arca\Database;
 
+/**
+ * Class resposible for creating and modifing table
+ */
 class TableManager
 {
     private Database $db;
