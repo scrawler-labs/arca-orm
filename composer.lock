@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2992d2c4a0cb26eb25e654b5843ef4ed",
+    "content-hash": "c94a067606e3a5dad8ec167ca1ecedad",
     "packages": [
         {
             "name": "brick/math",
@@ -409,32 +409,33 @@
         },
         {
             "name": "loophp/collection",
-            "version": "6.0.3",
+            "version": "7.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/collection.git",
-                "reference": "7e22909259cd0804bc6e5be2754c7ff0c8ccb840"
+                "reference": "c6b916473f419d781189cfdbe756a649f3e2742b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/collection/zipball/7e22909259cd0804bc6e5be2754c7ff0c8ccb840",
-                "reference": "7e22909259cd0804bc6e5be2754c7ff0c8ccb840",
+                "url": "https://api.github.com/repos/loophp/collection/zipball/c6b916473f419d781189cfdbe756a649f3e2742b",
+                "reference": "c6b916473f419d781189cfdbe756a649f3e2742b",
                 "shasum": ""
             },
             "require": {
-                "php": ">= 7.4"
+                "loophp/iterators": "^2",
+                "php": ">= 8"
             },
             "require-dev": {
                 "amphp/parallel-functions": "^1",
-                "doctrine/collections": "^1.6",
+                "doctrine/collections": "^1.8 || ^2",
                 "drupol/php-conventions": "^5",
-                "friends-of-phpspec/phpspec-code-coverage": "^6.1",
-                "infection/infection": "^0.23.0 || ^0.24.0",
-                "infection/phpspec-adapter": "^0.1.2",
-                "phpspec/phpspec": "^7.1",
+                "infection/infection": "^0.26.0",
+                "loophp/phpunit-iterable-assertions": "^1.0",
                 "phpstan/phpstan-strict-rules": "^1.0",
-                "psr/cache": "^1.0",
-                "symfony/cache": "^5"
+                "phpunit/php-code-coverage": "^9.2",
+                "phpunit/phpunit": "^9.5",
+                "psr/cache": "^2.0 || 3.0",
+                "symfony/cache": "^6"
             },
             "type": "library",
             "autoload": {
@@ -452,6 +453,11 @@
                     "email": "pol.dellaiera@protonmail.com",
                     "homepage": "https://not-a-number.io",
                     "role": "author"
+                },
+                {
+                    "name": "Alex Gidei",
+                    "homepage": "https://github.com/AlexandruGG",
+                    "role": "maintainer"
                 }
             ],
             "description": "A (memory) friendly, easy, lazy and modular collection class.",
@@ -471,13 +477,70 @@
                 {
                     "url": "https://github.com/drupol",
                     "type": "github"
-                },
-                {
-                    "url": "https://www.paypal.me/drupol",
-                    "type": "paypal"
                 }
             ],
-            "time": "2021-12-11T18:10:52+00:00"
+            "time": "2022-12-12T21:40:55+00:00"
+        },
+        {
+            "name": "loophp/iterators",
+            "version": "2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/loophp/iterators.git",
+                "reference": "ea4a2d39134a57e24073b3db88c063ae2b2bde98"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/loophp/iterators/zipball/ea4a2d39134a57e24073b3db88c063ae2b2bde98",
+                "reference": "ea4a2d39134a57e24073b3db88c063ae2b2bde98",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 8.0"
+            },
+            "require-dev": {
+                "drupol/php-conventions": "^5",
+                "ext-pcov": "*",
+                "infection/infection": "^0.26",
+                "phpbench/phpbench": "^1.2",
+                "phpstan/phpstan-strict-rules": "^1.0",
+                "phpunit/php-code-coverage": "^9.2",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "loophp\\iterators\\": "./src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pol Dellaiera",
+                    "email": "pol.dellaiera@protonmail.com",
+                    "homepage": "https://not-a-number.io",
+                    "role": "author"
+                }
+            ],
+            "description": "The missing PHP iterators.",
+            "homepage": "https://github.com/loophp/iterators",
+            "keywords": [
+                "iterators"
+            ],
+            "support": {
+                "issues": "https://github.com/loophp/iterators/issues",
+                "source": "https://github.com/loophp/iterators"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/drupol",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-11-28T21:03:54+00:00"
         },
         {
             "name": "psr/cache",
@@ -1262,67 +1325,6 @@
                 }
             ],
             "time": "2022-01-07T12:00:00+00:00"
-        },
-        {
-            "name": "loophp/iterators",
-            "version": "2.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/loophp/iterators.git",
-                "reference": "17a86214c12ee5284a5faa5203ba2a98c65e56bb"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/loophp/iterators/zipball/17a86214c12ee5284a5faa5203ba2a98c65e56bb",
-                "reference": "17a86214c12ee5284a5faa5203ba2a98c65e56bb",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">= 7.4"
-            },
-            "require-dev": {
-                "drupol/php-conventions": "^5",
-                "ext-pcov": "*",
-                "infection/infection": "^0.26",
-                "phpbench/phpbench": "^1.2",
-                "phpstan/phpstan-strict-rules": "^1.0",
-                "phpunit/php-code-coverage": "^9.2",
-                "phpunit/phpunit": "^9.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "loophp\\iterators\\": "./src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Pol Dellaiera",
-                    "email": "pol.dellaiera@protonmail.com",
-                    "homepage": "https://not-a-number.io",
-                    "role": "author"
-                }
-            ],
-            "description": "The missing PHP iterators.",
-            "homepage": "https://github.com/loophp/iterators",
-            "keywords": [
-                "iterators"
-            ],
-            "support": {
-                "issues": "https://github.com/loophp/iterators/issues",
-                "source": "https://github.com/loophp/iterators"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/drupol",
-                    "type": "github"
-                }
-            ],
-            "time": "2022-09-11T06:25:54+00:00"
         },
         {
             "name": "loophp/phpunit-iterable-assertions",
