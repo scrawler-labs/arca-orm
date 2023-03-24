@@ -18,7 +18,7 @@
     "require": {
         "php": ">=8.1.0",
         "doctrine/dbal": "^3.3",
-        "loophp/collection": "^6.0",
+        "loophp/collection": "^7.0",
         "ramsey/uuid": "^4.3"
     },
     "require-dev": {
