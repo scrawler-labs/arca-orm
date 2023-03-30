@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c94a067606e3a5dad8ec167ca1ecedad",
+    "content-hash": "63355a375d10d03bed51b27d23d62016",
     "packages": [
         {
             "name": "brick/math",
@@ -403,33 +403,35 @@
         },
         {
             "name": "loophp/collection",
-            "version": "7.0.0",
+            "version": "7.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/collection.git",
-                "reference": "c6b916473f419d781189cfdbe756a649f3e2742b"
+                "reference": "4e60bd168ca9e1a94817f2a13fcf96e12a0d1ee7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/collection/zipball/c6b916473f419d781189cfdbe756a649f3e2742b",
-                "reference": "c6b916473f419d781189cfdbe756a649f3e2742b",
+                "url": "https://api.github.com/repos/loophp/collection/zipball/4e60bd168ca9e1a94817f2a13fcf96e12a0d1ee7",
+                "reference": "4e60bd168ca9e1a94817f2a13fcf96e12a0d1ee7",
                 "shasum": ""
             },
             "require": {
-                "loophp/iterators": "^2",
+                "loophp/iterators": "^2.3.1",
                 "php": ">= 8"
             },
             "require-dev": {
                 "amphp/parallel-functions": "^1",
                 "doctrine/collections": "^1.8 || ^2",
                 "drupol/php-conventions": "^5",
-                "infection/infection": "^0.26.0",
+                "ext-pcov": "*",
+                "infection/infection": "^0.26 || ^0.27",
                 "loophp/phpunit-iterable-assertions": "^1.0",
                 "phpstan/phpstan-strict-rules": "^1.0",
-                "phpunit/php-code-coverage": "^9.2",
-                "phpunit/phpunit": "^9.5",
+                "phpunit/php-code-coverage": "^9 || ^10",
+                "phpunit/phpunit": "^9 || ^10",
                 "psr/cache": "^2.0 || 3.0",
-                "symfony/cache": "^6"
+                "symfony/cache": "^6",
+                "vimeo/psalm": "^5.5"
             },
             "type": "library",
             "autoload": {
@@ -473,20 +475,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-12-12T21:40:55+00:00"
+            "time": "2023-02-16T16:37:19+00:00"
         },
         {
             "name": "loophp/iterators",
-            "version": "2.1.0",
+            "version": "2.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/iterators.git",
-                "reference": "ea4a2d39134a57e24073b3db88c063ae2b2bde98"
+                "reference": "699561907e07fc6cd56765ccbbe8c04e19da733f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/iterators/zipball/ea4a2d39134a57e24073b3db88c063ae2b2bde98",
-                "reference": "ea4a2d39134a57e24073b3db88c063ae2b2bde98",
+                "url": "https://api.github.com/repos/loophp/iterators/zipball/699561907e07fc6cd56765ccbbe8c04e19da733f",
+                "reference": "699561907e07fc6cd56765ccbbe8c04e19da733f",
                 "shasum": ""
             },
             "require": {
@@ -495,11 +497,10 @@
             "require-dev": {
                 "drupol/php-conventions": "^5",
                 "ext-pcov": "*",
-                "infection/infection": "^0.26",
                 "phpbench/phpbench": "^1.2",
                 "phpstan/phpstan-strict-rules": "^1.0",
-                "phpunit/php-code-coverage": "^9.2",
-                "phpunit/phpunit": "^9.5"
+                "phpunit/php-code-coverage": "^9.2 || ^10",
+                "phpunit/phpunit": "^9.6 || ^10"
             },
             "type": "library",
             "autoload": {
@@ -534,7 +535,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-11-28T21:03:54+00:00"
+            "time": "2023-03-05T19:29:32+00:00"
         },
         {
             "name": "psr/cache",
@@ -957,16 +958,16 @@
         },
         {
             "name": "doctrine/collections",
-            "version": "2.0.1",
+            "version": "2.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/collections.git",
-                "reference": "d766a450ba818dacc4b1f50a56cfaad4683cefef"
+                "reference": "db8cda536a034337f7dd63febecc713d4957f9ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/collections/zipball/d766a450ba818dacc4b1f50a56cfaad4683cefef",
-                "reference": "d766a450ba818dacc4b1f50a56cfaad4683cefef",
+                "url": "https://api.github.com/repos/doctrine/collections/zipball/db8cda536a034337f7dd63febecc713d4957f9ee",
+                "reference": "db8cda536a034337f7dd63febecc713d4957f9ee",
                 "shasum": ""
             },
             "require": {
@@ -1023,7 +1024,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/collections/issues",
-                "source": "https://github.com/doctrine/collections/tree/2.0.1"
+                "source": "https://github.com/doctrine/collections/tree/2.1.2"
             },
             "funding": [
                 {
@@ -1039,7 +1040,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-09-30T08:03:04+00:00"
+            "time": "2022-12-27T23:41:38+00:00"
         },
         {
             "name": "doctrine/instantiator",
