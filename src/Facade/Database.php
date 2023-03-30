@@ -34,4 +34,30 @@ class Database
     {
         return self::getDB()->create($name);
     }
+
+    public static function get($table, $id)
+    {
+        return self::getDB()->get($table, $id);
+    }
+
+    public static function getOne($table, $id)
+    {
+        return self::getDB()->getOne($table, $id);
+    }
+
+    public static function exec($sql)
+    {
+        return self::getDB()->exec($sql);
+    }
+
+    public static function delete($model){
+        return self::getDB()->delete($model);
+    }
+
+    public static function find($table, $id)
+    {
+        return self::getDB()->find($table, $id);
+    }
+
+
 }
