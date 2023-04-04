@@ -8,7 +8,7 @@
    
 ![arca-orm](https://user-images.githubusercontent.com/7591484/170266248-62e23e46-241c-4063-93b8-772eb0de51b0.gif)
  
- Complete documentation can be found [here](https://github.com/scrawler-labs/arca-orm/wiki)
+ Complete documentation can be found [here](http://component.scrawlerlabs.com/Arca/)
 </div>
 <br><br>
 
