@@ -8,7 +8,7 @@
    
 ![arca-orm](https://user-images.githubusercontent.com/7591484/170266248-62e23e46-241c-4063-93b8-772eb0de51b0.gif)
  
- Complete documentation can be found [here](http://component.scrawlerlabs.com/Arca/)
+ Complete documentation can be found [here](http://component.scrawlerlabs.com/arca-orm)
 </div>
 <br><br>
 
@@ -18,14 +18,14 @@
 - Save loads of time while working on database
 - Built upon stable foundation of Doctrine Dbal and extensively tested
 - Thanks to [loophp](https://github.com/loophp/collection) Arca comes with Lazy collection and tons of helper collection functions
-- Supports lots database platforms , you can see the complete list [here](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)
-- Supports concurrent queries and connection pooling with swoole and async with amphp. Check out integration docs [here](https://github.com/scrawler-labs/arca-orm/wiki/7.-Using-with-Swoole-and-Amphp)
+- Supports lots database platforms , you can see the complete list [here](https://component.scrawlerlabs.com/arca-orm/database/)
+- Supports concurrent queries and connection pooling with swoole and async with amphp. Check out integration docs [here](https://component.scrawlerlabs.com/arca-orm/swoole/)
 <br><br>
 
 ## ❗Requirements
 - PHP 8.1 or greater
 - PHP PDO or other supported database adapter
-- Mysql, MariaDB, Sqlite or any other supported database. check the list [here]([https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/platforms.html#platforms](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)) 
+- Mysql, MariaDB, Sqlite or any other supported database. check the list [here](https://component.scrawlerlabs.com/arca-orm/database/)
 <br><br>
 ## 💻 Installation
 You can install Arca ORM via Composer. If you don't have composer installed , you can download composer from [here](https://getcomposer.org/download/)
@@ -57,7 +57,7 @@ composer require scrawler/arca
     $db = \Scrawler\Arca\Facade\Database::connect($connectionParams);
     
 ```
-For complete list of driver check [here](https://github.com/scrawler-labs/arca-orm/wiki/1.-Database-and-Drivers)
+For complete list of driver check [here](https://component.scrawlerlabs.com/arca-orm/database/)
     
 ### ✏️ CRUD
 ```php
@@ -89,6 +89,7 @@ For complete list of driver check [here](https://github.com/scrawler-labs/arca-o
      $user->delete();
 
 ```
+For complete CRUD documentaion visit [here](https://component.scrawlerlabs.com/arca-orm/crud/)
 
 ### 🔎 Finding data with query
 ```php
@@ -114,7 +115,8 @@ For complete list of driver check [here](https://github.com/scrawler-labs/arca-o
               ->get()
 
 ```
-For complete documentation visit the [wiki](https://github.com/scrawler-labs/arca-orm/wiki)
+For complete Query documentaion visit [here](https://component.scrawlerlabs.com/arca-orm/finding/)
+
 <br><br>
 ## 👏 Supporters
 If you have reached here consider giving a star to help this project ❤️ 
