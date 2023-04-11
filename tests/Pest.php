@@ -1,5 +1,6 @@
 <?php
-use function Pest\Faker\faker;
+use function Pest\Faker\fake;
+ 
 
 function db($uuid = "ID")
 {
@@ -26,12 +27,12 @@ function populateRandomUser($uuid = 'ID')
 {
     for ($i = 0; $i < 5; $i++) {
         $user = db($uuid)->create('user');
-        $user->name = faker()->name;
-        $user->email = faker()->email;
-        $user->dob = faker()->date;
-        $user->age = faker()->randomNumber(2, false);
+        $user->name = fake()->name();
+        $user->email = fake()->email();
+        $user->dob = fake()->date();
+        $user->age = fake()->randomNumber(2, false);
         $user->active = $i % 2 == 0 ? true : false;
-        $user->address = faker()->streetAddress();
+        $user->address = fake()->streetAddress();
         $user->save();
     }
 }
@@ -39,12 +40,12 @@ function populateRandomUser($uuid = 'ID')
 function createRandomUser($uuid = 'ID')
 {
     $user = db($uuid)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->active = faker()->randomNumber(2, false) % 2 == 0 ? true : false;
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->active = fake()->randomNumber(2, false) % 2 == 0 ? true : false;
+    $user->address = fake()->streetAddress();
     $id = $user->save();
     return $id;
 }

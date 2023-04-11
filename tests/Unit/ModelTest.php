@@ -1,5 +1,5 @@
 <?php
-use function Pest\Faker\faker;
+use function Pest\Faker\fake;
 
 
 beforeEach(function () {
@@ -19,15 +19,15 @@ it("checks if model is properly populated on retrive", function ($useUUID) {
 
 it("checks if model can retrive one-to-one related models", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
     //$id = $user->save();
 
     $parent = db($useUUID)->create('parent');
-    $parent->name = faker()->name;
+    $parent->name = fake()->name();
     $parent->user = $user;
     $id = $parent->save();
 
@@ -44,22 +44,22 @@ it("checks if model can retrive one-to-one related models", function ($useUUID) 
 
 it("checks if model can retrive one-to-many related models", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
 
     $user_two = db($useUUID)->create('user');
-    $user_two->name = faker()->name;
-    $user_two->email = faker()->email;
-    $user_two->dob = faker()->date;
-    $user_two->age = faker()->randomNumber(2, false);
-    $user_two->address = faker()->streetAddress();
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = fake()->randomNumber(2, false);
+    $user_two->address = fake()->streetAddress();
     //$id = $user->save();
 
     $parent = db($useUUID)->create('parent');
-    $parent->name = faker()->name;
+    $parent->name = fake()->name();
     $parent->ownUserList = [$user,$user_two];
     $id = $parent->save();
 
@@ -84,22 +84,22 @@ it("checks if model can retrive one-to-many related models", function ($useUUID)
 
 it("checks if model can retrive many-to-many related models", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
 
     $user_two = db($useUUID)->create('user');
-    $user_two->name = faker()->name;
-    $user_two->email = faker()->email;
-    $user_two->dob = faker()->date;
-    $user_two->age = faker()->randomNumber(2, false);
-    $user_two->address = faker()->streetAddress();
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = fake()->randomNumber(2, false);
+    $user_two->address = fake()->streetAddress();
     //$id = $user->save();
 
     $parent = db($useUUID)->create('parent');
-    $parent->name = faker()->name;
+    $parent->name = fake()->name();
     $parent->sharedUserList = [$user,$user_two];
     $id = $parent->save();
 

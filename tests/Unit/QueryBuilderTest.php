@@ -1,6 +1,5 @@
 <?php
 
-
  beforeEach(function () {
      db()->connection->query("DROP TABLE IF EXISTS user; ");
      db()->connection->query("DROP TABLE IF EXISTS parent; ");

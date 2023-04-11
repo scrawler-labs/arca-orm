@@ -54,9 +54,9 @@ class Database
         return self::getDB()->delete($model);
     }
 
-    public static function find($table, $id)
+    public static function find($table)
     {
-        return self::getDB()->find($table, $id);
+        return self::getDB()->find($table);
     }
 
 

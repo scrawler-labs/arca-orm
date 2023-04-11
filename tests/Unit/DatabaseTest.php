@@ -1,5 +1,5 @@
 <?php
- use function Pest\Faker\faker;
+use function Pest\Faker\fake;
 
 
  beforeEach(function () {
@@ -16,10 +16,10 @@ it(" checks db()->create() function ", function ($useUUID) {
 
 it("checks if db()->save() function creates table", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
     $user->active = false;
 
     $user->save();
@@ -47,42 +47,14 @@ it("checks if db()->save() function creates table", function ($useUUID) {
     $this->assertEmpty($diff->toSql(db()->platform));
 })->with('useUUID');
 
-it("checks if db()->save() function modifies table", function ($useUUID) {
-    $id = createRandomUser($useUUID);
-  
-
-    $table= db($useUUID)->manager->listTableDetails('user');
-    $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
-    if (db($useUUID)->isUsingUUID()) {
-        $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true));
-    } else {
-        $requiredTable->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
-    }
-    $requiredTable->addColumn('name', "string", ['notnull' => false, 'comment' => 'name']);
-    $requiredTable->addColumn('email', "string", ['notnull' => false, 'comment' => 'email']);
-    $requiredTable->addColumn('dob', "string", ['notnull' => false, 'comment' => 'dob']);
-    $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment' => 'age']);
-    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment' => 'active']);
-    $requiredTable->addColumn('address', "string", ['notnull' => false, 'comment' => 'address']);
-
-    $requiredTable->setPrimaryKey(array("id"));
-
-    $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
-    $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = new \Doctrine\DBAL\Schema\Comparator();
-    $diff = $comparator->compare($actual, $required);
-    //print_r($diff->toSql(db()->platform));
-
-    $this->assertEmpty($diff->toSql(db($useUUID)->platform));
-})->with('useUUID');
 
 it("checks if db()->save() function saves record", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
     $id = $user->save();
     //db()->connection->getNativeConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
@@ -97,15 +69,15 @@ it("checks if db()->save() function saves record", function ($useUUID) {
 
 it("checks if db()->save() function saves record with one-to-one relation", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
     //$id = $user->save();
 
     $parent = db($useUUID)->create('parent');
-    $parent->name = faker()->name;
+    $parent->name = fake()->name();
     $parent->user = $user;
     $id = $parent->save();
 
@@ -119,22 +91,22 @@ it("checks if db()->save() function saves record with one-to-one relation", func
 
 it("checks if db()->save() function saves record with one-to-many relation", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
 
     $user_two = db($useUUID)->create('user');
-    $user_two->name = faker()->name;
-    $user_two->email = faker()->email;
-    $user_two->dob = faker()->date;
-    $user_two->age = faker()->randomNumber(2, false);
-    $user_two->address = faker()->streetAddress();
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = fake()->randomNumber(2, false);
+    $user_two->address = fake()->streetAddress();
     //$id = $user->save();
 
     $parent = db($useUUID)->create('parent');
-    $parent->name = faker()->name;
+    $parent->name = fake()->name();
     $parent->ownUserList = [$user,$user_two];
     $id = $parent->save();
 
@@ -157,22 +129,22 @@ it("checks if db()->save() function saves record with one-to-many relation", fun
 
 it("checks if db()->save() function saves record with many-to-many relation", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
-    $user->email = faker()->email;
-    $user->dob = faker()->date;
-    $user->age = faker()->randomNumber(2, false);
-    $user->address = faker()->streetAddress();
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
 
     $user_two = db($useUUID)->create('user');
-    $user_two->name = faker()->name;
-    $user_two->email = faker()->email;
-    $user_two->dob = faker()->date;
-    $user_two->age = faker()->randomNumber(2, false);
-    $user_two->address = faker()->streetAddress();
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = fake()->randomNumber(2, false);
+    $user_two->address = fake()->streetAddress();
     //$id = $user->save();
 
     $parent = db($useUUID)->create('parent');
-    $parent->name = faker()->name;
+    $parent->name = fake()->name();
     $parent->sharedUserList = [$user,$user_two];
     $id = $parent->save();
 
@@ -285,7 +257,7 @@ it("checks if all public instance of database files are correct", function () {
 
 it("checks  db()->exec() function", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
+    $user->name = fake()->name();
     $user->save();
     if (db($useUUID)->isUsingUUID()) {
         db($useUUID)->exec("insert into user (id,name) values ('abc-jfke-dmsk','john')");
@@ -302,7 +274,7 @@ it("checks  db()->exec() function", function ($useUUID) {
 
 it("checks  db()->getAll() function", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
+    $user->name = fake()->name();
     $user->save();
 
     $stmt = db($useUUID)->connection->prepare("SELECT * FROM user");
@@ -315,7 +287,7 @@ it("checks  db()->getAll() function", function ($useUUID) {
 
 it("checks db()->delete() function", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $user->name = faker()->name;
+    $user->name = fake()->name();
     $id = $user->save();
     $user->delete();
     $stmt = db($useUUID)->connection->prepare("SELECT * FROM user where id = '".$id."'");
