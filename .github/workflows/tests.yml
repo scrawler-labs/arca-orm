@@ -35,6 +35,6 @@ jobs:
       - name: run tests
         run: vendor/bin/pest --coverage-clover ./clover.xml
       - name: Check Dir
-        run: pwd
+        run: ls
       - name: Upload to Codecov
         uses: codecov/codecov-action@v3
