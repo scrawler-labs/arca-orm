@@ -3,6 +3,7 @@ on: [push, pull_request,workflow_dispatch]
 jobs:
   arca-tests:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
     strategy:
       matrix:
         operating-system: ['ubuntu-latest']
@@ -37,9 +38,6 @@ jobs:
       - name: Generate test coverage badge
         uses: timkrase/phpunit-coverage-badge@v1.2.0
         with:
-          coverage_badge_path: 'badge-coverage.svg'
-          push_badge: true
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
           coverage_badge_path: 'badge-coverage.svg'
           push_badge: true
           repo_token: ${{ secrets.GITHUB_TOKEN }}
