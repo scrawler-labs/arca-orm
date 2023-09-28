@@ -26,7 +26,7 @@
         "loophp/phpunit-iterable-assertions": "1.0.3",
         "doctrine/collections": "2.1.2",
         "phpstan/phpstan": "1.7.3",
-        "phpmd/phpmd": "2.12.0",
+        "phpmd/phpmd": "2.14.1",
         "pestphp/pest": "^2.4",
         "pestphp/pest-plugin-faker": "^2.0"
     },
