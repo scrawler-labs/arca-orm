@@ -407,35 +407,35 @@
         },
         {
             "name": "loophp/collection",
-            "version": "7.1.2",
+            "version": "7.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/collection.git",
-                "reference": "4e60bd168ca9e1a94817f2a13fcf96e12a0d1ee7"
+                "reference": "5321ebc15532209ae1bc7a0113e31fe611645d08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/collection/zipball/4e60bd168ca9e1a94817f2a13fcf96e12a0d1ee7",
-                "reference": "4e60bd168ca9e1a94817f2a13fcf96e12a0d1ee7",
+                "url": "https://api.github.com/repos/loophp/collection/zipball/5321ebc15532209ae1bc7a0113e31fe611645d08",
+                "reference": "5321ebc15532209ae1bc7a0113e31fe611645d08",
                 "shasum": ""
             },
             "require": {
-                "loophp/iterators": "^2.3.1",
-                "php": ">= 8"
+                "loophp/iterators": "^2.3.5",
+                "php": ">= 8.1"
             },
             "require-dev": {
                 "amphp/parallel-functions": "^1",
-                "doctrine/collections": "^1.8 || ^2",
+                "doctrine/collections": "^2",
                 "drupol/php-conventions": "^5",
                 "ext-pcov": "*",
-                "infection/infection": "^0.26 || ^0.27",
+                "infection/infection": "^0.27",
                 "loophp/phpunit-iterable-assertions": "^1.0",
                 "phpstan/phpstan-strict-rules": "^1.0",
-                "phpunit/php-code-coverage": "^9 || ^10",
-                "phpunit/phpunit": "^9 || ^10",
+                "phpunit/php-code-coverage": "^10",
+                "phpunit/phpunit": "^10",
                 "psr/cache": "^2.0 || 3.0",
                 "symfony/cache": "^6",
-                "vimeo/psalm": "^5.5"
+                "vimeo/psalm": "^5.14"
             },
             "type": "library",
             "autoload": {
@@ -479,32 +479,35 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-02-16T16:37:19+00:00"
+            "time": "2023-09-06T06:38:42+00:00"
         },
         {
             "name": "loophp/iterators",
-            "version": "2.3.4",
+            "version": "2.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/iterators.git",
-                "reference": "699561907e07fc6cd56765ccbbe8c04e19da733f"
+                "reference": "2803e437843f43d2b34fbc4963372815d31ddc0e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/iterators/zipball/699561907e07fc6cd56765ccbbe8c04e19da733f",
-                "reference": "699561907e07fc6cd56765ccbbe8c04e19da733f",
+                "url": "https://api.github.com/repos/loophp/iterators/zipball/2803e437843f43d2b34fbc4963372815d31ddc0e",
+                "reference": "2803e437843f43d2b34fbc4963372815d31ddc0e",
                 "shasum": ""
             },
             "require": {
-                "php": ">= 8.0"
+                "php": ">= 8.1"
             },
             "require-dev": {
                 "drupol/php-conventions": "^5",
                 "ext-pcov": "*",
                 "phpbench/phpbench": "^1.2",
                 "phpstan/phpstan-strict-rules": "^1.0",
-                "phpunit/php-code-coverage": "^9.2 || ^10",
-                "phpunit/phpunit": "^9.6 || ^10"
+                "phpunit/php-code-coverage": "^10",
+                "phpunit/phpunit": "^10"
+            },
+            "suggest": {
+                "ext-mbstring": "For UTF-8 support in the StringIteratorAggregate."
             },
             "type": "library",
             "autoload": {
@@ -539,7 +542,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-03-05T19:29:32+00:00"
+            "time": "2023-09-01T19:35:19+00:00"
         },
         {
             "name": "psr/cache",
