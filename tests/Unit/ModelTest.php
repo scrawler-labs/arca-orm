@@ -123,6 +123,47 @@ it("checks if model can retrive many-to-many related models", function ($useUUID
     );
 })->with('useUUID');
 
+it("checks if model can retrive many-to-many related models using with function", function ($useUUID) {
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
+
+    $user_two = db($useUUID)->create('user');
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = fake()->randomNumber(2, false);
+    $user_two->address = fake()->streetAddress();
+    //$id = $user->save();
+
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->sharedUserList = [$user,$user_two];
+    $id = $parent->save();
+
+    $parent_retrived = db()->get('parent', $id)->with(['sharedUserList']);
+    $users_retrived = $parent_retrived->sharedUserList->apply(function ($user) {
+        unset($user->id);
+    });
+
+    if (db($useUUID)->isUsingUUID()) {
+        unset($user->id);
+        unset($user_two->id);
+    }
+
+    $test_collection = \Scrawler\Arca\Collection::fromIterable([$user,$user_two])
+    ->map(static fn ($model): \Scrawler\Arca\Model => $model->setLoaded());
+  
+    $test_collection_two = \Scrawler\Arca\Collection::fromIterable([$user_two,$user])
+    ->map(static fn ($model): \Scrawler\Arca\Model => $model->setLoaded());
+    $this->assertTrue(
+        ($users_retrived->toString() == $test_collection->toString() || $users_retrived->toString() == $test_collection_two->toString())
+    );
+})->with('useUUID');
+
 
 it("check exception is thrown when non existent key is accessed", function ($useUUID) {
     $id = createRandomUser($useUUID);

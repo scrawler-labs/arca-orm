@@ -90,10 +90,10 @@ class RecordManager
     /**
      * Get all records
      *
-     * @param String $tableName
+     * @param string $tableName
      * @return \Scrawler\Arca\Collection
      */
-    public function getAll(String $tableName): Collection
+    public function getAll(string $tableName): Collection
     {
         return (new QueryBuilder($this->db))
             ->select('*')

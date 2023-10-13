@@ -130,6 +130,15 @@ class Model
         throw new Exception\KeyNotFoundException();
     }
 
+    public function with(array $relations) : Model
+    {
+        foreach ($relations as $relation) {
+            $this->get($relation);
+        }
+        return $this;
+    }
+
+
     /**
      * Unset a property from model
      *

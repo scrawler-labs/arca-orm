@@ -7,10 +7,10 @@ use function Pest\Faker\fake;
     db()->connection->query("DROP TABLE IF EXISTS parent_user; ");
 });
 
-it('tests table manger update functionality',function(){
+it('tests table manger update functionality',function($useUUID){
     createRandomUser($useUUID);
 
-    $user = db($uuid)->create('user');
+    $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
     $user->dob = fake()->date();
@@ -44,4 +44,4 @@ it('tests table manger update functionality',function(){
     //print_r($diff->toSql(db()->platform));
 
     $this->assertEmpty($diff->toSql(db($useUUID)->platform));
-});
+})->with('useUUID');
