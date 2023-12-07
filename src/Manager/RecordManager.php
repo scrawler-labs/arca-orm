@@ -5,7 +5,7 @@ namespace Scrawler\Arca\Manager;
 use \Scrawler\Arca\Collection;
 use \Scrawler\Arca\QueryBuilder;
 use \Scrawler\Arca\Model;
-use \Scrawler\Arca\Database;
+use \Doctrine\DBAL\Connection;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -13,46 +13,45 @@ use Ramsey\Uuid\Uuid;
  */
 class RecordManager
 {
-    private Database $db;
+    private Connection $connection;
+
+    private bool $isUsingUUID;
     
     /**
      * Create RecordManager
-     * @param \Scrawler\Arca\Database $db
      */
-    public function __construct(Database $db)
+    public function __construct(Connection $connection, bool $isUsingUUID = false)
     {
-        $this->db = $db;
+        $this->connection = $connection;
+        $this->isUsingUUID = $isUsingUUID;
     }
+
 
 
     /**
      * Create a new record
      *
-     * @param \Scrawler\Arca\Model $model
-     * @return mixed $id int for id and string for uuid
      */
     public function insert(Model $model) : mixed
     {
-        if ($this->db->isUsingUUID()) {
+        if ($this->isUsingUUID) {
             $model->id = UUID::uuid4()->toString();
         }
-        $this->db->connection->insert($model->getName(), $model->getProperties());
-        if ($this->db->isUsingUUID()) {
+        $this->connection->insert($model->getName(), $model->getProperties());
+        if ($this->isUsingUUID) {
             return $model->id;
         }
-        return (int) $this->db->connection->lastInsertId();
+        return (int) $this->connection->lastInsertId();
     }
 
 
     /**
      * Update a record
      *
-     * @param \Scrawler\Arca\Model $model
-     * @return mixed $id
      */
     public function update(Model $model) : mixed
     {
-        $this->db->connection->update($model->getName(), $model->getProperties(), ['id'=>$model->getId()]);
+        $this->connection->update($model->getName(), $model->getProperties(), ['id'=>$model->getId()]);
         return $model->getId();
     }
 
@@ -60,28 +59,24 @@ class RecordManager
     /**
      * Delete a record
      *
-     * @param \Scrawler\Arca\Model $model
-     * @return mixed $id
      */
     public function delete(Model $model) : mixed
     {
-        $this->db->connection->delete($model->getName(), ['id'=>$model->getId()]);
+        $this->connection->delete($model->getName(), ['id'=>$model->getId()]);
         return $model->getId();
     }
 
     /**
     * Get single record by id
     *
-    * @param \Scrawler\Arca\Model $model
-    * @return \Scrawler\Arca\Model
     */
     public function getById(Model $model, mixed $id): Model
     {
-        $query =  (new QueryBuilder($this->db))
+        $query =  (new QueryBuilder($this->connection))
                  ->select('*')
                  ->from($model->getName(), 't')
                  ->where("t.id = '".$id."'");
-        $result = $this->db->connection->executeQuery($query)->fetchAssociative();
+        $result = $this->connection->executeQuery($query)->fetchAssociative();
         $result = $result ? $result : [];
         return $model->setProperties($result)->setLoaded();
     }
@@ -90,12 +85,10 @@ class RecordManager
     /**
      * Get all records
      *
-     * @param string $tableName
-     * @return \Scrawler\Arca\Collection
      */
     public function getAll(string $tableName): Collection
     {
-        return (new QueryBuilder($this->db))
+        return (new QueryBuilder($this->connection))
             ->select('*')
             ->from($tableName, 't')
             ->get();
@@ -104,12 +97,10 @@ class RecordManager
     /**
      * get query builder from db
      *
-     * @param String $name
-     * @return \Scrawler\Arca\QueryBuilder
      */
     public function find(String $name) : QueryBuilder
     {
-        return (new QueryBuilder($this->db))
+        return (new QueryBuilder($this->connection))
         ->select('*')
         ->from($name, 't');
     }

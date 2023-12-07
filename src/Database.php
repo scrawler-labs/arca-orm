@@ -2,9 +2,6 @@
 declare(strict_types=1);
 
 namespace Scrawler\Arca;
-use Scrawler\Arca\Manager\TableManager;
-use Scrawler\Arca\Manager\RecordManager;
-use Scrawler\Arca\Manager\ModelManager;
 use \Doctrine\DBAL\Connection;
 
 /**
@@ -29,21 +26,6 @@ class Database
      */
     public \Doctrine\DBAL\Schema\AbstractSchemaManager $manager;
     /**
-     * Instance of table manager responsible for working with tables
-     * @var \Scrawler\Arca\Manager\TableManager
-     */
-    private TableManager $tableManager;
-    /**
-     * Instance of record manager responsible for working with records
-     * @var \Scrawler\Arca\Manager\RecordManager
-     */
-    private RecordManager $recordManager;
-    /**
-     * Model manager rsponisble for bootstrapping model instance
-     * @var \Scrawler\Arca\Manager\ModelManager
-     */
-    private ModelManager $modelManager;
-    /**
      * When $isFrozen is set to true tables are not updated/created
      * @var bool
      */
@@ -54,27 +36,27 @@ class Database
      */
     private bool $useUUID = false;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection , bool $useUUID = false)
     {
         $this->connection = $connection;
         $this->platform = $this->connection->getDatabasePlatform();
         $this->manager = $this->connection->createSchemaManager();
-        
-    }
-
-    /**
-     * Once you initialize database, use this to set all manager for database class to work correctly
-     * @param TableManager $tableManager
-     * @param RecordManager $recordManager
-     * @param ModelManager $modelManager
-     * @return void
-     */
-    public function setManagers(TableManager $tableManager, RecordManager $recordManager, ModelManager $modelManager){
-        $this->tableManager = $tableManager;
-        $this->recordManager = $recordManager;
-        $this->modelManager = $modelManager;
+        $this->useUUID = $useUUID;
+        Managers::create($connection, $useUUID);
+        $this->registerEvents();
 
     }
+
+    public function registerEvents()
+    {
+        Event::subscribeTo('model.save', function ($model) {
+            return $this->save($model);
+        });
+        Event::subscribeTo('model.delete', function ($model) {
+            return $this->delete($model);
+        });
+    }
+
 
     /**
      * Executes an SQL query and returns the number of row affected
@@ -108,7 +90,7 @@ class Database
      */
     public function create(string $name) : Model
     {
-        return $this->modelManager->create($name);
+        return new Model($name);
     }
 
     /**
@@ -148,18 +130,18 @@ class Database
     private function createTables($model)
     {
         if (!$this->isFroozen) {
-            $table = $this->tableManager->createTable($model);
-            $this->tableManager->saveOrUpdateTable($model->getName(), $table);
+            $table = Managers::tableManager()->createTable($model);
+            Managers::tableManager()->saveOrUpdateTable($model->getName(), $table);
         }
     }
 
     private function createRecords($model) : mixed
     {
         if ($model->isLoaded()) {
-            return $this->recordManager->update($model);
+            return Managers::recordManager()->update($model);
         }
         
-        return $this->recordManager->insert($model);
+        return Managers::recordManager()->insert($model);
     }
 
 
@@ -263,11 +245,6 @@ class Database
         }
     }
 
-    public function getTableManager()
-    {
-        return $this->tableManager;
-    }
-
     /**
      * Delete record from database
      *
@@ -276,15 +253,11 @@ class Database
      */
     public function delete(\Scrawler\Arca\Model $model) : mixed
     {
-        return $this->recordManager->delete($model);
+        return Managers::recordManager()->delete($model);
     }
 
     /**
      * Get collection of all records from table
-     *
-     * @param String $table
-     * @param mixed|null $id
-     * @return mixed
      */
     public function get(String $table,mixed $id = null) : Model|Collection
     {
@@ -293,19 +266,16 @@ class Database
             return $this->getOne($table,$id);
         }
 
-        return $this->recordManager->getAll($table);
+        return Managers::recordManager()->getAll($table);
     }
 
     /**
      * Get single record
      *
-     * @param String $table
-     * @param mixed $id
-     * @return mixed
      */
     public function getOne(String $table, mixed $id) : Model
     {
-        return $this->recordManager->getById($this->create($table), $id);
+        return Managers::recordManager()->getById($this->create($table), $id);
     }
 
     /**
@@ -317,7 +287,7 @@ class Database
      */
     public function find(string $name) : QueryBuilder
     {
-        return $this->recordManager->find($name);
+        return Managers::recordManager()->find($name);
     }
 
     /**
@@ -327,24 +297,6 @@ class Database
     public function freeze() : void
     {
         $this->isFroozen = true;
-    }
-
-    /**
-     * Call this to useUUID over normal id
-     * @return void
-     */
-    public function useUUID() : void
-    {
-        $this->useUUID = true;
-    }
-
-    /**
-     * Call this to use id (id is used by default)
-     * @return void
-     */
-    public function useID() : void
-    {
-        $this->useUUID = false;
     }
 
     /**

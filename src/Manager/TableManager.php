@@ -5,27 +5,40 @@ namespace Scrawler\Arca\Manager;
 use \Doctrine\DBAL\Schema\Schema;
 use \Doctrine\DBAL\Schema\Table;
 use \Doctrine\DBAL\Schema\Comparator;
-use \Scrawler\Arca\Database;
+use \Doctrine\DBAL\Connection;
+use \Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Scrawler\Arca\Model;
 
 /**
  * Class resposible for creating and modifing table
  */
 class TableManager
 {
-    private Database $db;
+    private Connection $connection;
+
+    private bool $isUsingUUID;
+
+    private AbstractSchemaManager $manager;
+
+    private \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
+
+
+
 
     /**
      * create TableManager
      */
-    public function __construct($db)
+    public function __construct(Connection $connection, bool $isUsingUUID = false)
     {
-        $this->db = $db;
+        $this->connection = $connection;
+        $this->isUsingUUID = $isUsingUUID;
+        $this->manager = $this->connection->getSchemaManager();
+        $this->platform = $this->connection->getDatabasePlatform();
     }
+
 
     /**
      * Creates a table schema from table instance
-     * @param \Scrawler\Arca\Model $model
-     * @return \Doctrine\DBAL\Schema\Schema
      */
     public function createTableSchema(Table $table): Schema
     {
@@ -34,33 +47,27 @@ class TableManager
 
     /**
      * Get Table schema from existing table
-     * @param String $table (name of table)
-     * @return \Doctrine\DBAL\Schema\Schema
      */
-    public function getTableSchema(String $table): Schema
+    public function getTableSchema(string $table): Schema
     {
-        return new Schema([$this->db->manager->listTableDetails($table)]);
+        return new Schema([$this->manager->listTableDetails($table)]);
     }
     
     /**
      * Get Table detail from existing table
-     * @param String $table (name of table)
-     * @return \Doctrine\DBAL\Schema\Table
      */
-    public function getTable(String $table) : Table
+    public function getTable(string $table) : Table
     {
-        return $this->db->manager->listTableDetails($table);
+        return $this->manager->listTableDetails($table);
     }
 
     /**
      * Create table from model
-     * @param \Scrawler\Arca\Model $model
-     * @return \Doctrine\DBAL\Schema\Table
      */
-    public function createTable($model) : Table
+    public function createTable(Model $model) : Table
     {
         $table = new Table($model->getName());
-        if ($this->db->isUsingUUID()) {
+        if ($this->isUsingUUID) {
             $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true,]);
         } else {
             $table->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
@@ -77,25 +84,20 @@ class TableManager
 
     /**
      * Save table to database
-     * @param \Doctrine\DBAL\Schema\Table $table
-     * @return void
      */
     public function saveTable(Table $table): void
     {
         $schema = $this->createTableSchema($table);
-        $queries = $schema->toSql($this->db->platform);
+        $queries = $schema->toSql($this->platform);
         foreach ($queries as $query) {
-            $this->db->connection->executeQuery($query);
+            $this->connection->executeQuery($query);
         }
     }
 
     /**
      * Add missing column to existing table from given table
-     * @param String $table_name (table name of existing table)
-     * @param \Doctrine\DBAL\Schema\Table  $new_table (table schema of new table)
-     * @return void
      */
-    public function updateTable(String $table_name, Table $new_table) : void
+    public function updateTable(string $table_name, Table $new_table) : void
     {
         $comparator = new Comparator();
         $old_table = $this->getTable($table_name);
@@ -110,28 +112,24 @@ class TableManager
             $new_schema = $this->createTableSchema($mod_table);
             $schemaDiff = $comparator->compareSchemas($old_schema, $new_schema);
 
-            $queries = $schemaDiff->toSaveSql($this->db->platform);
+            $queries = $schemaDiff->toSaveSql($this->platform);
         
             foreach ($queries as $query) {
-                $this->db->connection->executeQuery($query);
+                $this->connection->executeQuery($query);
             }
         }
     }
 
     /**
      * Check if table exists
-     * @param String $table_name
-     * @return bool
      */
-    public function tableExists(String $table_name): bool
+    public function tableExists(string $table_name): bool
     {
         return !empty($this->getTable($table_name)->getColumns());
     }
 
     /**
      * If table exist update it else create it
-     * @param String $table_name (table name of existing table)
-     * @param \Doctrine\DBAL\Schema\Table  $new_table (table schema of new table)
      */
     public function saveOrUpdateTable(String $table_name, Table $new_table): void
     {

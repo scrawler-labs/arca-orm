@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace Scrawler\Arca;
+use Scrawler\Arca\Manager\ModelManager;
 
 /**
  * Model class that represents single record in database
@@ -11,12 +12,11 @@ class Model
     private string $table;
     private $_id = 0;
     private array $__meta = [];
-    private \Scrawler\Arca\Database $db;
 
 
-    public function __construct(string $name, Database $db)
+    public function __construct(string $name)
     {
-        $this->db = $db;
+
         $this->table = $name;
         $this->__meta['has_foreign']['oto'] = false;
         $this->__meta['has_foreign']['otm'] = false;
@@ -30,8 +30,6 @@ class Model
     /**
      * adds the key to properties
      *
-     * @param String $key
-     * @param Mixed $val
      */
     public function __set(string $key, mixed $val): void
     {
@@ -39,10 +37,8 @@ class Model
     }
 
     /**
-     * adds the key to properties
+     * Adds the key to properties
      *
-     * @param String $key
-     * @param Mixed $val
      */
     public function set(string $key, mixed $val): void
     {
@@ -80,8 +76,6 @@ class Model
     /**
      * Get a key from properties, keys can be relational
      * like sharedList,ownList or foreign table
-     * @param string $key
-     * @return mixed
      */
     public function __get(string $key): mixed
     {
@@ -91,30 +85,28 @@ class Model
     /**
      * Get a key from properties, keys can be relational
      * like sharedList,ownList or foreign table
-     * @param string $key
-     * @return mixed
      */
-    public function get(string $key)
+    public function get(string $key) : mixed
     {
 
         if (preg_match('/[A-Z]/', $key)) {
             $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
                 if (strtolower($parts[2]) == 'list') {
-                    return $this->db->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->_id . '"')->get();
+                    return Managers::recordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->_id . '"')->get();
                 }
             }
             if (strtolower($parts[0]) == 'shared') {
                 if (strtolower($parts[2]) == 'list') {
-                    $rel_table = $this->db->getTableManager()->tableExists($this->table . '_' . strtolower($parts[1])) ? $this->table . '_' . strtolower($parts[1]) : strtolower($parts[1]) . '_' . $this->table;
-                    $relations = $this->db->find($rel_table)->where($this->getName() . '_id = "' . $this->_id . '"')->get();
+                    $rel_table = Managers::tableManager()->tableExists($this->table . '_' . strtolower($parts[1])) ? $this->table . '_' . strtolower($parts[1]) : strtolower($parts[1]) . '_' . $this->table;
+                    $relations = Managers::recordManager()->find($rel_table)->where($this->getName() . '_id = "' . $this->_id . '"')->get();
                     $rel_ids = '';
                     foreach ($relations as $relation) {
                         $key = strtolower($parts[1]) . '_id';
                         $rel_ids .= "'" . $relation->$key . "',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    return $this->db->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
+                    return Managers::recordManager()->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
                 }
             }
         }
@@ -124,7 +116,7 @@ class Model
         }
 
         if (array_key_exists($key . '_id', $this->properties)) {
-            return $this->db->get($key, $this->properties[$key . '_id']);
+            return Managers::recordManager()->getById(Managers::modelManager()->create($key), $this->properties[$key . '_id']);
         }
 
         throw new Exception\KeyNotFoundException();
@@ -142,7 +134,6 @@ class Model
     /**
      * Unset a property from model
      *
-     * @param string $key
      */
     public function __unset(string $key): void
     {
@@ -152,7 +143,6 @@ class Model
     /**
      * Unset a property from model
      *
-     * @param string $key
      */
     public function unset(string $key): void
     {
@@ -162,8 +152,6 @@ class Model
     /**
      * Check if property exists
      *
-     * @param string $key
-     * @return boolean
      */
     public function __isset(string $key): bool
     {
@@ -183,9 +171,6 @@ class Model
 
     /**
      * Set all properties of model via array
-     *
-     * @param array $properties
-     * @return Model
      */
     public function setProperties(array $properties): Model
     {
@@ -199,7 +184,6 @@ class Model
     /**
      * Get all properties in array form
      *
-     * @return array
      */
     public function getProperties(): array
     {
@@ -209,7 +193,6 @@ class Model
     /**
      * Get all properties in array form
      *
-     * @return array
      */
     public function toArray(): array
     {
@@ -218,7 +201,6 @@ class Model
 
     /**
      *  check if model loaded from db
-     * @return array
      */
     public function isLoaded(): bool
     {
@@ -228,7 +210,6 @@ class Model
     /**
      * call when model is loaded from database
      *
-     * @return Model
      */
     public function setLoaded(): Model
     {
@@ -239,7 +220,6 @@ class Model
     /**
      * Get current table name of model
      *
-     * @return String
      */
     public function getName(): string
     {
@@ -249,7 +229,6 @@ class Model
     /**
      * Get current model Id or UUID
      *
-     * @return mixed
      */
     public function getId(): mixed
     {
@@ -260,11 +239,10 @@ class Model
     /**
      * Save model to database
      *
-     * @return mixed returns int when id is used else returns string for uuid
      */
     public function save(): mixed
     {
-        $id = $this->db->save($this);
+        $id = Event::dispatch('model.save', [$this]);
         $this->id = $id;
         $this->_id = $id;
         return $id;
@@ -275,12 +253,11 @@ class Model
      */
     public function delete(): void
     {
-        $this->db->delete($this);
+        Event::dispatch('model.delete', [$this]);
     }
 
     /**
      * Converts model into json object
-     * @return string
      */
     public function toString(): string
     {
@@ -289,7 +266,6 @@ class Model
 
     /**
      * Converts model into json object
-     * @return string
      */
     public function __toString(): string
     {
@@ -300,18 +276,14 @@ class Model
     /**
      * Function used to compare to models
      *
-     * @param self $other
-     * @return boolean
      */
-    public function equals(self$other): bool
+    public function equals(self $other): bool
     {
         return ($this->getId() === $other->getId() && $this->toString() === $other->toString());
     }
 
     /**
      * Check if model has any relations
-     *
-     * @return boolean
      */
     public function hasForeign($type): bool
     {
@@ -320,8 +292,6 @@ class Model
 
     /**
      * returns all relational models
-     *
-     * @return array
      */
     public function getForeignModels($type): array
     {

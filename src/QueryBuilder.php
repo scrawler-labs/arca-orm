@@ -10,13 +10,9 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
     private string $table;
     private array $relations= [];
 
-    private Database $db;
-
-    public function __construct(Database $db)
+    public function __construct(\Doctrine\DBAL\Connection $connection)
     {
-        $this->db = $db;
-        parent::__construct($this->db->connection);
-
+        parent::__construct($connection);
     }
 
     public function with(string $relation): QueryBuilder
@@ -36,7 +32,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 
     public function get(): Collection
     {
-        $model = $this->db->create($this->table);
+        $model = Managers::modelManager()->create($this->table);
         $relations = $this->relations;
         $this->relations = [];
         return Collection::fromIterable($this->fetchAllAssociative())
@@ -48,6 +44,6 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         $relations = $this->relations;
         $this->relations = [];
         $result = $this->fetchAssociative() ? $this->fetchAssociative() : [];
-        return ($this->db->create($this->table))->setProperties($result)->with($relations)->setLoaded();
+        return (Managers::modelManager()->create($this->table))->setProperties($result)->with($relations)->setLoaded();
     }
 }

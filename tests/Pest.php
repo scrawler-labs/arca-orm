@@ -15,10 +15,9 @@ function db($uuid = "ID")
     $db = Scrawler\Arca\Facade\Database::connect($connectionParams);
 
     if ($uuid == 'UUID') {
-        $db->useUUID();
-        return $db;
+        $db = Scrawler\Arca\Facade\Database::connect($connectionParams, true);
     }
-    $db->useID();
+    
     return $db;
 }
 
