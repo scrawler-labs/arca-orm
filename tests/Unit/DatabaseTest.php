@@ -1,6 +1,6 @@
 <?php
 use function Pest\Faker\fake;
-
+use Doctrine\DBAL\Exception\DriverException;
 
  beforeEach(function () {
      db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
@@ -134,6 +134,71 @@ it("checks if db()->save() function saves record with one-to-many relation", fun
         ($result_child[0] == $user->toArray() || $result_child[0] == $user_two->toArray())
     );
 })->with('useUUID');
+
+it("checks for exception in database save()",function($useUUID){
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
+    $user->save();
+
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = 'error';
+    $user->address = fake()->streetAddress();
+    $user->save();
+})->with('useUUID')->throws(DriverException::class);
+
+it("checks for exception in database saveOto()",function($useUUID){
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
+    $user->save();
+
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = 'error';
+    $user->address = fake()->streetAddress();
+    #$user->save();
+
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->user = $user;
+    $id = $parent->save();
+})->with('useUUID')->throws(DriverException::class);
+
+it("checks for exception in database saveMto()",function($useUUID){
+
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
+
+    $user_two = db($useUUID)->create('user');
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = 'error';
+    $user_two->address = fake()->streetAddress();
+    //$id = $user->save();
+
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->sharedUserList = [$user,$user_two];
+    $id = $parent->save();
+})->with('useUUID')->throws(DriverException::class);
+
+
 
 it("checks if db()->save() function saves record with many-to-many relation", function ($useUUID) {
     $user = db($useUUID)->create('user');
