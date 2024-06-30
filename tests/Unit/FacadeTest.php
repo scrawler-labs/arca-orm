@@ -2,32 +2,40 @@
 use function Pest\Faker\fake;
 
  beforeEach(function () {
-    db()->connection->query("DROP TABLE IF EXISTS user; ");
-    db()->connection->query("DROP TABLE IF EXISTS parent; ");
-    db()->connection->query("DROP TABLE IF EXISTS parent_user; ");
+    db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
+    db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
+    db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+});
+
+it('tests DB::connect()',function(){
+    $connectionParams = array(
+        'dbname' => 'test',
+        'user' => 'root',
+        'password' => 'root@1432',
+        'host' => '127.0.0.1',
+        'driver' => 'pdo_mysql',
+    );
+    $db = \Scrawler\Arca\Facade\Database::connect($connectionParams);
+    $this->assertInstanceOf(\Scrawler\Arca\Database::class, $db);
+
 });
 
 it('tests DB::create()',function(){
-    db();
     $user = \Scrawler\Arca\Facade\Database::create('user');
-    $model =  new \Scrawler\Arca\Model('user',db());
+    $model =  new \Scrawler\Arca\Model('user',db()->connection);
     $this->assertObjectEquals($model, $user);
 });
 
 it('tests DB::get()',function(){
-    db();
     populateRandomUser();
-    $id = createRandomUser();
-    $user = \Scrawler\Arca\Facade\Database::get('user', $id);
-
-    $stmt = db()->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
-    $result = json_encode($stmt->executeQuery()->fetchAssociative());
+    $users = \Scrawler\Arca\Facade\Database::get('user');
+    $stmt = db()->connection->prepare("SELECT * FROM user");
+    $result = json_encode($stmt->executeQuery()->fetchAllAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
-        $user->toString()
+        $users->toString()
     );
-    $this->assertIsString((string) $user);
-    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
+    $this->assertInstanceOf(\Scrawler\Arca\Collection::class, $users);
 });
 
 it('tests DB::getOne()',function(){

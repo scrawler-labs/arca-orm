@@ -1,24 +1,26 @@
 <?php
 use function Pest\Faker\fake;
  
-
-function db($uuid = "ID")
+function db($uuid='ID')
 {
+    $useUUID = $uuid == 'UUID' ? true : false;
+
     $connectionParams = array(
         'dbname' => 'test_database',
         'user' => 'admin',
         'password' => 'rootpass',
         'host' => '127.0.0.1',
         'driver' => 'pdo_mysql',
+        'useUUID' => $useUUID,
     );
 
-    $db = Scrawler\Arca\Facade\Database::connect($connectionParams);
-
-    if ($uuid == 'UUID') {
-        $db = Scrawler\Arca\Facade\Database::connect($connectionParams, true);
+    if ($useUUID) {
+        static $dbUUID = Scrawler\Arca\Facade\Database::connect($connectionParams);
+        return $dbUUID;
+    } else {
+        static $dbID = Scrawler\Arca\Facade\Database::connect($connectionParams);
+        return $dbID;
     }
-    
-    return $db;
 }
 
 

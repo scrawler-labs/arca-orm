@@ -16,16 +16,18 @@ class RecordManager
     private Connection $connection;
 
     private bool $isUsingUUID;
+
+    private ModelManager $modelManager;
     
     /**
      * Create RecordManager
      */
-    public function __construct(Connection $connection, bool $isUsingUUID = false)
+    public function __construct(Connection $connection, ModelManager $modelManager,bool $isUsingUUID = false)
     {
         $this->connection = $connection;
         $this->isUsingUUID = $isUsingUUID;
+        $this->modelManager = $modelManager;
     }
-
 
 
     /**
@@ -70,15 +72,15 @@ class RecordManager
     * Get single record by id
     *
     */
-    public function getById(Model $model, mixed $id): Model
+    public function getById($table, mixed $id): Model
     {
-        $query =  (new QueryBuilder($this->connection))
+        $query =  (new QueryBuilder($this->connection,$this->modelManager))
                  ->select('*')
-                 ->from($model->getName(), 't')
+                 ->from($table, 't')
                  ->where("t.id = '".$id."'");
         $result = $this->connection->executeQuery($query)->fetchAssociative();
         $result = $result ? $result : [];
-        return $model->setProperties($result)->setLoaded();
+        return $this->modelManager->create($table)->setProperties($result)->setLoaded();
     }
 
 
@@ -88,7 +90,7 @@ class RecordManager
      */
     public function getAll(string $tableName): Collection
     {
-        return (new QueryBuilder($this->connection))
+        return (new QueryBuilder($this->connection,$this->modelManager))
             ->select('*')
             ->from($tableName, 't')
             ->get();
@@ -100,7 +102,7 @@ class RecordManager
      */
     public function find(String $name) : QueryBuilder
     {
-        return (new QueryBuilder($this->connection))
+        return (new QueryBuilder($this->connection,$this->modelManager))
         ->select('*')
         ->from($name, 't');
     }

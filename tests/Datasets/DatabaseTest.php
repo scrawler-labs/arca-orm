@@ -1,5 +1,5 @@
 <?php
 dataset('useUUID', [
+   'UUID',
    'ID',
-   'UUID'
 ]);

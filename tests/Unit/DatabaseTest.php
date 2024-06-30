@@ -3,14 +3,23 @@ use function Pest\Faker\fake;
 
 
  beforeEach(function () {
-     db()->connection->query("DROP TABLE IF EXISTS user; ");
-     db()->connection->query("DROP TABLE IF EXISTS parent; ");
-     db()->connection->query("DROP TABLE IF EXISTS parent_user; ");
+     db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
+     db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
+     db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
  });
+
+it(" checks db()->isUsingUUID() function ", function ($useUUID) {
+    if($useUUID == 'UUID'){
+        $this->assertTrue(db($useUUID)->isUsingUUID());
+    }else{
+        $this->assertFalse(db($useUUID)->isUsingUUID());
+    }
+   
+})->with('useUUID');
 
 it(" checks db()->create() function ", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $model =  new \Scrawler\Arca\Model('user',db($useUUID));
+    $model =  new \Scrawler\Arca\Model('user',db($useUUID)->connection);
     $this->assertObjectEquals($model, $user);
 })->with('useUUID');
 
@@ -24,16 +33,16 @@ it("checks if db()->save() function creates table", function ($useUUID) {
 
     $user->save();
 
-    $table= db($useUUID)->manager->listTableDetails('user');
+    $table= db($useUUID)->connection->getSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
         $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true));
     } else {
-        $requiredTable->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
+        $requiredTable->addColumn('id', 'integer', array("unsigned" => true, "autoincrement" => true));
     }
-    $requiredTable->addColumn('name', "string", ['notnull' => false, 'comment' => 'name']);
-    $requiredTable->addColumn('email', "string", ['notnull' => false, 'comment' => 'email']);
-    $requiredTable->addColumn('dob', "string", ['notnull' => false, 'comment' => 'dob']);
+    $requiredTable->addColumn('name', "text", ['notnull' => false, 'comment' => 'name']);
+    $requiredTable->addColumn('email', "text", ['notnull' => false, 'comment' => 'email']);
+    $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment' => 'dob']);
     $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment' => 'age']);
     $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment' => 'active']);
 
@@ -41,10 +50,10 @@ it("checks if db()->save() function creates table", function ($useUUID) {
 
     $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
     $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = new \Doctrine\DBAL\Schema\Comparator();
-    $diff = $comparator->compare($actual, $required);
+    $comparator = db($useUUID)->connection->getSchemaManager()->createComparator();
+    $diff = $comparator->compareSchemas($actual, $required);
 
-    $this->assertEmpty($diff->toSql(db()->platform));
+    $this->assertEmpty(db($useUUID)->connection->getPlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
 
 
@@ -56,7 +65,6 @@ it("checks if db()->save() function saves record", function ($useUUID) {
     $user->age = fake()->randomNumber(2, false);
     $user->address = fake()->streetAddress();
     $id = $user->save();
-    //db()->connection->getNativeConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
 
     $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
@@ -177,7 +185,7 @@ it("checks if db()->save() function saves record with many-to-many relation", fu
 
 it("checks if db()->save() function updates record", function ($useUUID) {
     $id = createRandomUser($useUUID);
-    $user = db($useUUID)->get('user', $id);
+    $user = db($useUUID)->getOne('user', $id);
     $user->age = 44;
     $id = $user->save();
 
@@ -189,20 +197,7 @@ it("checks if db()->save() function updates record", function ($useUUID) {
     );
 })->with('useUUID');
 
-it("checks if db()->get() gets single record", function ($useUUID) {
-    populateRandomUser($useUUID);
-    $id = createRandomUser($useUUID);
-    $user = db($useUUID)->get('user', $id);
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
-    $result = json_encode($stmt->executeQuery()->fetchAssociative());
-    $this->assertJsonStringEqualsJsonString(
-        $result,
-        $user->toString()
-    );
-    $this->assertIsString((string) $user);
-    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
-})->with('useUUID');
 
 it("checks if db()->getOne() gets single record", function ($useUUID) {
     populateRandomUser($useUUID);
@@ -250,9 +245,9 @@ it("checks if db()->find() returns correct records", function () {
 
 
 it("checks if all public instance of database files are correct", function () {
-    $this->assertInstanceOf(\Doctrine\DBAL\Connection::class, db()->connection);
-    $this->assertInstanceOf(\Doctrine\DBAL\Platforms\AbstractPlatform::class, db()->platform);
-    $this->assertInstanceOf(\Doctrine\DBAL\Schema\AbstractSchemaManager::class, db()->manager);
+    $this->assertInstanceOf(\Scrawler\Arca\Connection::class, db()->connection);
+    $this->assertInstanceOf(\Doctrine\DBAL\Platforms\AbstractPlatform::class, db()->connection->getPlatform());
+    $this->assertInstanceOf(\Doctrine\DBAL\Schema\AbstractSchemaManager::class, db()->connection->getSchemaManager());
 });
 
 it("checks  db()->exec() function", function ($useUUID) {

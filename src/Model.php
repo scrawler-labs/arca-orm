@@ -1,23 +1,25 @@
 <?php
 declare(strict_types=1);
 namespace Scrawler\Arca;
-use Scrawler\Arca\Manager\ModelManager;
+
+use Scrawler\Arca\Connection;
 
 /**
  * Model class that represents single record in database
  */
 class Model
 {
-    private array $properties = array();
+    private array $__properties = array();
     private string $table;
-    private $_id = 0;
     private array $__meta = [];
+    private Connection $connection;
 
 
-    public function __construct(string $name)
+    public function __construct(string $name,Connection $connection)
     {
 
         $this->table = $name;
+        $this->connection = $connection;
         $this->__meta['has_foreign']['oto'] = false;
         $this->__meta['has_foreign']['otm'] = false;
         $this->__meta['has_foreign']['mtm'] = false;
@@ -25,6 +27,7 @@ class Model
         $this->__meta['foreign_models']['otm'] = [];
         $this->__meta['foreign_models']['oto'] = [];
         $this->__meta['foreign_models']['mtm'] = [];
+        $this->__meta['id'] = 0;
     }
 
     /**
@@ -42,6 +45,9 @@ class Model
      */
     public function set(string $key, mixed $val): void
     {
+        if ($key == 'id') {
+            $this->__meta['id'] = $val;
+        }
         //bug: fix issue with bool storage
         if (gettype($val) == 'boolean') {
             ($val) ? $val = 1 : $val = 0;
@@ -70,7 +76,7 @@ class Model
             return;
         }
 
-        $this->properties[$key] = $val;
+        $this->__properties[$key] = $val;
     }
 
     /**
@@ -93,30 +99,30 @@ class Model
             $parts = preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
                 if (strtolower($parts[2]) == 'list') {
-                    return Managers::recordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->_id . '"')->get();
+                    return $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
                 }
             }
             if (strtolower($parts[0]) == 'shared') {
                 if (strtolower($parts[2]) == 'list') {
-                    $rel_table = Managers::tableManager()->tableExists($this->table . '_' . strtolower($parts[1])) ? $this->table . '_' . strtolower($parts[1]) : strtolower($parts[1]) . '_' . $this->table;
-                    $relations = Managers::recordManager()->find($rel_table)->where($this->getName() . '_id = "' . $this->_id . '"')->get();
+                    $rel_table = $this->connection->getTableManager()->tableExists($this->table . '_' . strtolower($parts[1])) ? $this->table . '_' . strtolower($parts[1]) : strtolower($parts[1]) . '_' . $this->table;
+                    $relations = $this->connection->getRecordManager()->find($rel_table)->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
                     $rel_ids = '';
                     foreach ($relations as $relation) {
                         $key = strtolower($parts[1]) . '_id';
                         $rel_ids .= "'" . $relation->$key . "',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    return Managers::recordManager()->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
+                    return $this->connection->getRecordManager()->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
                 }
             }
         }
 
-        if (array_key_exists($key, $this->properties)) {
-            return $this->properties[$key];
+        if (array_key_exists($key, $this->__properties)) {
+            return $this->__properties[$key];
         }
 
-        if (array_key_exists($key . '_id', $this->properties)) {
-            return Managers::recordManager()->getById(Managers::modelManager()->create($key), $this->properties[$key . '_id']);
+        if (array_key_exists($key . '_id', $this->__properties)) {
+            return $this->connection->getRecordManager()->getById($key, $this->__properties[$key . '_id']);
         }
 
         throw new Exception\KeyNotFoundException();
@@ -146,7 +152,7 @@ class Model
      */
     public function unset(string $key): void
     {
-        unset($this->properties[$key]);
+        unset($this->__properties[$key]);
     }
 
     /**
@@ -166,7 +172,7 @@ class Model
      */
     public function isset(string $key): bool
     {
-        return array_key_exists($key, $this->properties);
+        return array_key_exists($key, $this->__properties);
     }
 
     /**
@@ -174,9 +180,9 @@ class Model
      */
     public function setProperties(array $properties): Model
     {
-        $this->properties = array_merge($this->properties, $properties);
+        $this->__properties = array_merge($this->__properties, $properties);
         if (isset($properties['id'])) {
-            $this->_id = $properties['id'];
+            $this->__meta['id'] = $properties['id'];
         }
         return $this;
     }
@@ -187,7 +193,7 @@ class Model
      */
     public function getProperties(): array
     {
-        return $this->properties;
+        return $this->__properties;
     }
 
     /**
@@ -232,7 +238,7 @@ class Model
      */
     public function getId(): mixed
     {
-        return $this->_id;
+        return $this->__meta['id'];
     }
 
 
@@ -242,10 +248,9 @@ class Model
      */
     public function save(): mixed
     {
-        $id = Event::dispatch('model.save', [$this]);
-        $this->id = $id;
-        $this->_id = $id;
-        return $id;
+        Event::dispatch('system.model.save.'.$this->connection->getConnectionId(), [$this]);
+        
+        return $this->getId();
     }
 
     /**
@@ -253,7 +258,7 @@ class Model
      */
     public function delete(): void
     {
-        Event::dispatch('model.delete', [$this]);
+        Event::dispatch('system.model.delete.'.$this->connection->getConnectionId(), [$this]);
     }
 
     /**
@@ -261,7 +266,7 @@ class Model
      */
     public function toString(): string
     {
-        return \json_encode($this->properties);
+        return \json_encode($this->getProperties());
     }
 
     /**

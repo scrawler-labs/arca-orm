@@ -5,21 +5,19 @@ namespace Scrawler\Arca\Facade;
 
 
 use Scrawler\Arca\Database as DB;
+use Scrawler\Arca\Connection;
 
 class Database
 {
     private static $database;
 
-    public static function connect(array $connectionParams,$isUsingUUID = false)
+    public static function connect(array $connectionParams)
     {
 
-        if (self::$database == null) {
-            $connection = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
-            self::$database = new DB($connection,$isUsingUUID);
+            $connection =new Connection($connectionParams);
+            self::$database = new DB($connection);
             return self::$database;
-        }
-
-        return self::$database;
+     
     }
 
     private static function getDB()
@@ -32,9 +30,9 @@ class Database
         return self::getDB()->create($name);
     }
 
-    public static function get($table, $id)
+    public static function get($table)
     {
-        return self::getDB()->get($table, $id);
+        return self::getDB()->get($table);
     }
 
     public static function getOne($table, $id)

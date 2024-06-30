@@ -3,15 +3,15 @@ use function Pest\Faker\fake;
 
 
 beforeEach(function () {
-    db()->connection->query("DROP TABLE IF EXISTS user; ");
-    db()->connection->query("DROP TABLE IF EXISTS parent; ");
-    db()->connection->query("DROP TABLE IF EXISTS parent_user; ");
+    db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
+    db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
+    db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
 });
 
 it("checks if model is properly populated on retrive", function ($useUUID) {
     $id = createRandomUser($useUUID);
     $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id ='".$id."'");
-    $user = db($useUUID)->get('user', $id);
+    $user = db($useUUID)->getOne('user', $id);
     $result =$stmt->executeQuery()->fetchAssociative();
     $this->assertEquals($user->name, $result['name']);
     $this->assertEquals($user->getProperties(), $result);
@@ -63,7 +63,7 @@ it("checks if model can retrive one-to-many related models", function ($useUUID)
     $parent->ownUserList = [$user,$user_two];
     $id = $parent->save();
 
-    $parent_retrived = db($useUUID)->get('parent', $id);
+    $parent_retrived = db($useUUID)->getOne('parent', $id);
     $users_retrived = $parent->ownUserList->apply(function ($user) {
         unset($user->id);
     });
@@ -103,7 +103,7 @@ it("checks if model can retrive many-to-many related models", function ($useUUID
     $parent->sharedUserList = [$user,$user_two];
     $id = $parent->save();
 
-    $parent_retrived = db()->get('parent', $id);
+    $parent_retrived = db()->getOne('parent', $id);
     $users_retrived = $parent->sharedUserList->apply(function ($user) {
         unset($user->id);
     });
@@ -144,7 +144,7 @@ it("checks if model can retrive many-to-many related models using with function"
     $parent->sharedUserList = [$user,$user_two];
     $id = $parent->save();
 
-    $parent_retrived = db()->get('parent', $id)->with(['sharedUserList']);
+    $parent_retrived = db()->getOne('parent', $id)->with(['sharedUserList']);
     $users_retrived = $parent_retrived->sharedUserList->apply(function ($user) {
         unset($user->id);
     });
@@ -167,13 +167,13 @@ it("checks if model can retrive many-to-many related models using with function"
 
 it("check exception is thrown when non existent key is accessed", function ($useUUID) {
     $id = createRandomUser($useUUID);
-    $user = db($useUUID)->get('user', $id);
+    $user = db($useUUID)->getOne('user', $id);
     $user->somekey;
 })->throws(\Scrawler\Arca\Exception\KeyNotFoundException::class)->with('useUUID');
 
 it("checks isset() function of model", function ($useUUID) {
     $id = createRandomUser($useUUID);
-    $user = db($useUUID)->get('user', $id);
+    $user = db($useUUID)->getOne('user', $id);
     $truey = isset($user->name);
     $falsey = isset($user->somekey);
     $this->assertTrue($truey);

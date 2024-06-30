@@ -2,7 +2,6 @@
 declare(strict_types=1);
 
 namespace Scrawler\Arca;
-use \Doctrine\DBAL\Connection;
 
 /**
  * 
@@ -11,52 +10,33 @@ use \Doctrine\DBAL\Connection;
 class Database
 {
     /**
-     * Doctrine DBAL connection instance
+     * Store the instance of current connection
      * @var \Doctrine\DBAL\Connection
      */
     public Connection $connection;
-    /**
-     * Store the instance of current platform
-     * @var \Doctrine\DBAL\Platforms\AbstractPlatform
-     */
-    public \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
-    /**
-     * Doctrine schema manager
-     * @var \Doctrine\DBAL\Schema\AbstractSchemaManager
-     */
-    public \Doctrine\DBAL\Schema\AbstractSchemaManager $manager;
     /**
      * When $isFrozen is set to true tables are not updated/created
      * @var bool
      */
     private bool $isFroozen = false;
-    /**
-     * You can switch between using uuid & id
-     * @var bool
-     */
-    private bool $useUUID = false;
+    
 
-    public function __construct(Connection $connection , bool $useUUID = false)
+    public function __construct(Connection $connection)
     {
         $this->connection = $connection;
-        $this->platform = $this->connection->getDatabasePlatform();
-        $this->manager = $this->connection->createSchemaManager();
-        $this->useUUID = $useUUID;
-        Managers::create($connection, $useUUID);
         $this->registerEvents();
 
     }
 
     public function registerEvents()
     {
-        Event::subscribeTo('model.save', function ($model) {
+        Event::subscribeTo('system.model.save.'.$this->connection->getConnectionId(), function ($model) {
             return $this->save($model);
         });
-        Event::subscribeTo('model.delete', function ($model) {
+        Event::subscribeTo('system.model.delete.'.$this->connection->getConnectionId(), function ($model) {
             return $this->delete($model);
         });
     }
-
 
     /**
      * Executes an SQL query and returns the number of row affected
@@ -90,7 +70,7 @@ class Database
      */
     public function create(string $name) : Model
     {
-        return new Model($name);
+        return $this->connection->getModelManager()->create($name);
     }
 
     /**
@@ -110,6 +90,8 @@ class Database
 
         try {
             $id = $this->createRecords($model);
+            $model->id = $id;
+            $model->setLoaded();
             $this->connection->commit();
         } catch (\Exception $e) {
             $this->connection->rollBack();
@@ -130,18 +112,17 @@ class Database
     private function createTables($model)
     {
         if (!$this->isFroozen) {
-            $table = Managers::tableManager()->createTable($model);
-            Managers::tableManager()->saveOrUpdateTable($model->getName(), $table);
+            $table = $this->connection->getTableManager()->createTable($model);
+            $this->connection->getTableManager()->saveOrUpdateTable($model->getName(), $table);
         }
     }
 
     private function createRecords($model) : mixed
     {
         if ($model->isLoaded()) {
-            return Managers::recordManager()->update($model);
+            return $this->connection->getRecordManager()->update($model);
         }
-        
-        return Managers::recordManager()->insert($model);
+        return $this->connection->getRecordManager()->insert($model);
     }
 
 
@@ -253,20 +234,16 @@ class Database
      */
     public function delete(\Scrawler\Arca\Model $model) : mixed
     {
-        return Managers::recordManager()->delete($model);
+        return $this->connection->getRecordManager()->delete($model);
     }
 
     /**
      * Get collection of all records from table
      */
-    public function get(String $table,mixed $id = null) : Model|Collection
+    public function get(String $table) : Collection
     {
-        // For backward compatibility reason
-        if($id != null){
-            return $this->getOne($table,$id);
-        }
-
-        return Managers::recordManager()->getAll($table);
+       
+        return $this->connection->getRecordManager()->getAll($table);
     }
 
     /**
@@ -275,7 +252,7 @@ class Database
      */
     public function getOne(String $table, mixed $id) : Model
     {
-        return Managers::recordManager()->getById($this->create($table), $id);
+        return $this->connection->getRecordManager()->getById($table, $id);
     }
 
     /**
@@ -287,7 +264,7 @@ class Database
      */
     public function find(string $name) : QueryBuilder
     {
-        return Managers::recordManager()->find($name);
+        return $this->connection->getRecordManager()->find($name);
     }
 
     /**
@@ -305,6 +282,6 @@ class Database
      */
     public function isUsingUUID() : bool
     {
-        return $this->useUUID;
+        return $this->connection->isUsingUUID();
     }
 }

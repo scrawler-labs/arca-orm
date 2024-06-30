@@ -4,10 +4,11 @@ namespace Scrawler\Arca\Manager;
 
 use \Doctrine\DBAL\Schema\Schema;
 use \Doctrine\DBAL\Schema\Table;
-use \Doctrine\DBAL\Schema\Comparator;
 use \Doctrine\DBAL\Connection;
 use \Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Scrawler\Arca\Model;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Schema\Exception\TableDoesNotExist; 
 
 /**
  * Class resposible for creating and modifing table
@@ -32,7 +33,7 @@ class TableManager
     {
         $this->connection = $connection;
         $this->isUsingUUID = $isUsingUUID;
-        $this->manager = $this->connection->getSchemaManager();
+        $this->manager = $this->connection->createSchemaManager();
         $this->platform = $this->connection->getDatabasePlatform();
     }
 
@@ -50,7 +51,7 @@ class TableManager
      */
     public function getTableSchema(string $table): Schema
     {
-        return new Schema([$this->manager->listTableDetails($table)]);
+        return new Schema([$this->manager->introspectTable($table)]);
     }
     
     /**
@@ -58,7 +59,7 @@ class TableManager
      */
     public function getTable(string $table) : Table
     {
-        return $this->manager->listTableDetails($table);
+        return $this->manager->introspectTable($table);
     }
 
     /**
@@ -70,12 +71,16 @@ class TableManager
         if ($this->isUsingUUID) {
             $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true,]);
         } else {
-            $table->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
+            $table->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true]);
         }
         $table->setPrimaryKey(array("id"));
         foreach ($model->getProperties() as $key => $value) {
             if ($key != 'id') {
-                $table->addColumn($key, gettype($value), ['notnull' => false, 'comment' => $key]);
+                $type = gettype($value);
+                if($type == 'string'){
+                    $type = 'text';
+                }
+                $table->addColumn($key,$type , ['notnull' => false, 'comment' => $key]);
             }
         }
         return $table;
@@ -99,20 +104,20 @@ class TableManager
      */
     public function updateTable(string $table_name, Table $new_table) : void
     {
-        $comparator = new Comparator();
+        $comparator = $this->manager->createComparator();
         $old_table = $this->getTable($table_name);
         $old_schema = $this->getTableSchema($table_name);
 
-        $tableDiff = $comparator->diffTable($old_table, $new_table);
+        $tableDiff = $comparator->compareTables($old_table, $new_table);
         $mod_table = $old_table;
         if ($tableDiff) {
-            foreach ($tableDiff->addedColumns as $column) {
-                $mod_table->addColumn($column->getName(), $column->getType()->getName(), ['notnull' => false, 'comment' => $column->getName()]);
+            foreach ($tableDiff->getAddedColumns() as $column) {
+                $mod_table->addColumn($column->getName(), Type::getTypeRegistry()->lookupName($column->getType()), ['notnull' => false, 'comment' => $column->getName()]);
             }
             $new_schema = $this->createTableSchema($mod_table);
             $schemaDiff = $comparator->compareSchemas($old_schema, $new_schema);
 
-            $queries = $schemaDiff->toSaveSql($this->platform);
+            $queries = $this->platform->getAlterSchemaSQL($schemaDiff);
         
             foreach ($queries as $query) {
                 $this->connection->executeQuery($query);
@@ -125,7 +130,12 @@ class TableManager
      */
     public function tableExists(string $table_name): bool
     {
-        return !empty($this->getTable($table_name)->getColumns());
+        try {
+            $this->getTable($table_name);
+            return true;
+        }catch(TableDoesNotExist $e){
+            return false;
+        }
     }
 
     /**

@@ -34,21 +34,19 @@ class Event
 
     /**
      * Trigger an event, and call all subscribers, giving an array of params.
-     * returns the data returned by the last subscriber.
      */
     public static function dispatch($eventname, $params) : mixed
     {
-        $data = null;
         if (!self::isEvent($eventname)) {
             self::register($eventname);
         }
         foreach (self::$events[$eventname] as $key => $weight) {
             foreach ($weight as $callback) {
-                $data = call_user_func_array($callback, $params);
+                 call_user_func_array($callback, $params);
             }
         }
 
-        return $data;
+        return true;
     }
 
     /**

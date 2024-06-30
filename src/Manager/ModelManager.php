@@ -1,8 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Scrawler\Arca\Manager;
 
 use \Scrawler\Arca\Model;
+use \Scrawler\Arca\Connection;
 
 /**
  * Class for initializing and managing models
@@ -10,11 +12,16 @@ use \Scrawler\Arca\Model;
 class ModelManager {
     /**
      * Creates and return models
-
      */
+    private $connection;
     function create(string $name): Model
     {
-        return new Model($name);
+        return new Model($name,$this->connection);
+    }
+
+    function setConnection(Connection $connection)
+    {
+       $this->connection = $connection;   
     }
 
 }

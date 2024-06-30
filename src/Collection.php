@@ -78,9 +78,9 @@ final class Collection implements CollectionInterface
      * @param callable[] $callbacks
      * @return CollectionInterface
      */
-    public function apply(callable ...$callbacks): CollectionInterface
+    public function apply(callable $callbacks): CollectionInterface
     {
-        return new self($this->collection->apply(...$callbacks));
+        return new self($this->collection->apply($callbacks));
     }
 
     /**

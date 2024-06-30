@@ -2,9 +2,9 @@
 use function Pest\Faker\fake;
 
  beforeEach(function () {
-     db()->connection->query("DROP TABLE IF EXISTS user; ");
-     db()->connection->query("DROP TABLE IF EXISTS parent; ");
-     db()->connection->query("DROP TABLE IF EXISTS parent_user; ");
+     db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
+     db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
+     db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
  });
 
 it("checks if db()->find()->first() returns first record", function ($useUUID) {
