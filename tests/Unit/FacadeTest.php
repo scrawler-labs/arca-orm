@@ -8,13 +8,14 @@ use function Pest\Faker\fake;
 });
 
 it('tests DB::connect()',function(){
-    $connectionParams = array(
-        'dbname' => 'test',
-        'user' => 'root',
-        'password' => 'root@1432',
+    $connectionParams = [
+        'dbname' => 'test_database',
+        'user' => 'admin',
+        'password' => 'rootpass',
         'host' => '127.0.0.1',
         'driver' => 'pdo_mysql',
-    );
+        'useUUID' => false,
+    ];
     $db = \Scrawler\Arca\Facade\Database::connect($connectionParams);
     $this->assertInstanceOf(\Scrawler\Arca\Database::class, $db);
 
