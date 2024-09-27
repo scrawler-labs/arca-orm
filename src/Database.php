@@ -293,4 +293,9 @@ class Database
     {
         return $this->connection;
     }
+
+    public function tablesExist($tables) : bool
+    {
+        return $this->connection->getSchemaManager()->tablesExist($tables);
+    }
 }
