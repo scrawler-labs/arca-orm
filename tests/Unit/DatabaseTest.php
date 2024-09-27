@@ -3,9 +3,9 @@ use function Pest\Faker\fake;
 use Doctrine\DBAL\Exception\DriverException;
 
  beforeEach(function () {
-     db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
-     db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
-     db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
  });
 
 it(" checks db()->isUsingUUID() function ", function ($useUUID) {
@@ -19,7 +19,7 @@ it(" checks db()->isUsingUUID() function ", function ($useUUID) {
 
 it(" checks db()->create() function ", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $model =  new \Scrawler\Arca\Model('user',db($useUUID)->connection);
+    $model =  new \Scrawler\Arca\Model('user',db($useUUID)->getConnection());
     $this->assertObjectEquals($model, $user);
 })->with('useUUID');
 
@@ -33,7 +33,7 @@ it("checks if db()->save() function creates table", function ($useUUID) {
 
     $user->save();
 
-    $table= db($useUUID)->connection->getSchemaManager()->introspectTable('user');
+    $table= db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
         $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true));
@@ -50,10 +50,10 @@ it("checks if db()->save() function creates table", function ($useUUID) {
 
     $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
     $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = db($useUUID)->connection->getSchemaManager()->createComparator();
+    $comparator = db($useUUID)->getConnection()->getSchemaManager()->createComparator();
     $diff = $comparator->compareSchemas($actual, $required);
 
-    $this->assertEmpty(db($useUUID)->connection->getPlatform()->getAlterSchemaSQL($diff));
+    $this->assertEmpty(db($useUUID)->getConnection()->getPlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
 
 
@@ -67,7 +67,7 @@ it("checks if db()->save() function saves record", function ($useUUID) {
     $id = $user->save();
 
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
@@ -89,7 +89,7 @@ it("checks if db()->save() function saves record with one-to-one relation", func
     $parent->user = $user;
     $id = $parent->save();
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM parent WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
@@ -118,9 +118,9 @@ it("checks if db()->save() function saves record with one-to-many relation", fun
     $parent->ownUserList = [$user,$user_two];
     $id = $parent->save();
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM parent WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE parent_id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE parent_id = '".$id."'");
     $result_child = $stmt->executeQuery()->fetchAllAssociative();
     if (!db($useUUID)->isUsingUUID()) {
         unset($result_child[0]['id']);
@@ -221,9 +221,9 @@ it("checks if db()->save() function saves record with many-to-many relation", fu
     $parent->sharedUserList = [$user,$user_two];
     $id = $parent->save();
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM parent WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM parent_user WHERE parent_id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent_user WHERE parent_id = '".$id."'");
     $results_rel = $stmt->executeQuery()->fetchAllAssociative();
     $rel_ids ='';
     foreach ($results_rel as $relation) {
@@ -232,7 +232,7 @@ it("checks if db()->save() function saves record with many-to-many relation", fu
     }
 
     $rel_ids = substr($rel_ids, 0, -1);
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id IN (" . $rel_ids . ")");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id IN (" . $rel_ids . ")");
     $result_user = $stmt->executeQuery()->fetchAllAssociative();
     if (!db($useUUID)->isUsingUUID()) {
         unset($result_user[0]['id']);
@@ -254,7 +254,7 @@ it("checks if db()->save() function updates record", function ($useUUID) {
     $user->age = 44;
     $id = $user->save();
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
@@ -269,7 +269,7 @@ it("checks if db()->getOne() gets single record", function ($useUUID) {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
@@ -282,7 +282,7 @@ it("checks if db()->getOne() gets single record", function ($useUUID) {
 it("checks if db()->get() gets all record", function ($useUUID) {
     populateRandomUser($useUUID);
     $users = db($useUUID)->get('user');
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user");
     $result = json_encode($stmt->executeQuery()->fetchAllAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
@@ -299,7 +299,7 @@ it("checks if db()->find() returns Query Builder", function () {
 it("checks if db()->find() returns correct records", function () {
     populateRandomUser();
     $users = db()->find('user')->where('active = 1')->get();
-    $stmt = db()->connection->prepare("SELECT * FROM user WHERE active = 1");
+    $stmt = db()->getConnection()->prepare("SELECT * FROM user WHERE active = 1");
     $result = json_encode($stmt->executeQuery()->fetchAllAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,
@@ -310,9 +310,9 @@ it("checks if db()->find() returns correct records", function () {
 
 
 it("checks if all public instance of database files are correct", function () {
-    $this->assertInstanceOf(\Scrawler\Arca\Connection::class, db()->connection);
-    $this->assertInstanceOf(\Doctrine\DBAL\Platforms\AbstractPlatform::class, db()->connection->getPlatform());
-    $this->assertInstanceOf(\Doctrine\DBAL\Schema\AbstractSchemaManager::class, db()->connection->getSchemaManager());
+    $this->assertInstanceOf(\Scrawler\Arca\Connection::class, db()->getConnection());
+    $this->assertInstanceOf(\Doctrine\DBAL\Platforms\AbstractPlatform::class, db()->getConnection()->getPlatform());
+    $this->assertInstanceOf(\Doctrine\DBAL\Schema\AbstractSchemaManager::class, db()->getConnection()->getSchemaManager());
 });
 
 it("checks  db()->exec() function", function ($useUUID) {
@@ -327,7 +327,7 @@ it("checks  db()->exec() function", function ($useUUID) {
         $id = 2;
     }
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user where id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user where id = '".$id."'");
     $result = $stmt->executeQuery()->fetchAssociative();
     $this->assertEquals($result['name'], "john");
 })->with('useUUID');
@@ -337,7 +337,7 @@ it("checks  db()->getAll() function", function ($useUUID) {
     $user->name = fake()->name();
     $user->save();
 
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user");
     $result = $stmt->executeQuery()->fetchAllAssociative();
 
     $actual = db($useUUID)->getAll("SELECT * FROM user");
@@ -350,7 +350,7 @@ it("checks db()->delete() function", function ($useUUID) {
     $user->name = fake()->name();
     $id = $user->save();
     $user->delete();
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user where id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user where id = '".$id."'");
     $result = $stmt->executeQuery()->fetchAssociative();
     $this->assertEmpty($result);
 })->with('useUUID');

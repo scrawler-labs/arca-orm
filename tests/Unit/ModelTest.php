@@ -3,14 +3,14 @@ use function Pest\Faker\fake;
 
 
 beforeEach(function () {
-    db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
-    db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
-    db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
+    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
+    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
 });
 
 it("checks if model is properly populated on retrive", function ($useUUID) {
     $id = createRandomUser($useUUID);
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id ='".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id ='".$id."'");
     $user = db($useUUID)->getOne('user', $id);
     $result =$stmt->executeQuery()->fetchAssociative();
     $this->assertEquals($user->name, $result['name']);

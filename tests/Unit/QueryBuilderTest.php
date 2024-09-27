@@ -2,15 +2,15 @@
 use function Pest\Faker\fake;
 
  beforeEach(function () {
-     db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
-     db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
-     db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
  });
 
 it("checks if db()->find()->first() returns first record", function ($useUUID) {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->find('user')->first();
-    $stmt = db($useUUID)->connection->prepare("SELECT * FROM user WHERE id = '".$id."'");
+    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
     $this->assertJsonStringEqualsJsonString(
         $result,

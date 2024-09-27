@@ -2,9 +2,9 @@
 use function Pest\Faker\fake;
 
  beforeEach(function () {
-    db()->connection->executeStatement("DROP TABLE IF EXISTS user; ");
-    db()->connection->executeStatement("DROP TABLE IF EXISTS parent; ");
-    db()->connection->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
+    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
+    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
 });
 
 it('tests table manger update functionality',function($useUUID){
@@ -20,7 +20,7 @@ it('tests table manger update functionality',function($useUUID){
     $user->rand = 'abc';
     $id = $user->save();
 
-    $table= db($useUUID)->connection->getSchemaManager()->introspectTable('user');
+    $table= db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
         $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true));
@@ -39,9 +39,9 @@ it('tests table manger update functionality',function($useUUID){
 
     $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
     $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = db()->connection->getSchemaManager()->createComparator();
+    $comparator = db()->getConnection()->getSchemaManager()->createComparator();
     $diff = $comparator->compareSchemas($actual, $required);
     //print_r($diff->toSql(db()->platform));
 
-    $this->assertEmpty(db($useUUID)->connection->getPlatform()->getAlterSchemaSQL($diff));
+    $this->assertEmpty(db($useUUID)->getConnection()->getPlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');

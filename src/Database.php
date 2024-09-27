@@ -11,9 +11,9 @@ class Database
 {
     /**
      * Store the instance of current connection
-     * @var \Doctrine\DBAL\Connection
+     * @var \Scrawler\Arca\Connection
      */
-    public Connection $connection;
+    private Connection $connection;
     /**
      * When $isFrozen is set to true tables are not updated/created
      * @var bool
@@ -283,5 +283,14 @@ class Database
     public function isUsingUUID() : bool
     {
         return $this->connection->isUsingUUID();
+    }
+
+    /**
+     * Returns the current connection
+     * @return Connection
+     */
+    public function getConnection() : Connection
+    {
+        return $this->connection;
     }
 }
