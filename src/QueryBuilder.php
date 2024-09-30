@@ -30,20 +30,27 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         return parent::from($table,$alias);
     }
 
-    public function get(): Collection
+    public function get(): Collection|bool
     {
         $model = $this->modelManager->create($this->table);
         $relations = $this->relations;
         $this->relations = [];
-        return Collection::fromIterable($this->fetchAllAssociative())
+        $results = $this->fetchAllAssociative();
+        if (empty($results)) {
+            return false;
+        }
+        return Collection::fromIterable($results)
             ->map(static fn($value): Model => ($model)->setProperties($value)->with($relations)->setLoaded());
     }
 
-    public function first(): Model
+    public function first(): Model|bool
     {
         $relations = $this->relations;
         $this->relations = [];
         $result = $this->fetchAssociative() ? $this->fetchAssociative() : [];
+        if (empty($result)) {
+            return false;
+        }
         return ($this->modelManager->create($this->table))->setProperties($result)->with($relations)->setLoaded();
     }
 }
