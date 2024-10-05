@@ -2,6 +2,7 @@
 
 namespace Scrawler\Arca;
 use Scrawler\Arca\Manager\ModelManager;
+use \Doctrine\DBAL\Schema\AbstractSchemaManager;
 
 /**
  * Extended implementation of \Doctrine\DBAL\Query\QueryBuilder
@@ -10,11 +11,14 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 {
     private string $table;
     private array $relations= [];
+
+    private AbstractSchemaManager $SchemaManager;
     private ModelManager $modelManager;
 
     public function __construct(\Doctrine\DBAL\Connection $connection,ModelManager $modelManager)
     {
         $this->modelManager = $modelManager;
+        $this->SchemaManager = $connection->createSchemaManager();
         parent::__construct($connection);
     }
 
@@ -30,14 +34,17 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         return parent::from($table,$alias);
     }
 
-    public function get(): Collection|null
+    public function get(): Collection
     {
+        if(!$this->SchemaManager->tableExists($this->table)){
+            return Collection::fromIterable([]);
+        }
         $model = $this->modelManager->create($this->table);
         $relations = $this->relations;
         $this->relations = [];
         $results = $this->fetchAllAssociative();
         if (empty($results)) {
-            return null;
+            return Collection::fromIterable([]);
         }
         return Collection::fromIterable($results)
             ->map(static fn($value): Model => ($model)->setProperties($value)->with($relations)->setLoaded());
@@ -45,6 +52,9 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 
     public function first(): Model|null
     {
+        if(!$this->SchemaManager->tableExists($this->table)){
+            return null;
+        }
         $relations = $this->relations;
         $this->relations = [];
         $result = $this->fetchAssociative() ? $this->fetchAssociative() : [];

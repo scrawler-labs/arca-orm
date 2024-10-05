@@ -72,15 +72,13 @@ class RecordManager
     * Get single record by id
     *
     */
-    public function getById($table, mixed $id): Model
+    public function getById($table, mixed $id): Model|null
     {
         $query =  (new QueryBuilder($this->connection,$this->modelManager))
                  ->select('*')
                  ->from($table, 't')
                  ->where("t.id = '".$id."'");
-        $result = $this->connection->executeQuery($query)->fetchAssociative();
-        $result = $result ? $result : [];
-        return $this->modelManager->create($table)->setProperties($result)->setLoaded();
+        return $query->first();
     }
 
 
