@@ -294,8 +294,25 @@ class Database
         return $this->connection;
     }
 
-    public function tablesExist($tables) : bool
+    /**
+     * Check if tables exist
+     * @param array $tables
+     * @return bool
+     */
+    public function tablesExist(array $tables) : bool
     {
+
         return $this->connection->getSchemaManager()->tablesExist($tables);
+    }
+
+    /**
+     * Check if table exists
+     * @param array $tables
+     * @return bool
+     */
+    public function tableExists(string $table) : bool
+    {
+      
+        return $this->connection->getSchemaManager()->tableExists($table);
     }
 }
