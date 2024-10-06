@@ -43,3 +43,20 @@ it("checks if db()->find()->with() eager loads relation", function ($useUUID) {
     );
 
 })->with('useUUID');
+
+it("checks if null is returned if table does not exist",function(){
+    $this->assertNull(db()->find('non_existent_table')->first());
+    $this->assertEmpty(db()->find('non_existent_table')->get()->toArray());
+});
+
+
+it("checks if null is returned if table empty",function(){
+    $user = db()->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->save();
+    $user->delete();
+    
+    $this->assertNull(db()->find('user')->first());
+    $this->assertEmpty(db()->find('user')->get()->toArray());
+});

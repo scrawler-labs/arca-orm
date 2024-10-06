@@ -21,6 +21,10 @@ class Database
     private bool $isFroozen = false;
     
 
+    /**
+     * Create a new Database instance
+     * @param \Scrawler\Arca\Connection $connection
+     */
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
@@ -28,7 +32,11 @@ class Database
 
     }
 
-    public function registerEvents()
+    /**
+     * Register events
+     * @return void
+     */
+    public function registerEvents(): void
     {
         Event::subscribeTo('system.model.save.'.$this->connection->getConnectionId(), function ($model) {
             return $this->save($model);
@@ -42,10 +50,10 @@ class Database
      * Executes an SQL query and returns the number of row affected
      *
      * @param string $sql
-     * @param array $params
-     * @return integer
+     * @param array<mixed> $params
+     * @return int|numeric-string
      */
-    public function exec(string $sql, array $params=array()): int
+    public function exec(string $sql, array $params=array()): int|string
     {
         return  $this->connection->executeStatement($sql, $params);
     }
@@ -54,8 +62,8 @@ class Database
      * Returns array of data from SQL select statement
      *
      * @param string $sql
-     * @param array $params
-     * @return array
+     * @param array<mixed> $params
+     * @return array<int,array<string,mixed>>
      */
     public function getAll(string $sql, array $params=[]): array
     {
@@ -90,7 +98,7 @@ class Database
 
         try {
             $id = $this->createRecords($model);
-            $model->id = $id;
+            $model->set('id',$id);
             $model->setLoaded();
             $this->connection->commit();
         } catch (\Exception $e) {
@@ -109,7 +117,12 @@ class Database
         return $id;
     }
 
-    private function createTables($model)
+    /**
+     * Create tables
+     * @param \Scrawler\Arca\Model $model
+     * @return void
+     */
+    private function createTables($model): void
     {
         if (!$this->isFroozen) {
             $table = $this->connection->getTableManager()->createTable($model);
@@ -117,7 +130,12 @@ class Database
         }
     }
 
-    private function createRecords($model) : mixed
+    /**
+     * Create records
+     * @param \Scrawler\Arca\Model $model
+     * @return mixed
+     */
+    private function createRecords(Model $model) : mixed
     {
         if ($model->isLoaded()) {
             return $this->connection->getRecordManager()->update($model);
@@ -239,8 +257,10 @@ class Database
 
     /**
      * Get collection of all records from table
+     * @param string $table
+     * @return Collection
      */
-    public function get(String $table) : Collection
+    public function get(string $table) : Collection
     {
        
         return $this->connection->getRecordManager()->getAll($table);
@@ -248,9 +268,11 @@ class Database
 
     /**
      * Get single record
-     *
+     * @param string $table
+     * @param mixed $id
+     * @return Model
      */
-    public function getOne(String $table, mixed $id) : Model
+    public function getOne(string $table, mixed $id) : Model|null
     {
         return $this->connection->getRecordManager()->getById($table, $id);
     }
@@ -277,6 +299,15 @@ class Database
     }
 
     /**
+     * Helper function to unfreeze table
+     * @return void
+     */
+    public function unfreeze() : void
+    {
+        $this->isFroozen = false;
+    }
+
+    /**
      * Checks if database is currently using uuid rather than id
      * @return bool
      */
@@ -296,7 +327,7 @@ class Database
 
     /**
      * Check if tables exist
-     * @param array $tables
+     * @param array<int,string> $tables
      * @return bool
      */
     public function tablesExist(array $tables) : bool
@@ -307,7 +338,7 @@ class Database
 
     /**
      * Check if table exists
-     * @param array $tables
+     * @param string $table
      * @return bool
      */
     public function tableExists(string $table) : bool

@@ -110,7 +110,6 @@ class TableManager
 
         $tableDiff = $comparator->compareTables($old_table, $new_table);
         $mod_table = $old_table;
-        if ($tableDiff) {
             foreach ($tableDiff->getAddedColumns() as $column) {
                 $mod_table->addColumn($column->getName(), Type::getTypeRegistry()->lookupName($column->getType()), ['notnull' => false, 'comment' => $column->getName()]);
             }
@@ -122,7 +121,6 @@ class TableManager
             foreach ($queries as $query) {
                 $this->connection->executeQuery($query);
             }
-        }
     }
 
     /**

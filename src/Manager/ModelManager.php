@@ -10,16 +10,28 @@ use \Scrawler\Arca\Connection;
  * Class for initializing and managing models
  */
 class ModelManager {
+
     /**
      * Creates and return models
+     * @var Connection
      */
-    private $connection;
+    private Connection $connection;
+
+    /**
+     * Create a new model
+     * @param string $name
+     * @return \Scrawler\Arca\Model
+     */
     function create(string $name): Model
     {
         return new Model($name,$this->connection);
     }
 
-    function setConnection(Connection $connection)
+    /**
+     * Set the connection
+     * @param Connection $connection
+     */
+    function setConnection(Connection $connection): void
     {
        $this->connection = $connection;   
     }

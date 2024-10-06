@@ -9,11 +9,13 @@ use Scrawler\Arca\Collection\CollectionInterface;
 
 /**
  * Extension of LoopPHP collection 
+ * @template TKey
+ * @template T
  */
 final class Collection implements CollectionInterface
 {
     /**
-     * @var CollectionInterface<TKey, T>
+     * @var LoopCollectionInterface<TKey, T>
      */
     private LoopCollectionInterface $collection;
 
@@ -23,11 +25,14 @@ final class Collection implements CollectionInterface
     }
 
     /**
-     * 
-     * @param iterable|null $iterable
+     /**
+     * @template UKey
+     * @template U
+     *
+     * @param iterable<UKey, U> $iterable
      * @return Collection
      */
-    public static function fromIterable(?iterable $iterable = null): self
+    public static function fromIterable(iterable $iterable): self
     {
         return new self(LoopCollection::fromIterable($iterable));
     }
@@ -49,7 +54,7 @@ final class Collection implements CollectionInterface
     }
 
     /**
-     * @return array
+     * @return array<mixed>
      */
     public function toArray(): array
     {
@@ -62,12 +67,12 @@ final class Collection implements CollectionInterface
      */
     public function toString(): string
     {
-        return json_encode($this->toArray());
+        return \Safe\json_encode($this->toArray());
     }
 
     /**
      * @param bool $normalize
-     * @return array
+     * @return array<mixed>
      */
     public function all(bool $normalize = true): array
     {
@@ -75,16 +80,16 @@ final class Collection implements CollectionInterface
     }
 
     /**
-     * @param callable[] $callbacks
-     * @return CollectionInterface
+     * @param callable $callbacks
+     * @return Collection
      */
-    public function apply(callable $callbacks): CollectionInterface
+    public function apply(callable $callbacks): Collection
     {
         return new self($this->collection->apply($callbacks));
     }
 
     /**
-     * @param iterable $other
+     * @param mixed[] $other
      * @return bool
      */
     public function equals(iterable $other): bool
@@ -94,51 +99,51 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function first(): CollectionInterface
+    public function first(): Collection
     {
         return new self($this->collection->first());
     }
 
     /**
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function init(): CollectionInterface
+    public function init(): Collection
     {
         return new self($this->collection->init());
     }
     /**
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function inits(): CollectionInterface
+    public function inits(): Collection
     {
         return new self($this->collection->inits());
     }
 
     /**
-     * @param iterable[] $sources
-     * @return CollectionInterface
+     * @param mixed[][] $sources
+     * @return Collection
      */
-    public function merge(iterable...$sources): CollectionInterface
+    public function merge(iterable...$sources): Collection
     {
         return new self($this->collection->merge(...$sources));
     }
 
     /**
      * @param callable $callback
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function map(callable $callback): CollectionInterface
+    public function map(callable $callback): Collection
     {
         return new self($this->collection->map($callback));
     }
 
     /**
-     * @param callable[] $callbacks
-     * @return CollectionInterface
+     * @param callable(T, TKey, iterable<TKey, T>): bool ...$callbacks
+     * @return Collection
      */
-    public function filter(callable ...$callbacks): CollectionInterface
+    public function filter(callable ...$callbacks): Collection
     {
         return new self($this->collection->filter(...$callbacks));
     }
@@ -149,12 +154,12 @@ final class Collection implements CollectionInterface
      */
     public function count(): int
     {
-        return $this->collection->count();
+        return iterator_count(iterator: $this);
     }
 
     /**
      * @param mixed $default
-     * @param callable[] $callbacks
+     * @param callable(T, TKey, iterable<TKey, T>): bool ...$callbacks
      * @return mixed
      */
     public function find($default = null, callable ...$callbacks)
@@ -165,18 +170,18 @@ final class Collection implements CollectionInterface
     /**
      * @param int $count
      * @param int $offset
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function limit(int $count = -1, int $offset = 0): CollectionInterface
+    public function limit(int $count = -1, int $offset = 0): Collection
     {
         return new self($this->collection->limit($count, $offset));
     }
 
     /**
      * 
-     * @return CollectionInterface
+     * @return Collection
      */
-    public function last(): CollectionInterface
+    public function last(): Collection
     {
         return new self($this->collection->last());
     }

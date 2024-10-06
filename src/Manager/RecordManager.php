@@ -37,11 +37,11 @@ class RecordManager
     public function insert(Model $model) : mixed
     {
         if ($this->isUsingUUID) {
-            $model->id = UUID::uuid4()->toString();
+            $model->set('id',UUID::uuid4()->toString());
         }
         $this->connection->insert($model->getName(), $model->getProperties());
         if ($this->isUsingUUID) {
-            return $model->id;
+            return $model->get('id');
         }
         return (int) $this->connection->lastInsertId();
     }
@@ -70,9 +70,10 @@ class RecordManager
 
     /**
     * Get single record by id
-    *
+    * @param string $table
+    * @param mixed $id
     */
-    public function getById($table, mixed $id): Model|null
+    public function getById(string $table, mixed $id): Model|null
     {
         $query =  (new QueryBuilder($this->connection,$this->modelManager))
                  ->select('*')

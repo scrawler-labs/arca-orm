@@ -9,10 +9,16 @@ namespace Scrawler\Arca;
  */
 class Event
 {
-    static $events;
+    /**
+     * Store all events
+     * @var array<string,mixed>
+     */
+    static array $events;
 
     /**
      * Register an event before it becoming available for use
+     * @param string $eventname
+     * @return void
      */
     private static function register(string $eventname): void
     {
@@ -23,6 +29,9 @@ class Event
 
     /**
      * Subscribe to a defined event.
+     * @param string $eventname
+     * @param callable $callback
+     * @param int $priority
      */
     public static function subscribeTo(string $eventname, callable $callback, int $priority = 0): void
     {
@@ -34,8 +43,10 @@ class Event
 
     /**
      * Trigger an event, and call all subscribers, giving an array of params.
+     * @param string $eventname
+     * @param array<mixed> $params
      */
-    public static function dispatch($eventname, $params) : mixed
+    public static function dispatch(string $eventname, array $params) : mixed
     {
         if (!self::isEvent($eventname)) {
             self::register($eventname);
@@ -51,9 +62,10 @@ class Event
 
     /**
      * Check that an event is valid before interacting with it.
-     *
+     * @param string $eventname
+     * @return bool
      */
-    private static function isEvent($eventname)
+    private static function isEvent(string $eventname): bool
     {
         if (!isset(self::$events[$eventname]) || !is_array(self::$events[$eventname])) {
             return false;

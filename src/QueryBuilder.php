@@ -3,13 +3,18 @@
 namespace Scrawler\Arca;
 use Scrawler\Arca\Manager\ModelManager;
 use \Doctrine\DBAL\Schema\AbstractSchemaManager;
-
 /**
  * Extended implementation of \Doctrine\DBAL\Query\QueryBuilder
  */
 class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 {
+    /**
+     * @var string
+     */
     private string $table;
+    /**
+     * @var array<string>
+     */
     private array $relations= [];
 
     private AbstractSchemaManager $SchemaManager;

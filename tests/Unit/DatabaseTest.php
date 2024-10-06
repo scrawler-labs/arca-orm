@@ -1,4 +1,5 @@
 <?php
+use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use function Pest\Faker\fake;
 use Doctrine\DBAL\Exception\DriverException;
 
@@ -6,6 +7,10 @@ use Doctrine\DBAL\Exception\DriverException;
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS employee; ");
+     db()->unfreeze();
+
+
  });
 
 it(" checks db()->isUsingUUID() function ", function ($useUUID) {
@@ -354,3 +359,45 @@ it("checks db()->delete() function", function ($useUUID) {
     $result = $stmt->executeQuery()->fetchAssociative();
     $this->assertEmpty($result);
 })->with('useUUID');
+
+it("checks db()->tableExists() function", function ($useUUID) {
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->save();
+
+    $this->assertTrue(db($useUUID)->tableExists('user'));
+   
+})->with('useUUID');
+
+it("checks db()->tabelsExist() function", function ($useUUID) {
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->save();
+
+    $emp = db($useUUID)->create('employee');
+    $emp->name = fake()->name();
+    $emp->save();
+
+
+    $this->assertTrue(db($useUUID)->tablesExist(['user','employee']));
+   
+})->with('useUUID');
+
+it("checks frozen database", function ($useUUID) {
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->save();
+
+    db($useUUID)->freeze();
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+   
+    expect(fn() =>  $user->save())->toThrow(InvalidFieldNameException::class);
+
+    db($useUUID)->unfreeze();
+   
+})->with('useUUID');
+
+
+
