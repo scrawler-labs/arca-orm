@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "01109a855d9310ebedd6ee8ef9386b2f",
+    "content-hash": "c7d5b46eea59e4509c67c2f1b762ee72",
     "packages": [
         {
             "name": "brick/math",
@@ -1354,29 +1354,29 @@
         },
         {
             "name": "loophp/phpunit-iterable-assertions",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loophp/phpunit-iterable-assertions.git",
-                "reference": "2dd53022ed25e87e5fec0d38c5bba92f147c63af"
+                "reference": "5a32e9239a4358916b83782c8ed0e5bca7e717a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loophp/phpunit-iterable-assertions/zipball/2dd53022ed25e87e5fec0d38c5bba92f147c63af",
-                "reference": "2dd53022ed25e87e5fec0d38c5bba92f147c63af",
+                "url": "https://api.github.com/repos/loophp/phpunit-iterable-assertions/zipball/5a32e9239a4358916b83782c8ed0e5bca7e717a6",
+                "reference": "5a32e9239a4358916b83782c8ed0e5bca7e717a6",
                 "shasum": ""
             },
             "require": {
-                "loophp/iterators": "^2",
-                "php": ">= 7.4"
+                "loophp/iterators": "^2 || ^3",
+                "php": ">= 8.1"
             },
             "require-dev": {
                 "drupol/php-conventions": "^5",
                 "ext-pcov": "*",
-                "infection/infection": "^0.26",
+                "infection/infection": "^0.27",
                 "phpstan/phpstan-strict-rules": "^1.0",
-                "phpunit/php-code-coverage": "^9.2",
-                "phpunit/phpunit": "^9.5"
+                "phpunit/php-code-coverage": "^10",
+                "phpunit/phpunit": "^10"
             },
             "type": "library",
             "autoload": {
@@ -1411,7 +1411,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-09-11T19:41:39+00:00"
+            "time": "2023-11-25T08:53:20+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -5394,12 +5394,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.1.0"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }
