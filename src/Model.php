@@ -295,7 +295,7 @@ class Model
         if($this->__meta['id_error']){
             throw new Exception\InvalidIdException();
         }
-        Event::dispatch('system.model.save.'.$this->connection->getConnectionId(), [$this]);
+        Event::dispatch('__arca.model.save.'.$this->connection->getConnectionId(), [$this]);
         
         return $this->getId();
     }
@@ -306,7 +306,7 @@ class Model
      */
     public function delete(): void
     {
-        Event::dispatch('system.model.delete.'.$this->connection->getConnectionId(), [$this]);
+        Event::dispatch('__arca.model.delete.'.$this->connection->getConnectionId(), [$this]);
     }
 
     /**

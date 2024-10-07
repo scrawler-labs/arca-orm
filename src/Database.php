@@ -38,10 +38,10 @@ class Database
      */
     public function registerEvents(): void
     {
-        Event::subscribeTo('system.model.save.'.$this->connection->getConnectionId(), function ($model) {
+        Event::subscribeTo('__arca.model.save.'.$this->connection->getConnectionId(), function ($model) {
             return $this->save($model);
         });
-        Event::subscribeTo('system.model.delete.'.$this->connection->getConnectionId(), function ($model) {
+        Event::subscribeTo('__arca.model.delete.'.$this->connection->getConnectionId(), function ($model) {
             return $this->delete($model);
         });
     }
