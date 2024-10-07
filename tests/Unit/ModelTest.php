@@ -179,3 +179,12 @@ it("checks isset() function of model", function ($useUUID) {
     $this->assertTrue($truey);
     $this->assertFalse($falsey);
 })->with('useUUID');
+
+it("checks exception is thrown when id is force set on a model", function ($useUUID) {
+    $user = db($useUUID)->create('user');
+    $user->id = 1;
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->save();
+   
+})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidIdException::class);

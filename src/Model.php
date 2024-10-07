@@ -45,6 +45,7 @@ class Model
         $this->__meta['has_foreign']['otm'] = false;
         $this->__meta['has_foreign']['mtm'] = false;
         $this->__meta['is_loaded'] = false;
+        $this->__meta['id_error'] = false;
         $this->__meta['foreign_models']['otm'] = [];
         $this->__meta['foreign_models']['oto'] = [];
         $this->__meta['foreign_models']['mtm'] = [];
@@ -72,6 +73,7 @@ class Model
     {
         if ($key == 'id') {
             $this->__meta['id'] = $val;
+            $this->__meta['id_error'] = true;
         }
         //bug: fix issue with bool storage
         if (gettype($val) == 'boolean') {
@@ -222,6 +224,7 @@ class Model
         $this->__properties = array_merge($this->__properties, $properties);
         if (isset($properties['id'])) {
             $this->__meta['id'] = $properties['id'];
+            $this->__meta['id_error'] = true;
         }
         return $this;
     }
@@ -260,6 +263,7 @@ class Model
     public function setLoaded(): Model
     {
         $this->__meta['is_loaded'] = true;
+        $this->__meta['id_error'] = false;
         return $this;
     }
 
@@ -288,6 +292,9 @@ class Model
      */
     public function save(): mixed
     {
+        if($this->__meta['id_error']){
+            throw new Exception\InvalidIdException();
+        }
         Event::dispatch('system.model.save.'.$this->connection->getConnectionId(), [$this]);
         
         return $this->getId();
