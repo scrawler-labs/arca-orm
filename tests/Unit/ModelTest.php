@@ -188,3 +188,17 @@ it("checks exception is thrown when id is force set on a model", function ($useU
     $user->save();
    
 })->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidIdException::class);
+
+it("checks exception is thrown if share list is not array of model",function($useUUID){
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->sharedUserList = ['test','test1'];
+    $id = $parent->save();
+})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidModelException::class);
+
+it("checks exception is thrown if own list is not array of model",function($useUUID){
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->ownUserList = ['test','test1'];
+    $id = $parent->save();
+})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidModelException::class);

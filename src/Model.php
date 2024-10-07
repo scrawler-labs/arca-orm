@@ -84,6 +84,7 @@ class Model
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
                 if (gettype($val) == 'array') {
+                    $this->checkModelArray($val);
                     array_push($this->__meta['foreign_models']['otm'], $val);
                     $this->__meta['has_foreign']['otm'] = true;
                 }
@@ -91,6 +92,7 @@ class Model
             }
             if (strtolower($parts[0]) == 'shared') {
                 if (gettype($val) == 'array') {
+                    $this->checkModelArray($val);
                     array_push($this->__meta['foreign_models']['mtm'], $val);
                     $this->__meta['has_foreign']['mtm'] = true;
                 }
@@ -104,6 +106,18 @@ class Model
         }
 
         $this->__properties[$key] = $val;
+    }
+
+    /**
+     * Check if array passed is instance of model
+     * @param array $models
+     * @throws \Scrawler\Arca\Exception\InvalidModelException
+     * @return void
+     */
+    private function checkModelArray(array $models):void{
+        if (count(array_filter($models, fn($d) => !$d instanceof Model)) > 0) {
+            throw new Exception\InvalidModelException();
+        }
     }
 
     /**
