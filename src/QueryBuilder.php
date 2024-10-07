@@ -52,7 +52,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
             return Collection::fromIterable([]);
         }
         return Collection::fromIterable($results)
-            ->map(static fn($value): Model => ($model)->setProperties($value)->with($relations)->setLoaded());
+            ->map(static fn($value): Model => ($model)->setLoadedProperties($value)->with($relations)->setLoaded());
     }
 
     public function first(): Model|null
@@ -66,6 +66,6 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         if (empty($result)) {
             return null;
         }
-        return ($this->modelManager->create($this->table))->setProperties($result)->with($relations)->setLoaded();
+        return ($this->modelManager->create($this->table))->setLoadedProperties($result)->with($relations)->setLoaded();
     }
 }

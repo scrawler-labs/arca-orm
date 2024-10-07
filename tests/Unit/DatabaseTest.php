@@ -41,15 +41,15 @@ it("checks if db()->save() function creates table", function ($useUUID) {
     $table= db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
-        $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true));
+        $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true,'comment'=>'string'));
     } else {
-        $requiredTable->addColumn('id', 'integer', array("unsigned" => true, "autoincrement" => true));
+        $requiredTable->addColumn('id', 'integer', array("unsigned" => true, "autoincrement" => true,'comment'=>'integer'));
     }
-    $requiredTable->addColumn('name', "text", ['notnull' => false, 'comment' => 'name']);
-    $requiredTable->addColumn('email', "text", ['notnull' => false, 'comment' => 'email']);
-    $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment' => 'dob']);
-    $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment' => 'age']);
-    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment' => 'active']);
+    $requiredTable->addColumn('name', "text", ['notnull' => false,'comment'=>'text']);
+    $requiredTable->addColumn('email', "text", ['notnull' => false,'comment'=>'text' ]);
+    $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment'=>'text']);
+    $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment'=>'integer']);
+    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment'=>'integer']);
 
     $requiredTable->setPrimaryKey(array("id"));
 

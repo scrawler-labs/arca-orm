@@ -69,18 +69,16 @@ class TableManager
     {
         $table = new Table($model->getName());
         if ($this->isUsingUUID) {
-            $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true,]);
+            $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true,'comment' => 'string']);
         } else {
-            $table->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true]);
+            $table->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true,'comment' => 'integer']);
         }
         $table->setPrimaryKey(array("id"));
+        $types = $model->getTypes();
         foreach ($model->getProperties() as $key => $value) {
             if ($key != 'id') {
-                $type = gettype($value);
-                if($type == 'string'){
-                    $type = 'text';
-                }
-                $table->addColumn($key,$type , ['notnull' => false, 'comment' => $key]);
+
+                $table->addColumn($key,$types[$key] , ['notnull' => false, 'comment' => $types[$key]]);
             }
         }
         return $table;
@@ -111,7 +109,7 @@ class TableManager
         $tableDiff = $comparator->compareTables($old_table, $new_table);
         $mod_table = $old_table;
             foreach ($tableDiff->getAddedColumns() as $column) {
-                $mod_table->addColumn($column->getName(), Type::getTypeRegistry()->lookupName($column->getType()), ['notnull' => false, 'comment' => $column->getName()]);
+                $mod_table->addColumn($column->getName(), Type::getTypeRegistry()->lookupName($column->getType()), ['notnull' => $column->getNotnull(), 'comment' => $column->getComment(), 'default' => $column->getDefault()]);
             }
             $new_schema = $this->createTableSchema($mod_table);
             $schemaDiff = $comparator->compareSchemas($old_schema, $new_schema);

@@ -3,6 +3,8 @@ declare(strict_types=1);
 namespace Scrawler\Arca;
 
 use Scrawler\Arca\Connection;
+use Doctrine\DBAL\Types\Type;
+
 
 /**
  * Model class that represents single record in database
@@ -14,6 +16,13 @@ class Model
      * @var array<string,mixed>
      */
     private array $__properties = array();
+
+    /**
+     * Store all types of properties
+     * @var array<string,mixed>
+     */
+    private array $__types = array();
+
     /**
      * Store the table name of model
      * @var string
@@ -105,7 +114,19 @@ class Model
             return;
         }
 
+        $type = gettype($val);
+        if($type == 'array' || $type == 'object'){
+            $val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
+            $type = 'json_document';
+        }
+
+        if($type == 'string'){
+            $type = 'text';
+        }
+
         $this->__properties[$key] = $val;
+        $this->__types[$key] = $type;
+
     }
 
     /**
@@ -163,7 +184,8 @@ class Model
         }
 
         if (array_key_exists($key, $this->__properties)) {
-            return $this->__properties[$key];
+            $type = Type::getType($this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment());
+            return $type->convertToPHPValue($this->__properties[$key], $this->connection->getDatabasePlatform());
         }
 
         if (array_key_exists($key . '_id', $this->__properties)) {
@@ -235,13 +257,27 @@ class Model
      */
     public function setProperties(array $properties): Model
     {
-        $this->__properties = array_merge($this->__properties, $properties);
-        if (isset($properties['id'])) {
-            $this->__meta['id'] = $properties['id'];
-            $this->__meta['id_error'] = true;
+        foreach ($properties as $key => $value) {
+            $this->set($key, $value);
         }
         return $this;
     }
+
+    /**
+     * Set all properties of model loaded via database
+     * @param array<mixed> $properties
+     * @return Model
+     */
+    public function setLoadedProperties(array $properties): Model
+    {
+        $this->__properties = $properties;
+        foreach ($properties as $key => $value) {
+            $this->__types[$key] = $this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment();
+        }
+        $this->__meta['id'] = $properties['id'];
+        return $this;
+    }
+
 
     /**
      * Get all properties in array form
@@ -251,6 +287,16 @@ class Model
     {
         return $this->__properties;
     }
+
+    /**
+     * Get all property types in array form
+     * @return array<mixed>
+     */
+    public function getTypes(): array
+    {
+        return $this->__types;
+    }
+
 
     /**
      * Get all properties in array form

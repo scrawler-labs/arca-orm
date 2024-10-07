@@ -2,6 +2,16 @@
 declare(strict_types=1);
 
 namespace Scrawler\Arca;
+use Doctrine\DBAL\Types\Type;
+use Dunglas\DoctrineJsonOdm\Serializer;
+use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use Symfony\Component\Serializer\Normalizer\UidNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+
 
 /**
  * 
@@ -29,7 +39,18 @@ class Database
     {
         $this->connection = $connection;
         $this->registerEvents();
+        $this->registerJsonDocumentType();
 
+    }
+
+    private function registerJsonDocumentType(): void
+    {
+        if (!Type::hasType('json_document')) {
+            Type::addType('json_document', JsonDocumentType::class);
+            Type::getType('json_document')->setSerializer(
+                new Serializer([new BackedEnumNormalizer(), new UidNormalizer(), new DateTimeNormalizer(), new ArrayDenormalizer(), new ObjectNormalizer()], [new JsonEncoder()])
+            );
+        }
     }
 
     /**

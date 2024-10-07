@@ -20,7 +20,8 @@
         "doctrine/dbal": "^4.0",
         "loophp/collection": "^7.0",
         "ramsey/uuid": "^4.3",
-        "thecodingmachine/safe": "^2.5"
+        "thecodingmachine/safe": "^2.5",
+        "dunglas/doctrine-json-odm": "^1.4"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.7.2",

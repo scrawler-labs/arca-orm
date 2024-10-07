@@ -1,13 +1,13 @@
 <?php
 use function Pest\Faker\fake;
 
- beforeEach(function () {
+beforeEach(function () {
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
 });
 
-it('tests table manger update functionality',function($useUUID){
+it('tests table manger update functionality', function ($useUUID) {
     createRandomUser($useUUID);
 
     $user = db($useUUID)->create('user');
@@ -20,20 +20,20 @@ it('tests table manger update functionality',function($useUUID){
     $user->rand = 'abc';
     $id = $user->save();
 
-    $table= db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
+    $table = db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
-        $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true));
+        $requiredTable->addColumn('id', 'string', array('length' => 36, 'notnull' => true, 'comment' => "string"));
     } else {
-        $requiredTable->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
+        $requiredTable->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true, 'comment' => "integer"));
     }
-    $requiredTable->addColumn('name', "text", ['notnull' => false, 'comment' => 'name']);
-    $requiredTable->addColumn('email', "text", ['notnull' => false, 'comment' => 'email']);
-    $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment' => 'dob']);
-    $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment' => 'age']);
-    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment' => 'active']);
-    $requiredTable->addColumn('address', "text", ['notnull' => false, 'comment' => 'address']);
-    $requiredTable->addColumn('rand', "text", ['notnull' => false, 'comment' => 'rand']);
+    $requiredTable->addColumn('name', "text", ['notnull' => false, 'comment' => "text"]);
+    $requiredTable->addColumn('email', "text", ['notnull' => false, 'comment' => "text"]);
+    $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment' => "text"]);
+    $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment' => "integer"]);
+    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment' => "integer"]);
+    $requiredTable->addColumn('address', "text", ['notnull' => false, 'comment' => "text"]);
+    $requiredTable->addColumn('rand', "text", ['notnull' => false, 'comment' => "text"]);
 
     $requiredTable->setPrimaryKey(array("id"));
 
@@ -45,3 +45,14 @@ it('tests table manger update functionality',function($useUUID){
 
     $this->assertEmpty(db($useUUID)->getConnection()->getPlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
+
+// it('tests for usage of resrved keywords',function(){
+//   $test = db()->create('stest');
+//   $test->name = 'test';
+//   $test->add = 'test';
+//   $id = $test->save();
+
+//   $test = db()->getOne('stest',$id);
+
+//   $this->assertEquals($test->name,'test');
+// });

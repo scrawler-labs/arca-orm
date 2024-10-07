@@ -202,3 +202,33 @@ it("checks exception is thrown if own list is not array of model",function($useU
     $parent->ownUserList = ['test','test1'];
     $id = $parent->save();
 })->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidModelException::class);
+
+
+
+it("checks for setting array as property of model",function($useUUID){
+$user = db($useUUID)->create('user');
+$user->name = fake()->name();
+$user->email = fake()->email();
+$user->hobbies = ["swimming","cycling","running"];
+$id = $user->save();
+
+$user_retrived = db($useUUID)->getOne('user', $id);
+$hobby = $user_retrived->hobbies;
+expect($hobby)->toBeArray();
+})->with('useUUID');
+
+it('tests bulk property setting',function($useUUID){
+    $user = db($useUUID)->create('user');
+    $user->setProperties([
+        'name' => fake()->name(),
+        'email' => fake()->email(),
+        'dob' => fake()->date(),
+        'age' => fake()->randomNumber(2, false),
+        'address' => fake()->streetAddress()
+    ]);
+    $id = $user->save();
+    $user_retrived = db($useUUID)->getOne('user', $id);
+    $this->assertEquals($user->name,$user_retrived->name);
+    $this->assertEquals($user->email,$user_retrived->email);
+})->with('useUUID');
+
