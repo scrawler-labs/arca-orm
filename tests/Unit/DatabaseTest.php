@@ -2,6 +2,7 @@
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use function Pest\Faker\fake;
 use Doctrine\DBAL\Exception\DriverException;
+covers(Scrawler\Arca\Model::class);
 
  beforeEach(function () {
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
@@ -49,7 +50,7 @@ it("checks if db()->save() function creates table", function ($useUUID) {
     $requiredTable->addColumn('email', "text", ['notnull' => false,'comment'=>'text' ]);
     $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment'=>'text']);
     $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment'=>'integer']);
-    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment'=>'integer']);
+    $requiredTable->addColumn('active', "boolean", ['notnull' => false, 'comment'=>'boolean']);
 
     $requiredTable->setPrimaryKey(array("id"));
 

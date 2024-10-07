@@ -31,7 +31,7 @@ it('tests table manger update functionality', function ($useUUID) {
     $requiredTable->addColumn('email', "text", ['notnull' => false, 'comment' => "text"]);
     $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment' => "text"]);
     $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment' => "integer"]);
-    $requiredTable->addColumn('active', "integer", ['notnull' => false, 'comment' => "integer"]);
+    $requiredTable->addColumn('active', "boolean", ['notnull' => false, 'comment' => "boolean"]);
     $requiredTable->addColumn('address', "text", ['notnull' => false, 'comment' => "text"]);
     $requiredTable->addColumn('rand', "text", ['notnull' => false, 'comment' => "text"]);
 
@@ -45,14 +45,3 @@ it('tests table manger update functionality', function ($useUUID) {
 
     $this->assertEmpty(db($useUUID)->getConnection()->getPlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
-
-// it('tests for usage of resrved keywords',function(){
-//   $test = db()->create('stest');
-//   $test->name = 'test';
-//   $test->add = 'test';
-//   $id = $test->save();
-
-//   $test = db()->getOne('stest',$id);
-
-//   $this->assertEquals($test->name,'test');
-// });

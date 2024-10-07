@@ -1,6 +1,9 @@
 <?php
 use function Pest\Faker\fake;
-
+covers(Scrawler\Arca\Model::class);
+covers(classesOrFunctions: Scrawler\Arca\Exception\InvalidIdException::class);
+covers(classesOrFunctions: Scrawler\Arca\Exception\KeyNotFoundException::class);
+covers(classesOrFunctions: Scrawler\Arca\Exception\InvalidModelException::class);
 
 beforeEach(function () {
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
@@ -15,6 +18,21 @@ it("checks if model is properly populated on retrive", function ($useUUID) {
     $result =$stmt->executeQuery()->fetchAssociative();
     $this->assertEquals($user->name, $result['name']);
     $this->assertEquals($user->getProperties(), $result);
+})->with('useUUID');
+
+it("tests for model equals",function($useUUID){
+    $id = createRandomUser($useUUID);
+    $user = db($useUUID)->getOne('user', $id);
+    $user_two = db($useUUID)->getOne('user', $id);
+    $this->assertTrue($user->equals($user_two));
+})->with('useUUID');
+
+it("tests for model not equals",function($useUUID){
+    $id = createRandomUser($useUUID);
+    $user = db($useUUID)->getOne('user', $id);
+    $user_two = db($useUUID)->getOne('user', $id);
+    $user_two->name = 'test';
+    $this->assertFalse($user->equals($user_two));
 })->with('useUUID');
 
 it("checks if model can retrive one-to-one related models", function ($useUUID) {
@@ -169,7 +187,7 @@ it("check exception is thrown when non existent key is accessed", function ($use
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
     $user->somekey;
-})->throws(\Scrawler\Arca\Exception\KeyNotFoundException::class)->with('useUUID');
+})->throws(\Scrawler\Arca\Exception\KeyNotFoundException::class,"Key you are trying to access does not exist")->with('useUUID');
 
 it("checks isset() function of model", function ($useUUID) {
     $id = createRandomUser($useUUID);
@@ -187,7 +205,7 @@ it("checks exception is thrown when id is force set on a model", function ($useU
     $user->email = fake()->email();
     $user->save();
    
-})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidIdException::class);
+})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidIdException::class,'Force setting of id for model is not allowed');
 
 it("checks exception is thrown if share list is not array of model",function($useUUID){
     $parent = db($useUUID)->create('parent');
@@ -201,7 +219,7 @@ it("checks exception is thrown if own list is not array of model",function($useU
     $parent->name = fake()->name();
     $parent->ownUserList = ['test','test1'];
     $id = $parent->save();
-})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidModelException::class);
+})->with('useUUID')->throws(\Scrawler\Arca\Exception\InvalidModelException::class,'parameter passed to shared list or own list should be array of class \Arca\Model');
 
 
 
@@ -232,3 +250,68 @@ it('tests bulk property setting',function($useUUID){
     $this->assertEquals($user->email,$user_retrived->email);
 })->with('useUUID');
 
+it('tests for model delete() function',function($useUUID){
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $id = $user->save();
+    $user->delete();
+    $this->assertNull(db()->getOne('user',$id));
+})->with('useUUID');
+
+it('tests for types when loaded ',function($useUUID){
+    $id = createRandomUser($useUUID);
+    $user_retrived = db($useUUID)->getOne('user', $id);
+    $types = $user_retrived->getTypes();
+    $this->assertIsArray($types);
+    $this->assertEquals($types['name'],'text');
+    $this->assertEquals($types['email'],'text');
+})->with('useUUID');
+
+
+// it('tests for model with()',function($useUUID){
+//     $user = db($useUUID)->create('user');
+//     $user->name = fake()->name();
+//     $user->email = fake()->email();
+//     $user->dob = fake()->date();
+//     $user->age = fake()->randomNumber(2, false);
+//     $user->address = fake()->streetAddress();
+//     //$user->save();
+
+//     $parent = db($useUUID)->create('parent');
+//     $parent->name = fake()->name();
+//     $parent->user = $user;
+
+//     $id = $parent->save();
+
+//     $parent_retrived_with = db($useUUID)->getOne('parent', $id)->with(['user']);
+//     $parent_retrived = db($useUUID)->getOne('parent', $id);
+
+//     $user = db($useUUID)->find('user')->first();
+
+//     $this->assertJsonStringEqualsJsonString(
+//         $parent_retrived_with->toString(),
+//         $parent->toString()
+//     );
+//     $this->assertJsonStringNotEqualsJsonString(
+//         $parent_retrived->toString(),
+//         $parent->toString()
+//     );
+// })->with('useUUID');
+
+it('tests boolean type',function(){
+ $user = db()->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->active = true;
+    $id = $user->save();
+    $user_retrived = db()->getOne('user', $id);
+    $this->assertTrue($user_retrived->active);
+
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->active = false;
+    $id = $user->save();
+    $user_retrived = db()->getOne('user', $id);
+    $this->assertFalse($user_retrived->active);
+});

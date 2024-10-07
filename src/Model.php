@@ -84,10 +84,7 @@ class Model
             $this->__meta['id'] = $val;
             $this->__meta['id_error'] = true;
         }
-        //bug: fix issue with bool storage
-        if (gettype($val) == 'boolean') {
-            ($val) ? $val = 1 : $val = 0;
-        }
+
 
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
@@ -115,6 +112,11 @@ class Model
         }
 
         $type = gettype($val);
+
+        if (gettype($val) == 'boolean') {
+            ($val) ? $val = 1 : $val = 0;
+        }
+        
         if($type == 'array' || $type == 'object'){
             $val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
             $type = 'json_document';
@@ -131,7 +133,7 @@ class Model
 
     /**
      * Check if array passed is instance of model
-     * @param array $models
+     * @param array<mixed> $models
      * @throws \Scrawler\Arca\Exception\InvalidModelException
      * @return void
      */
@@ -160,7 +162,6 @@ class Model
      */
     public function get(string $key) : mixed
     {
-
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
