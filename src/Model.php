@@ -96,7 +96,7 @@ class Model
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) === 'own') {
-                if (gettype($val) === 'array') {
+                if (gettype($val) === 'array' || $val instanceof Collection) {
                     $this->checkModelArray($val);
                     array_push($this->__meta['foreign_models']['otm'], $val);
                     $this->__meta['has_foreign']['otm'] = true;
@@ -108,7 +108,7 @@ class Model
                 return;
             }
             if (strtolower($parts[0]) === 'shared') {
-                if (gettype($val) ==='array') {
+                if (gettype($val) ==='array' || $val instanceof Collection) {
                     $this->checkModelArray($val);
                     array_push($this->__meta['foreign_models']['mtm'], $val);
                     $this->__meta['has_foreign']['mtm'] = true;
@@ -153,11 +153,15 @@ class Model
 
     /**
      * Check if array passed is instance of model
-     * @param array<mixed> $models
+     * @param array<mixed>|Collection $models
      * @throws \Scrawler\Arca\Exception\InvalidModelException
      * @return void
      */
-    private function checkModelArray(array $models):void{
+    private function checkModelArray(array|Collection $models):void{
+        if($models instanceof Collection){
+            return;
+        }
+
         if (count(array_filter($models, fn($d) => !$d instanceof Model)) > 0) {
             throw new Exception\InvalidModelException();
         }

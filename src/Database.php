@@ -161,13 +161,15 @@ class Database
      */
     private function createRecords(Model $model) : mixed
     {
-        if($model->hasIdError()){
-            throw new Exception\InvalidIdException();
-        }
 
         if ($model->isLoaded()) {
             return $this->connection->getRecordManager()->update($model);
         }
+
+        if($model->hasIdError()){
+            throw new Exception\InvalidIdException();
+        }
+
         return $this->connection->getRecordManager()->insert($model);
     }
 
@@ -187,6 +189,8 @@ class Database
         try {
             foreach ($model->getForeignModels('oto') as $foreign) {
                 $id = $this->createRecords($foreign);
+                $foreign->cleanModel();
+                $foreign->setLoaded();
                 $name = $foreign->getName().'_id';
                 $model->$name = $id;
             }
@@ -218,6 +222,8 @@ class Database
             foreach ($model->getForeignModels('otm') as $foreigns) {
                 foreach ($foreigns as $foreign) {
                     $this->createRecords($foreign);
+                    $foreign->cleanModel();
+                    $foreign->setLoaded();
                 }
             }
             $this->connection->commit();
@@ -257,6 +263,8 @@ class Database
             foreach ($model->getForeignModels('mtm') as $foreigns) {
                 foreach ($foreigns as $foreign) {
                     $rel_id = $this->createRecords($foreign);
+                    $foreign->cleanModel();
+                    $foreign->setLoaded();
                     $model_id = $model->getName().'_id';
                     $foreign_id = $foreign->getName().'_id';
                     $relational_table = $this->create($model->getName().'_'.$foreign->getName());
