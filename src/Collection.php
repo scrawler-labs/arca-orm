@@ -99,11 +99,11 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return Collection
+     * @return Model
      */
-    public function first(): Collection
+    public function first(): Model
     {
-        return new self($this->collection->first());
+       return $this->collection->first();
     }
 
     /**
@@ -179,11 +179,12 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return Collection
+     * @return Model
+     * 
      */
-    public function last(): Collection
+    public function last(): Model
     {
-        return new self($this->collection->last());
+        return $this->collection->last();
     }
 
     /**
@@ -212,4 +213,7 @@ final class Collection implements CollectionInterface
     {
         return $this->collection->key($index);
     }
+
+    
+ 
 }

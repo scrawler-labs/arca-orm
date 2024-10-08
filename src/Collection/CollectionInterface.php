@@ -8,7 +8,7 @@ use Iterator;
  * @template TKey
  * @template T
  */
-interface CollectionInterface extends IteratorAggregate
+interface CollectionInterface extends IteratorAggregate,\Countable
 {
     /**
      * @return string

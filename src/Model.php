@@ -19,7 +19,6 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 {
     use Iterator;
     use Stringable;
-    use Serializable;
     use ArrayAccess;
     use Getter;
     use Setter;
@@ -151,15 +150,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     {
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if (strtolower($parts[0]) == 'own') {
-                if (strtolower($parts[2]) == 'list') {
+            if (strtolower($parts[0]) === 'own') {
+                if (strtolower($parts[2]) === 'list') {
                     $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
                     $this->set($key, $result);
                     return $result;
                 }
             }
-            if (strtolower($parts[0]) == 'shared') {
-                if (strtolower($parts[2]) == 'list') {
+            if (strtolower($parts[0]) === 'shared') {
+                if (strtolower($parts[2]) === 'list') {
                     $rel_table = $this->connection->getTableManager()->tableExists($this->table . '_' . strtolower($parts[1])) ? $this->table . '_' . strtolower($parts[1]) : strtolower($parts[1]) . '_' . $this->table;
                     $relations = $this->connection->getRecordManager()->find($rel_table)->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
                     $rel_ids = '';
@@ -213,11 +212,11 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     {
         $type = gettype($value);
 
-        if ($type == 'array' || $type == 'object') {
+        if ($type === 'array' || $type === 'object') {
             return 'json_document';
         }
 
-        if ($type == 'string') {
+        if ($type === 'string') {
             return 'text';
         }
 
