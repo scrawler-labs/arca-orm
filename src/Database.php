@@ -210,21 +210,17 @@ class Database
      */
     private function saveForeignOtm(\Scrawler\Arca\Model $model, mixed $id): void
     {
-        foreach ($model->getForeignModels('otm') as $foreigns) {
-            foreach ($foreigns as $foreign) {
+        foreach ($model->getForeignModels('otm') as $foreign) {
                 $key = $model->getName().'_id';
                 $foreign->$key = $id;
                 $this->createTables($foreign);
-            }
         }
         $this->connection->beginTransaction();
         try {
-            foreach ($model->getForeignModels('otm') as $foreigns) {
-                foreach ($foreigns as $foreign) {
+            foreach ($model->getForeignModels('otm') as $foreign) {
                     $this->createRecords($foreign);
                     $foreign->cleanModel();
                     $foreign->setLoaded();
-                }
             }
             $this->connection->commit();
         } catch (\Exception $e) {
@@ -242,8 +238,7 @@ class Database
      */
     private function saveForeignMtm(\Scrawler\Arca\Model $model, mixed $id): void
     {
-        foreach ($model->getForeignModels('mtm') as $foreigns) {
-            foreach ($foreigns as $foreign) {
+        foreach ($model->getForeignModels('mtm') as $foreign) {
                 $model_id = $model->getName().'_id';
                 $foreign_id = $foreign->getName().'_id';
                 $relational_table = $this->create($model->getName().'_'.$foreign->getName());
@@ -256,12 +251,10 @@ class Database
                 }
                 $this->createTables($relational_table);
                 $this->createTables($foreign);
-            }
         }
         $this->connection->beginTransaction();
         try {
-            foreach ($model->getForeignModels('mtm') as $foreigns) {
-                foreach ($foreigns as $foreign) {
+            foreach ($model->getForeignModels('mtm') as $foreign) {
                     $rel_id = $this->createRecords($foreign);
                     $foreign->cleanModel();
                     $foreign->setLoaded();
@@ -271,7 +264,6 @@ class Database
                     $relational_table->$model_id = $id;
                     $relational_table->$foreign_id = $rel_id;
                     $this->createRecords($relational_table);
-                }
             }
             $this->connection->commit();
         } catch (\Exception $e) {

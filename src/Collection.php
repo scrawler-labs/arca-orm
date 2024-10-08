@@ -122,10 +122,10 @@ final class Collection implements CollectionInterface
     }
 
     /**
-     * @param mixed[][] $sources
+     * @param array<mixed>|\Traversable<mixed> $sources
      * @return Collection
      */
-    public function merge(iterable...$sources): Collection
+    public function merge(iterable ...$sources): Collection
     {
         return new self($this->collection->merge(...$sources));
     }
@@ -192,7 +192,7 @@ final class Collection implements CollectionInterface
      */
     public function getIterator(): Iterator
     {
-        yield from$this->collection->getIterator();
+        yield from $this->collection->getIterator();
     }
     /**
      * @param int $index
