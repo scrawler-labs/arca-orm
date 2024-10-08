@@ -52,7 +52,7 @@ class Model
      * @param string $name
      * @param Connection $connection
      */
-    public function __construct(string $name,Connection $connection)
+    public function __construct(string $name, Connection $connection)
     {
 
         $this->table = $name;
@@ -96,33 +96,25 @@ class Model
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) === 'own') {
-                if (gettype($val) === 'array' || $val instanceof Collection) {
-                    $this->checkModelArray($val);
-                    array_push($this->__meta['foreign_models']['otm'], $val);
-                    $this->__meta['has_foreign']['otm'] = true;
-                    if(is_array($val) && !($val instanceof Collection)){
-                        $val = Collection::fromIterable($val);
-                    }
-                    $this->__props[$key] = $val;
-                }
+                $val = $this->arrayToCollection($val);
+                array_push($this->__meta['foreign_models']['otm'], $val);
+                $this->__meta['has_foreign']['otm'] = true;
+
+                $this->__props[$key] = $val;
                 return;
             }
             if (strtolower($parts[0]) === 'shared') {
-                if (gettype($val) ==='array' || $val instanceof Collection) {
-                    $this->checkModelArray($val);
+                    $this->arrayToCollection($val);
                     array_push($this->__meta['foreign_models']['mtm'], $val);
                     $this->__meta['has_foreign']['mtm'] = true;
-                    if(is_array($val) && !($val instanceof Collection)){
-                        $val = Collection::fromIterable($val);
-                    }
+                   
                     $this->__props[$key] = $val;
-                }
                 return;
             }
         }
         if ($val instanceof Model) {
-            if(isset($this->__props[$key.'_id'])){
-                unset($this->__props[$key.'_id']);
+            if (isset($this->__props[$key . '_id'])) {
+                unset($this->__props[$key . '_id']);
             }
             $this->__meta['has_foreign']['oto'] = true;
             array_push($this->__meta['foreign_models']['oto'], $val);
@@ -136,12 +128,12 @@ class Model
             ($val) ? $val = 1 : $val = 0;
         }
 
-        if($type == 'array' || $type == 'object'){
+        if ($type == 'array' || $type == 'object') {
             $val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
             $type = 'json_document';
         }
 
-        if($type == 'string'){
+        if ($type == 'string') {
             $type = 'text';
         }
 
@@ -155,16 +147,21 @@ class Model
      * Check if array passed is instance of model
      * @param array<mixed>|Collection $models
      * @throws \Scrawler\Arca\Exception\InvalidModelException
-     * @return void
+     * @return Collection
      */
-    private function checkModelArray(array|Collection $models):void{
-        if($models instanceof Collection){
-            return;
+    private function arrayToCollection(array|Collection $models): Collection
+    {
+        if ($models instanceof Collection) {
+            return $models;
         }
 
         if (count(array_filter($models, fn($d) => !$d instanceof Model)) > 0) {
             throw new Exception\InvalidModelException();
         }
+
+        return Collection::fromIterable($models);
+
+
     }
 
     /**
@@ -184,7 +181,7 @@ class Model
      * @param string $key
      * @return mixed
      */
-    public function get(string $key) : mixed
+    public function get(string $key): mixed
     {
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
@@ -233,7 +230,7 @@ class Model
      * @param array<string> $relations
      * @return Model
      */
-    public function with(array $relations) : Model
+    public function with(array $relations): Model
     {
         foreach ($relations as $relation) {
             $this->get($relation);
@@ -414,7 +411,7 @@ class Model
      */
     public function save(): mixed
     {
-        Event::dispatch('__arca.model.save.'.$this->connection->getConnectionId(), [$this]);
+        Event::dispatch('__arca.model.save.' . $this->connection->getConnectionId(), [$this]);
 
         return $this->getId();
     }
@@ -423,7 +420,8 @@ class Model
      * Cleans up model internal state to be consistent after save
      * @return void
      */
-    public function cleanModel(){
+    public function cleanModel()
+    {
         $this->__props = $this->__properties;
         $this->__meta['has_foreign']['oto'] = false;
         $this->__meta['has_foreign']['otm'] = false;
@@ -441,7 +439,7 @@ class Model
      */
     public function delete(): void
     {
-        Event::dispatch('__arca.model.delete.'.$this->connection->getConnectionId(), [$this]);
+        Event::dispatch('__arca.model.delete.' . $this->connection->getConnectionId(), [$this]);
     }
 
     /**
