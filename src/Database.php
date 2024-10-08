@@ -121,7 +121,6 @@ class Database
         try {
             $id = $this->createRecords($model);
             $model->set('id',$id);
-            $model->setLoaded();
             $this->connection->commit();
         } catch (\Exception $e) {
             $this->connection->rollBack();
@@ -135,6 +134,9 @@ class Database
         if ($model->hasForeign('mtm')) {
             $this->saveForeignMtm($model, $id);
         }
+
+        $model->cleanModel();
+        $model->setLoaded();
 
         return $id;
     }
@@ -159,6 +161,10 @@ class Database
      */
     private function createRecords(Model $model) : mixed
     {
+        if($model->hasIdError()){
+            throw new Exception\InvalidIdException();
+        }
+
         if ($model->isLoaded()) {
             return $this->connection->getRecordManager()->update($model);
         }

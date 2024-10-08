@@ -58,7 +58,7 @@ final class Collection implements CollectionInterface
      */
     public function toArray(): array
     {
-        $toArray = static fn($val) => $val->getProperties();
+        $toArray = static fn($val) => $val->toArray();
         return $this->map($toArray)->jsonSerialize();
     }
 

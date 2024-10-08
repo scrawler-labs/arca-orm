@@ -75,7 +75,7 @@ class TableManager
         }
         $table->setPrimaryKey(array("id"));
         $types = $model->getTypes();
-        foreach ($model->getProperties() as $key => $value) {
+        foreach ($model->getSelfProperties() as $key => $value) {
             if ($key != 'id') {
 
                 $table->addColumn($key,$types[$key] , ['notnull' => false, 'comment' => $types[$key]]);

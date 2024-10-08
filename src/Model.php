@@ -18,6 +18,13 @@ class Model
     private array $__properties = array();
 
     /**
+     * Store all properties with all relation
+     * @var array<string,mixed>
+     */
+    private array $__props = array();
+
+
+    /**
      * Store all types of properties
      * @var array<string,mixed>
      */
@@ -80,7 +87,7 @@ class Model
      */
     public function set(string $key, mixed $val): void
     {
-        if ($key == 'id') {
+        if ($key === 'id') {
             $this->__meta['id'] = $val;
             $this->__meta['id_error'] = true;
         }
@@ -88,26 +95,38 @@ class Model
 
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if (strtolower($parts[0]) == 'own') {
-                if (gettype($val) == 'array') {
+            if (strtolower($parts[0]) === 'own') {
+                if (gettype($val) === 'array') {
                     $this->checkModelArray($val);
                     array_push($this->__meta['foreign_models']['otm'], $val);
                     $this->__meta['has_foreign']['otm'] = true;
+                    if(is_array($val) && !($val instanceof Collection)){
+                        $val = Collection::fromIterable($val);
+                    }
+                    $this->__props[$key] = $val;
                 }
                 return;
             }
-            if (strtolower($parts[0]) == 'shared') {
-                if (gettype($val) == 'array') {
+            if (strtolower($parts[0]) === 'shared') {
+                if (gettype($val) ==='array') {
                     $this->checkModelArray($val);
                     array_push($this->__meta['foreign_models']['mtm'], $val);
                     $this->__meta['has_foreign']['mtm'] = true;
+                    if(is_array($val) && !($val instanceof Collection)){
+                        $val = Collection::fromIterable($val);
+                    }
+                    $this->__props[$key] = $val;
                 }
                 return;
             }
         }
         if ($val instanceof Model) {
+            if(isset($this->__props[$key.'_id'])){
+                unset($this->__props[$key.'_id']);
+            }
             $this->__meta['has_foreign']['oto'] = true;
             array_push($this->__meta['foreign_models']['oto'], $val);
+            $this->__props[$key] = $val;
             return;
         }
 
@@ -116,7 +135,7 @@ class Model
         if (gettype($val) == 'boolean') {
             ($val) ? $val = 1 : $val = 0;
         }
-        
+
         if($type == 'array' || $type == 'object'){
             $val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
             $type = 'json_document';
@@ -127,6 +146,7 @@ class Model
         }
 
         $this->__properties[$key] = $val;
+        $this->__props[$key] = $val;
         $this->__types[$key] = $type;
 
     }
@@ -166,7 +186,9 @@ class Model
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if (strtolower($parts[0]) == 'own') {
                 if (strtolower($parts[2]) == 'list') {
-                    return $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
+                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
+                    $this->set($key, $result);
+                    return $result;
                 }
             }
             if (strtolower($parts[0]) == 'shared') {
@@ -179,18 +201,24 @@ class Model
                         $rel_ids .= "'" . $relation->$key . "',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    return $this->connection->getRecordManager()->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
+                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
+                    $this->set($key, $result);
+                    return $result;
                 }
             }
         }
 
-        if (array_key_exists($key, $this->__properties)) {
-            $type = Type::getType($this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment());
-            return $type->convertToPHPValue($this->__properties[$key], $this->connection->getDatabasePlatform());
+        if (array_key_exists($key . '_id', $this->__properties)) {
+            $result = $this->connection->getRecordManager()->getById($key, $this->__properties[$key . '_id']);
+            $this->set($key, $result);
+            return $result;
         }
 
-        if (array_key_exists($key . '_id', $this->__properties)) {
-            return $this->connection->getRecordManager()->getById($key, $this->__properties[$key . '_id']);
+        if (array_key_exists($key, $this->__properties)) {
+            $type = Type::getType($this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment());
+            $result = $type->convertToPHPValue($this->__properties[$key], $this->connection->getDatabasePlatform());
+            $this->set($key, $result);
+            return $result;
         }
 
         throw new Exception\KeyNotFoundException();
@@ -228,6 +256,7 @@ class Model
     public function unset(string $key): void
     {
         unset($this->__properties[$key]);
+        unset($this->__props[$key]);
     }
 
     /**
@@ -248,7 +277,7 @@ class Model
      */
     public function isset(string $key): bool
     {
-        return array_key_exists($key, $this->__properties);
+        return array_key_exists($key, $this->__props);
     }
 
     /**
@@ -272,6 +301,7 @@ class Model
     public function setLoadedProperties(array $properties): Model
     {
         $this->__properties = $properties;
+        $this->__props = $properties;
         foreach ($properties as $key => $value) {
             $this->__types[$key] = $this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment();
         }
@@ -281,10 +311,19 @@ class Model
 
 
     /**
-     * Get all properties in array form
+     * Get all properties with relational models in array form
      * @return array<mixed>
      */
     public function getProperties(): array
+    {
+        return $this->__props;
+    }
+
+    /**
+     * Get self properties without relations in array form
+     * @return array<mixed>
+     */
+    public function getSelfProperties(): array
     {
         return $this->__properties;
     }
@@ -305,7 +344,16 @@ class Model
      */
     public function toArray(): array
     {
-        return $this->getProperties();
+        $props = $this->getProperties();
+        foreach ($props as $key => $value) {
+            if ($value instanceof Model) {
+                $props[$key] = $value->toArray();
+            }
+            if ($value instanceof Collection) {
+                $props[$key] = $value->toArray();
+            }
+        }
+        return $props;
     }
 
     /**
@@ -346,6 +394,15 @@ class Model
         return $this->__meta['id'];
     }
 
+    /**
+     * Check if model has id error
+     * @return bool
+     */
+    public function hasIdError(): bool
+    {
+        return $this->__meta['id_error'];
+    }
+
 
     /**
      * Save model to database
@@ -353,12 +410,25 @@ class Model
      */
     public function save(): mixed
     {
-        if($this->__meta['id_error']){
-            throw new Exception\InvalidIdException();
-        }
         Event::dispatch('__arca.model.save.'.$this->connection->getConnectionId(), [$this]);
-        
+
         return $this->getId();
+    }
+
+    /**
+     * Cleans up model internal state to be consistent after save
+     * @return void
+     */
+    public function cleanModel(){
+        $this->__props = $this->__properties;
+        $this->__meta['has_foreign']['oto'] = false;
+        $this->__meta['has_foreign']['otm'] = false;
+        $this->__meta['has_foreign']['mtm'] = false;
+        $this->__meta['id_error'] = false;
+        $this->__meta['foreign_models']['otm'] = [];
+        $this->__meta['foreign_models']['oto'] = [];
+        $this->__meta['foreign_models']['mtm'] = [];
+
     }
 
     /**
@@ -376,7 +446,7 @@ class Model
      */
     public function toString(): string
     {
-        return \Safe\json_encode($this->getProperties());
+        return \Safe\json_encode($this->toArray());
     }
 
     /**

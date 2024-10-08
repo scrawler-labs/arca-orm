@@ -39,7 +39,7 @@ class RecordManager
         if ($this->isUsingUUID) {
             $model->set('id',UUID::uuid4()->toString());
         }
-        $this->connection->insert($model->getName(), $model->getProperties());
+        $this->connection->insert($model->getName(), $model->getSelfProperties());
         if ($this->isUsingUUID) {
             return $model->get('id');
         }
@@ -53,7 +53,7 @@ class RecordManager
      */
     public function update(Model $model) : mixed
     {
-        $this->connection->update($model->getName(), $model->getProperties(), ['id'=>$model->getId()]);
+        $this->connection->update($model->getName(), $model->getSelfProperties(), ['id'=>$model->getId()]);
         return $model->getId();
     }
 
