@@ -1,38 +1,73 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 declare(strict_types=1);
+
 namespace Scrawler\Arca;
 
-use \Doctrine\DBAL\Connection as DBALConnection;
+use Doctrine\DBAL\Connection as DBALConnection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use \Doctrine\DBAL\Schema\AbstractSchemaManager;
-use \Scrawler\Arca\Manager\RecordManager;
-use \Scrawler\Arca\Manager\TableManager;
-use \Scrawler\Arca\Manager\ModelManager;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Ramsey\Uuid\Uuid;
+use Scrawler\Arca\Manager\ModelManager;
+use Scrawler\Arca\Manager\RecordManager;
+use Scrawler\Arca\Manager\TableManager;
 
 /**
+ * Wrapper class for Doctrine DBAL Connection.
+ *
  * @mixin DBALConnection
  */
-class Connection
+final class Connection
 {
-
+    /**
+     * Store the instance of current connection.
+     */
     private DBALConnection $connection;
-    private AbstractSchemaManager $SchemaManager;
+    /**
+     * Store the instance of SchemaManager.
+     */
+    private AbstractSchemaManager $schemaManager;
+    /**
+     * Store the instance of Platform.
+     */
     private AbstractPlatform $platform;
-    private RecordManager $RecordManager;
-    private TableManager $TableManager;
-    private ModelManager $ModelManager;
+    /**
+     * Store the instance of RecordManager.
+     */
+    private RecordManager $recordManager;
+    /**
+     * Store the instance of TableManager.
+     */
+    private TableManager $tableManager;
+    /**
+     * Store the instance of ModelManager.
+     */
+    private ModelManager $modelManager;
+    /**
+     * Store if the connection is using UUID.
+     */
     private bool $isUsingUUID;
+    /**
+     * Store the connection id.
+     */
     private string $connectionId;
 
     /**
-     * Create a new connection
+     * Create a new connection.
+     *
      * @param array<mixed> $connectionParams
      */
     public function __construct(array $connectionParams)
     {
-        $this->connectionId = UUID::uuid4()->toString();
+        $this->connectionId = Uuid::uuid4()->toString();
         if (isset($connectionParams['useUUID']) && $connectionParams['useUUID']) {
             $this->isUsingUUID = true;
         } else {
@@ -40,26 +75,24 @@ class Connection
         }
         unset($connectionParams['useUUID']);
         $this->connection = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
-        $this->SchemaManager = $this->connection->createSchemaManager();
+        $this->schemaManager = $this->connection->createSchemaManager();
         $this->platform = $this->connection->getDatabasePlatform();
-        $this->ModelManager = new ModelManager();
-        $this->RecordManager = new RecordManager($this->connection, $this->ModelManager, $this->isUsingUUID);
-        $this->TableManager = new TableManager($this->connection, $this->isUsingUUID);
-        $this->ModelManager->setConnection($this);
+        $this->modelManager = new ModelManager();
+        $this->recordManager = new RecordManager($this->connection, $this->modelManager, $this->isUsingUUID);
+        $this->tableManager = new TableManager($this->connection, $this->isUsingUUID);
+        $this->modelManager->setConnection($this);
     }
 
     /**
-     * Get the instance of SchemaManager
-     * @return AbstractSchemaManager
+     * Get the instance of SchemaManager.
      */
     public function getSchemaManager(): AbstractSchemaManager
     {
-        return $this->SchemaManager;
+        return $this->schemaManager;
     }
 
     /**
-     * Get the instance of Platform
-     * @return AbstractPlatform
+     * Get the instance of Platform.
      */
     public function getPlatform(): AbstractPlatform
     {
@@ -67,8 +100,7 @@ class Connection
     }
 
     /**
-     * Check if the connection is using UUID
-     * @return bool
+     * Check if the connection is using UUID.
      */
     public function isUsingUUID(): bool
     {
@@ -76,54 +108,44 @@ class Connection
     }
 
     /**
-     * Get the instance of RecordManager
-     * @return RecordManager
+     * Get the instance of RecordManager.
      */
     public function getRecordManager(): RecordManager
     {
-        return $this->RecordManager;
+        return $this->recordManager;
     }
 
     /**
-     * Get the instance of TableManager
-     * @return TableManager
+     * Get the instance of TableManager.
      */
     public function getTableManager(): TableManager
     {
-        return $this->TableManager;
+        return $this->tableManager;
     }
 
     /**
-     * Get the instance of ModelManager
-     * @return ModelManager
+     * Get the instance of ModelManager.
      */
     public function getModelManager(): ModelManager
     {
-        return $this->ModelManager;
+        return $this->modelManager;
     }
 
     /**
-     * Get the connection id
-     * @return string
+     * Get the connection id.
      */
     public function getConnectionId(): string
     {
         return $this->connectionId;
     }
 
-
     /**
-     * Magic method to call methods on the connection
-     * @param string $method
+     * Magic method to call methods on the connection.
+     *
      * @param array<mixed> $args
-     * @return mixed
      */
-    function __call(string $method, array $args): mixed
+    public function __call(string $method, array $args): mixed
     {
-        
         return $this->connection->$method(...$args);
-
     }
-
-
 }

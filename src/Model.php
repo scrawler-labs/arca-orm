@@ -1,19 +1,26 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
+
 namespace Scrawler\Arca;
 
-use Scrawler\Arca\Connection;
 use Doctrine\DBAL\Types\Type;
-use Scrawler\Arca\Traits\Model\Serializable;
-use Scrawler\Arca\Traits\Model\Stringable;
-use Scrawler\Arca\Traits\Model\Iterator;
 use Scrawler\Arca\Traits\Model\ArrayAccess;
 use Scrawler\Arca\Traits\Model\Getter;
+use Scrawler\Arca\Traits\Model\Iterator;
 use Scrawler\Arca\Traits\Model\Setter;
-
+use Scrawler\Arca\Traits\Model\Stringable;
 
 /**
- * Model class that represents single record in database
+ * Model class that represents single record in database.
  */
 class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 {
@@ -24,36 +31,32 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     use Setter;
 
     /**
-     * Store all properties of model
+     * Store all properties of model.
+     *
      * @var array<string,array<string,mixed>>
      */
-    private array $__properties = array();
+    private array $__properties = [];
 
     /**
-     * Store the table name of model
-     * @var string
+     * Store the table name of model.
      */
     private string $table;
     /**
-     * Store the metadata of model
+     * Store the metadata of model.
+     *
      * @var array<string,mixed>
      */
     private array $__meta = [];
     /**
-     * Store the connection
-     * @var Connection
+     * Store the connection.
      */
     private Connection $connection;
 
-
     /**
-     * Create a new model
-     * @param string $name
-     * @param Connection $connection
+     * Create a new model.
      */
     public function __construct(string $name, Connection $connection)
     {
-
         $this->table = $name;
         $this->connection = $connection;
         $this->__properties['all'] = [];
@@ -67,10 +70,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * adds the key to properties
-     * @param string $key
-     * @param mixed $val
-     * @return void
+     * adds the key to properties.
      */
     public function __set(string $key, mixed $val): void
     {
@@ -78,62 +78,58 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Adds the key to properties
-     * @param string $key
-     * @param mixed $val
-     * @return void
+     * Adds the key to properties.
      */
     public function set(string $key, mixed $val): void
     {
-        if ($key === 'id') {
+        if ('id' === $key) {
             $this->__meta['id'] = $val;
             $this->__meta['id_error'] = true;
         }
 
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if (strtolower($parts[0]) === 'own') {
-                $this->__meta['foreign_models']['otm'] = $this->createCollection($this->__meta['foreign_models']['otm'],$val);
+            if ('own' === strtolower($parts[0])) {
+                $this->__meta['foreign_models']['otm'] = $this->createCollection($this->__meta['foreign_models']['otm'], $val);
                 $this->__properties['all'][$key] = $val;
+
                 return;
             }
-            if (strtolower($parts[0]) === 'shared') {
-                $this->__meta['foreign_models']['mtm'] = $this->createCollection($this->__meta['foreign_models']['mtm'],$val);
+            if ('shared' === strtolower($parts[0])) {
+                $this->__meta['foreign_models']['mtm'] = $this->createCollection($this->__meta['foreign_models']['mtm'], $val);
                 $this->__properties['all'][$key] = $val;
+
                 return;
             }
         }
         if ($val instanceof Model) {
-            if (isset($this->__properties['all'][$key . '_id'])) {
-                unset($this->__properties['all'][$key . '_id']);
+            if (isset($this->__properties['all'][$key.'_id'])) {
+                unset($this->__properties['all'][$key.'_id']);
             }
             $this->__meta['foreign_models']['oto'] = $this->createCollection($this->__meta['foreign_models']['oto'], Collection::fromIterable([$val]));
             $this->__properties['all'][$key] = $val;
+
             return;
         }
 
         $type = $this->getDataType($val);
 
-        if ($type === 'boolean') {
+        if ('boolean' === $type) {
             ($val) ? $val = 1 : $val = 0;
         }
 
-        if ($type === 'json_document') {
+        if ('json_document' === $type) {
             $val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
         }
 
         $this->__properties['self'][$key] = $val;
         $this->__properties['all'][$key] = $val;
         $this->__properties['type'][$key] = $type;
-
     }
-
 
     /**
      * Get a key from properties, keys can be relational
-     * like sharedList,ownList or foreign table
-     * @param string $key
-     * @return mixed
+     * like sharedList,ownList or foreign table.
      */
     public function __get(string $key): mixed
     {
@@ -142,41 +138,42 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     /**
      * Get a key from properties, keys can be relational
-     * like sharedList,ownList or foreign table
-     * @param string $key
-     * @return mixed
+     * like sharedList,ownList or foreign table.
      */
     public function get(string $key): mixed
     {
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if (strtolower($parts[0]) === 'own') {
-                if (strtolower($parts[2]) === 'list') {
-                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
+            if ('own' === strtolower($parts[0])) {
+                if ('list' === strtolower($parts[2])) {
+                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                     $this->set($key, $result);
+
                     return $result;
                 }
             }
-            if (strtolower($parts[0]) === 'shared') {
-                if (strtolower($parts[2]) === 'list') {
-                    $rel_table = $this->connection->getTableManager()->tableExists($this->table . '_' . strtolower($parts[1])) ? $this->table . '_' . strtolower($parts[1]) : strtolower($parts[1]) . '_' . $this->table;
-                    $relations = $this->connection->getRecordManager()->find($rel_table)->where($this->getName() . '_id = "' . $this->__meta['id'] . '"')->get();
+            if ('shared' === strtolower($parts[0])) {
+                if ('list' === strtolower($parts[2])) {
+                    $rel_table = $this->connection->getTableManager()->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
+                    $relations = $this->connection->getRecordManager()->find($rel_table)->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                     $rel_ids = '';
                     foreach ($relations as $relation) {
-                        $key = strtolower($parts[1]) . '_id';
-                        $rel_ids .= "'" . $relation->$key . "',";
+                        $key = strtolower($parts[1]).'_id';
+                        $rel_ids .= "'".$relation->$key."',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where('id IN (' . $rel_ids . ')')->get();
+                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
                     $this->set($key, $result);
+
                     return $result;
                 }
             }
         }
 
-        if (array_key_exists($key . '_id', $this->__properties['self'])) {
-            $result = $this->connection->getRecordManager()->getById($key, $this->__properties['self'][$key . '_id']);
+        if (array_key_exists($key.'_id', $this->__properties['self'])) {
+            $result = $this->connection->getRecordManager()->getById($key, $this->__properties['self'][$key.'_id']);
             $this->set($key, $result);
+
             return $result;
         }
 
@@ -184,6 +181,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             $type = Type::getType($this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment());
             $result = $type->convertToPHPValue($this->__properties['self'][$key], $this->connection->getDatabasePlatform());
             $this->set($key, $result);
+
             return $result;
         }
 
@@ -191,32 +189,31 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Eager Load relation variable
+     * Eager Load relation variable.
+     *
      * @param array<string> $relations
-     * @return Model
      */
     public function with(array $relations): Model
     {
         foreach ($relations as $relation) {
             $this->get($relation);
         }
+
         return $this;
     }
 
     /**
-     * Get the type of value
-     * @param mixed $value
-     * @return string
+     * Get the type of value.
      */
     private function getDataType(mixed $value): string
     {
         $type = gettype($value);
 
-        if ($type === 'array' || $type === 'object') {
+        if ('array' === $type || 'object' === $type) {
             return 'json_document';
         }
 
-        if ($type === 'string') {
+        if ('string' === $type) {
             return 'text';
         }
 
@@ -224,14 +221,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Check if array passed is instance of model
+     * Check if array passed is instance of model.
+     *
      * @param array<mixed>|Collection $models
-     * @throws \Scrawler\Arca\Exception\InvalidModelException
-     * @return Collection
+     *
+     * @throws Exception\InvalidModelException
      */
     private function createCollection(?Collection $collection, array|Collection $models): Collection
     {
-        if(is_null($collection)){
+        if (is_null($collection)) {
             $collection = Collection::fromIterable([]);
         }
 
@@ -239,19 +237,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $collection->merge($models);
         }
 
-        if (count(array_filter($models, fn($d) => !$d instanceof Model)) > 0) {
+        if (count(array_filter($models, fn ($d) => !$d instanceof Model)) > 0) {
             throw new Exception\InvalidModelException();
         }
 
         return $collection->merge(Collection::fromIterable($models));
     }
 
-
-
     /**
-     * Unset a property from model
-     * @param string $key
-     * @return void
+     * Unset a property from model.
      */
     public function __unset(string $key): void
     {
@@ -259,9 +253,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Unset a property from model
-     * @param string $key
-     * @return void
+     * Unset a property from model.
      */
     public function unset(string $key): void
     {
@@ -271,9 +263,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Check if property exists
-     * @param string $key
-     * @return bool
+     * Check if property exists.
      */
     public function __isset(string $key): bool
     {
@@ -281,50 +271,42 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Check if property exists
-     *
-     * @param string $key
-     * @return bool
+     * Check if property exists.
      */
     public function isset(string $key): bool
     {
         return array_key_exists($key, $this->__properties['all']);
     }
 
-
     /**
-     * check if model loaded from db
-     * @return bool
+     * check if model loaded from db.
      */
     public function isLoaded(): bool
     {
         return $this->__meta['is_loaded'];
     }
 
-
     /**
-     * Check if model has id error
-     * @return bool
+     * Check if model has id error.
      */
     public function hasIdError(): bool
     {
         return $this->__meta['id_error'];
     }
 
-
     /**
-     * Save model to database
-     * @return mixed
+     * Save model to database.
      */
     public function save(): mixed
     {
-        Event::dispatch('__arca.model.save.' . $this->connection->getConnectionId(), [$this]);
+        Event::dispatch('__arca.model.save.'.$this->connection->getConnectionId(), [$this]);
 
         return $this->getId();
     }
 
     /**
-     * Cleans up model internal state to be consistent after save
+     * Cleans up model internal state to be consistent after save.
+     *
      * @return void
      */
     public function cleanModel()
@@ -334,36 +316,29 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         $this->__meta['foreign_models']['otm'] = null;
         $this->__meta['foreign_models']['oto'] = null;
         $this->__meta['foreign_models']['mtm'] = null;
-
     }
 
     /**
-     * Delete model data
-     * @return void
+     * Delete model data.
      */
     public function delete(): void
     {
-        Event::dispatch('__arca.model.delete.' . $this->connection->getConnectionId(), [$this]);
+        Event::dispatch('__arca.model.delete.'.$this->connection->getConnectionId(), [$this]);
     }
 
     /**
-     * Function used to compare to models
-     * @param Model $other
-     * @return bool
+     * Function used to compare to models.
      */
     public function equals(self $other): bool
     {
-        return ($this->getId() === $other->getId() && $this->toString() === $other->toString());
+        return $this->getId() === $other->getId() && $this->toString() === $other->toString();
     }
 
     /**
-     * Check if model has any relations
-     * @param string $type
-     * @return bool
+     * Check if model has any relations.
      */
     public function hasForeign(string $type): bool
     {
         return !is_null($this->__meta['foreign_models'][$type]);
     }
-
 }

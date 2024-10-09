@@ -1,13 +1,24 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace Scrawler\Arca\Traits\Model;
+
 use Scrawler\Arca\Collection;
+
+/**
+ * Getter trait to provide getter methods to the model.
+ */
 trait Getter
 {
-
     /**
-     * Get current model Id or UUID
-     * @return mixed
+     * Get current model Id or UUID.
      */
     public function getId(): mixed
     {
@@ -15,8 +26,7 @@ trait Getter
     }
 
     /**
-     * Get current table name of model
-     * @return string
+     * Get current table name of model.
      */
     public function getName(): string
     {
@@ -24,7 +34,8 @@ trait Getter
     }
 
     /**
-     * Get all properties with relational models in array form
+     * Get all properties with relational models in array form.
+     *
      * @return array<mixed>
      */
     public function getProperties(): array
@@ -33,7 +44,8 @@ trait Getter
     }
 
     /**
-     * Get self properties without relations in array form
+     * Get self properties without relations in array form.
+     *
      * @return array<mixed>
      */
     public function getSelfProperties(): array
@@ -42,7 +54,8 @@ trait Getter
     }
 
     /**
-     * Get all property types in array form
+     * Get all property types in array form.
+     *
      * @return array<mixed>
      */
     public function getTypes(): array
@@ -51,15 +64,10 @@ trait Getter
     }
 
     /**
-     * returns all relational models
-     * @param string $type
-     * @return Collection
+     * returns all relational models.
      */
     public function getForeignModels(string $type): Collection
     {
         return is_null($this->__meta['foreign_models'][$type]) ? Collection::fromIterable([]) : $this->__meta['foreign_models'][$type];
     }
-
-
-
 }

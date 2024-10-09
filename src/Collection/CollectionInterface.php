@@ -1,43 +1,41 @@
 <?php
-namespace Scrawler\Arca\Collection;
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-use IteratorAggregate;
-use Iterator;
+namespace Scrawler\Arca\Collection;
 
 /**
  * @template TKey
  * @template T
  */
-interface CollectionInterface extends IteratorAggregate,\Countable
+interface CollectionInterface extends \IteratorAggregate, \Countable
 {
-    /**
-     * @return string
-     */
     public function __toString(): string;
+
     /**
      * @return array<mixed>
      */
     public function toArray(): array;
-    /**
-     * @return string
-     */
+
     public function toString(): string;
-    /**
-     * @return Iterator
-     */
-    public function getIterator(): Iterator;
-    /**
-     * @param callable $callables
-     */
+
+    public function getIterator(): \Iterator;
+
     public function apply(callable $callables): CollectionInterface;
-    /**
-     * @param callable $callable
-     */
+
     public function map(callable $callable): CollectionInterface;
+
     /**
      * @param mixed[] $array
      */
     public static function fromIterable(iterable $array): CollectionInterface;
+
     /**
      * @return array<mixed>
      */

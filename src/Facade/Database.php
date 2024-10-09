@@ -1,40 +1,45 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Scrawler\Arca\Facade;
 
-
-use Scrawler\Arca\Database as DB;
-use Scrawler\Arca\Connection;
 use Scrawler\Arca\Collection;
+use Scrawler\Arca\Connection;
+use Scrawler\Arca\Database as DB;
 use Scrawler\Arca\Model;
 use Scrawler\Arca\QueryBuilder;
 
 class Database
 {
     /**
-     * Store the instance of current connection
-     * @var \Scrawler\Arca\Database
+     * Store the instance of current connection.
      */
     private static DB $database;
 
     /**
-     * Create a new Database instance
+     * Create a new Database instance.
+     *
      * @param array<mixed> $connectionParams
-     * @return \Scrawler\Arca\Database
      */
     public static function connect(array $connectionParams): DB
     {
+        $connection = new Connection($connectionParams);
+        self::$database = new DB($connection);
 
-            $connection =new Connection($connectionParams);
-            self::$database = new DB($connection);
-            return self::$database;
-     
+        return self::$database;
     }
 
     /**
-     * Get the instance of current connection
-     * @return \Scrawler\Arca\Database
+     * Get the instance of current connection.
      */
     private static function getDB(): DB
     {
@@ -42,9 +47,7 @@ class Database
     }
 
     /**
-     * Create a new model
-     * @param string $name
-     * @return \Scrawler\Arca\Model
+     * Create a new model.
      */
     public static function create(string $name): Model
     {
@@ -52,9 +55,9 @@ class Database
     }
 
     /**
-     * Save a model
+     * Save a model.
+     *
      * @param string $table
-     * @return \Scrawler\Arca\Collection
      */
     public static function get($table): Collection
     {
@@ -62,19 +65,16 @@ class Database
     }
 
     /**
-     * Save a model
-     * @param string $table
-     * @param mixed $id
-     * @return \Scrawler\Arca\Model
+     * Save a model.
      */
-    public static function getOne(string $table, mixed $id): Model|null
+    public static function getOne(string $table, mixed $id): ?Model
     {
         return self::getDB()->getOne($table, $id);
     }
 
     /**
-     * Execure a raw sql query
-     * @param string $sql
+     * Execure a raw sql query.
+     *
      * @return int|numeric-string
      */
     public static function exec(string $sql): int|string
@@ -83,23 +83,18 @@ class Database
     }
 
     /**
-     * Delete a model
-     * @param \Scrawler\Arca\Model $model
-     * @return mixed
+     * Delete a model.
      */
-    public static function delete(Model $model): mixed{
+    public static function delete(Model $model): mixed
+    {
         return self::getDB()->delete($model);
     }
 
     /**
-     * QUery builder to find a model 
-     * @param string $table
-     * @return \Scrawler\Arca\QueryBuilder
+     * QUery builder to find a model.
      */
     public static function find(string $table): QueryBuilder
     {
         return self::getDB()->find($table);
     }
-
-
 }

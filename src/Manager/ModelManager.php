@@ -1,39 +1,43 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Scrawler\Arca\Manager;
 
-use \Scrawler\Arca\Model;
-use \Scrawler\Arca\Connection;
+use Scrawler\Arca\Connection;
+use Scrawler\Arca\Model;
 
 /**
- * Class for initializing and managing models
+ * Class for initializing and managing models.
  */
-class ModelManager {
-
+class ModelManager
+{
     /**
-     * Creates and return models
-     * @var Connection
+     * Store the instance of current connection.
      */
     private Connection $connection;
 
     /**
-     * Create a new model
-     * @param string $name
-     * @return \Scrawler\Arca\Model
+     * Create a new model.
      */
-    function create(string $name): Model
+    public function create(string $name): Model
     {
-        return new Model($name,$this->connection);
+        return new Model($name, $this->connection);
     }
 
     /**
-     * Set the connection
-     * @param Connection $connection
+     * Set the connection.
      */
-    function setConnection(Connection $connection): void
+    public function setConnection(Connection $connection): void
     {
-       $this->connection = $connection;   
+        $this->connection = $connection;
     }
-
 }

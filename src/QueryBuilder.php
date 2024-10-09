@@ -1,26 +1,33 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace Scrawler\Arca;
+
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Scrawler\Arca\Manager\ModelManager;
-use \Doctrine\DBAL\Schema\AbstractSchemaManager;
+
 /**
- * Extended implementation of \Doctrine\DBAL\Query\QueryBuilder
+ * Extended implementation of \Doctrine\DBAL\Query\QueryBuilder.
  */
-class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
+final class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 {
-    /**
-     * @var string
-     */
     private string $table;
     /**
      * @var array<string>
      */
-    private array $relations= [];
+    private array $relations = [];
 
     private AbstractSchemaManager $SchemaManager;
     private ModelManager $modelManager;
 
-    public function __construct(\Doctrine\DBAL\Connection $connection,ModelManager $modelManager)
+    public function __construct(\Doctrine\DBAL\Connection $connection, ModelManager $modelManager)
     {
         $this->modelManager = $modelManager;
         $this->SchemaManager = $connection->createSchemaManager();
@@ -30,18 +37,20 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
     public function with(string $relation): QueryBuilder
     {
         array_push($this->relations, $relation);
+
         return $this;
     }
 
     public function from($table, $alias = null): QueryBuilder
     {
         $this->table = $table;
-        return parent::from($table,$alias);
+
+        return parent::from($table, $alias);
     }
 
     public function get(): Collection
     {
-        if(!$this->SchemaManager->tableExists($this->table)){
+        if (!$this->SchemaManager->tableExists($this->table)) {
             return Collection::fromIterable([]);
         }
         $model = $this->modelManager->create($this->table);
@@ -50,12 +59,12 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         $results = $this->fetchAllAssociative();
 
         return Collection::fromIterable($results)
-            ->map(static fn($value): Model => ($model)->setLoadedProperties($value)->with($relations)->setLoaded());
+            ->map(static fn ($value): Model => $model->setLoadedProperties($value)->with($relations)->setLoaded());
     }
 
-    public function first(): Model|null
+    public function first(): ?Model
     {
-        if(!$this->SchemaManager->tableExists($this->table)){
+        if (!$this->SchemaManager->tableExists($this->table)) {
             return null;
         }
         $relations = $this->relations;
@@ -64,6 +73,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         if (empty($result)) {
             return null;
         }
-        return ($this->modelManager->create($this->table))->setLoadedProperties($result)->with($relations)->setLoaded();
+
+        return $this->modelManager->create($this->table)->setLoadedProperties($result)->with($relations)->setLoaded();
     }
 }

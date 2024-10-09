@@ -1,109 +1,118 @@
 <?php
+/*
+ * This file is part of the Scrawler package.
+ *
+ * (c) Pranjal Pandey <its.pranjalpandey@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace Scrawler\Arca\Manager;
 
-use \Scrawler\Arca\Collection;
-use \Scrawler\Arca\QueryBuilder;
-use \Scrawler\Arca\Model;
-use \Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connection;
 use Ramsey\Uuid\Uuid;
+use Scrawler\Arca\Collection;
+use Scrawler\Arca\Model;
+use Scrawler\Arca\QueryBuilder;
 
 /**
- * Class responsible for manging single records
+ * Class responsible for manging single records.
  */
-class RecordManager
+final class RecordManager
 {
+    /**
+     * Store the instance of current connection.
+     */
     private Connection $connection;
 
+    /**
+     * Store if the connection is using UUID.
+     */
     private bool $isUsingUUID;
 
-    private ModelManager $modelManager;
-    
     /**
-     * Create RecordManager
+     * Store the instance of ModelManager.
      */
-    public function __construct(Connection $connection, ModelManager $modelManager,bool $isUsingUUID = false)
+    private ModelManager $modelManager;
+
+    /**
+     * Create RecordManager.
+     */
+    public function __construct(Connection $connection, ModelManager $modelManager, bool $isUsingUUID = false)
     {
         $this->connection = $connection;
         $this->isUsingUUID = $isUsingUUID;
         $this->modelManager = $modelManager;
     }
 
-
     /**
-     * Create a new record
-     *
+     * Create a new record.
      */
-    public function insert(Model $model) : mixed
+    public function insert(Model $model): mixed
     {
         if ($this->isUsingUUID) {
-            $model->set('id',UUID::uuid4()->toString());
+            $model->set('id', Uuid::uuid4()->toString());
         }
         $this->connection->insert($model->getName(), $model->getSelfProperties());
         if ($this->isUsingUUID) {
             return $model->get('id');
         }
+
         return (int) $this->connection->lastInsertId();
     }
 
-
     /**
-     * Update a record
-     *
+     * Update a record.
      */
-    public function update(Model $model) : mixed
+    public function update(Model $model): mixed
     {
-        $this->connection->update($model->getName(), $model->getSelfProperties(), ['id'=>$model->getId()]);
-        return $model->getId();
-    }
+        $this->connection->update($model->getName(), $model->getSelfProperties(), ['id' => $model->getId()]);
 
-
-    /**
-     * Delete a record
-     *
-     */
-    public function delete(Model $model) : mixed
-    {
-        $this->connection->delete($model->getName(), ['id'=>$model->getId()]);
         return $model->getId();
     }
 
     /**
-    * Get single record by id
-    * @param string $table
-    * @param mixed $id
-    */
-    public function getById(string $table, mixed $id): Model|null
+     * Delete a record.
+     */
+    public function delete(Model $model): mixed
     {
-        $query =  (new QueryBuilder($this->connection,$this->modelManager))
+        $this->connection->delete($model->getName(), ['id' => $model->getId()]);
+
+        return $model->getId();
+    }
+
+    /**
+     * Get single record by id.
+     */
+    public function getById(string $table, mixed $id): ?Model
+    {
+        $query = (new QueryBuilder($this->connection, $this->modelManager))
                  ->select('*')
                  ->from($table, 't')
-                 ->where("t.id = ?")
+                 ->where('t.id = ?')
                  ->setParameter(0, $id);
 
         return $query->first();
     }
 
-
     /**
-     * Get all records
-     *
+     * Get all records.
      */
     public function getAll(string $tableName): Collection
     {
-        return (new QueryBuilder($this->connection,$this->modelManager))
+        return (new QueryBuilder($this->connection, $this->modelManager))
             ->select('*')
             ->from($tableName, 't')
             ->get();
     }
 
     /**
-     * get query builder from db
-     *
+     * get query builder from db.
      */
-    public function find(String $name) : QueryBuilder
+    public function find(string $name): QueryBuilder
     {
-        return (new QueryBuilder($this->connection,$this->modelManager))
+        return (new QueryBuilder($this->connection, $this->modelManager))
         ->select('*')
         ->from($name, 't');
     }
