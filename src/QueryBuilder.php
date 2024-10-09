@@ -48,9 +48,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
         $relations = $this->relations;
         $this->relations = [];
         $results = $this->fetchAllAssociative();
-        if (empty($results)) {
-            return Collection::fromIterable([]);
-        }
+
         return Collection::fromIterable($results)
             ->map(static fn($value): Model => ($model)->setLoadedProperties($value)->with($relations)->setLoaded());
     }

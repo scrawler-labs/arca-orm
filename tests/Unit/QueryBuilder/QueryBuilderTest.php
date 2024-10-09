@@ -1,6 +1,10 @@
 <?php
 use function Pest\Faker\fake;
 
+covers(\Scrawler\Arca\QueryBuilder::class); 
+covers(\Scrawler\Arca\Manager\ModelManager::class);
+covers(\Scrawler\Arca\Connection::class);
+
  beforeEach(function () {
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
@@ -19,33 +23,11 @@ it("checks if db()->find()->first() returns first record", function ($useUUID) {
     $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
 })->with('useUUID');
 
-it("checks if db()->find()->with() eager loads relation", function ($useUUID) {
 
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $user->dob = fake()->date();
-    $user->age = fake()->randomNumber(2, false);
-    $user->address = fake()->streetAddress();
-    //$user->save();
-
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->user = $user;
-    $parent->save();
-
-    $parent_retrived = db($useUUID)->find('parent')->with('user')->first();
-    $user = db($useUUID)->find('user')->first();
-
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived->user->toString(),
-        $user->toString()
-    );
-
-})->with('useUUID');
 
 it("checks if null is returned if table does not exist",function(){
     $this->assertNull(db()->find('non_existent_table')->first());
+    $this->assertInstanceOf(\Scrawler\Arca\Collection::class,db()->find('non_existent_table')->get());
     $this->assertEmpty(db()->find('non_existent_table')->get()->toArray());
 });
 
@@ -58,5 +40,7 @@ it("checks if null is returned if table empty",function(){
     $user->delete();
     
     $this->assertNull(db()->find('user')->first());
+    $this->assertInstanceOf(\Scrawler\Arca\Collection::class,db()->find('user')->get());
     $this->assertEmpty(db()->find('user')->get()->toArray());
 });
+

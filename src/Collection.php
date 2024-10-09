@@ -99,9 +99,9 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return Model
+     * @return Model|T|null
      */
-    public function first(): Model
+    public function first(): Model|null
     {
        return $this->collection->first();
     }
@@ -179,7 +179,7 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return Model
+     * @return Model|T|null
      * 
      */
     public function last(): Model

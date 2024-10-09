@@ -3,7 +3,6 @@
 use function Pest\Faker\fake;
 covers(\Scrawler\Arca\Model::class); 
 
-
 beforeEach(function () {
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
@@ -51,3 +50,15 @@ it('tests model can be treated as Array',function(){
 
 });
 
+it('tests if class is stringable',function(){
+    $model = db()->create('user');
+    $model->name = fake()->name();
+    $model->email = fake()->email();
+    $model->save();
+
+    ob_start();
+    echo $model;
+    $data =  ob_get_clean();
+
+    $this->assertEquals($data,$model->toString());
+});

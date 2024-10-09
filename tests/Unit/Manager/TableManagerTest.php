@@ -1,5 +1,7 @@
 <?php
 use function Pest\Faker\fake;
+covers(\Scrawler\Arca\Manager\TableManager::class);
+
 
 beforeEach(function () {
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");

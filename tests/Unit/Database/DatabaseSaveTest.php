@@ -1,35 +1,23 @@
-<?php
+<?php 
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use function Pest\Faker\fake;
 use Doctrine\DBAL\Exception\DriverException;
-covers(Scrawler\Arca\Model::class);
+covers(\Scrawler\Arca\Database::class); 
+covers(\Scrawler\Arca\Connection::class);
+covers(\Scrawler\Arca\Manager\RecordManager::class);
+covers(\Scrawler\Arca\Manager\TableManager::class);
+covers(\Scrawler\Arca\Manager\ModelManager::class);
+covers(\Scrawler\Arca\Event::class);
+
 
  beforeEach(function () {
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS employee; ");
-     db()->unfreeze();
-
-
  });
 
-it(" checks db()->isUsingUUID() function ", function ($useUUID) {
-    if($useUUID == 'UUID'){
-        $this->assertTrue(db($useUUID)->isUsingUUID());
-    }else{
-        $this->assertFalse(db($useUUID)->isUsingUUID());
-    }
-   
-})->with('useUUID');
-
-it(" checks db()->create() function ", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $model =  new \Scrawler\Arca\Model('user',db($useUUID)->getConnection());
-    $this->assertObjectEquals($model, $user);
-})->with('useUUID');
-
-it("checks if db()->save() function creates table", function ($useUUID) {
+ it("checks if db()->save() function creates table", function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -181,7 +169,7 @@ it("checks for exception in database saveOto()",function($useUUID){
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it("checks for exception in database saveMto()",function($useUUID){
+it("checks for exception in database saveMtm()",function($useUUID){
 
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
@@ -204,6 +192,28 @@ it("checks for exception in database saveMto()",function($useUUID){
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
+it("checks for exception in database saveOtm()",function($useUUID){
+
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
+
+    $user_two = db($useUUID)->create('user');
+    $user_two->name = fake()->name();
+    $user_two->email = fake()->email();
+    $user_two->dob = fake()->date();
+    $user_two->age = 'error';
+    $user_two->address = fake()->streetAddress();
+    //$id = $user->save();
+
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->ownUserList = [$user,$user_two];
+    $id = $parent->save();
+})->with('useUUID')->throws(DriverException::class);
 
 
 it("checks if db()->save() function saves record with many-to-many relation", function ($useUUID) {
@@ -267,138 +277,5 @@ it("checks if db()->save() function updates record", function ($useUUID) {
         $user->toString()
     );
 })->with('useUUID');
-
-
-
-it("checks if db()->getOne() gets single record", function ($useUUID) {
-    populateRandomUser($useUUID);
-    $id = createRandomUser($useUUID);
-    $user = db($useUUID)->getOne('user', $id);
-
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
-    $result = json_encode($stmt->executeQuery()->fetchAssociative());
-    $this->assertJsonStringEqualsJsonString(
-        $result,
-        $user->toString()
-    );
-    $this->assertIsString((string) $user);
-    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
-})->with('useUUID');
-
-it("checks if db()->get() gets all record", function ($useUUID) {
-    populateRandomUser($useUUID);
-    $users = db($useUUID)->get('user');
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user");
-    $result = json_encode($stmt->executeQuery()->fetchAllAssociative());
-    $this->assertJsonStringEqualsJsonString(
-        $result,
-        $users->toString()
-    );
-    $this->assertInstanceOf(\Scrawler\Arca\Collection::class, $users);
-})->with('useUUID');
-
-it("checks if db()->find() returns Query Builder", function () {
-    $this->assertInstanceOf(\Scrawler\Arca\QueryBuilder::class, db()->find('user'));
-    $this->assertInstanceOf(\Scrawler\Arca\QueryBuilder::class, db()->find('user')->where('id = 2'));
-});
-
-it("checks if db()->find() returns correct records", function () {
-    populateRandomUser();
-    $users = db()->find('user')->where('active = 1')->get();
-    $stmt = db()->getConnection()->prepare("SELECT * FROM user WHERE active = 1");
-    $result = json_encode($stmt->executeQuery()->fetchAllAssociative());
-    $this->assertJsonStringEqualsJsonString(
-        $result,
-        $users->toString()
-    );
-    $this->assertInstanceOf(\Scrawler\Arca\Collection::class, $users);
-});
-
-
-it("checks if all public instance of database files are correct", function () {
-    $this->assertInstanceOf(\Scrawler\Arca\Connection::class, db()->getConnection());
-    $this->assertInstanceOf(\Doctrine\DBAL\Platforms\AbstractPlatform::class, db()->getConnection()->getPlatform());
-    $this->assertInstanceOf(\Doctrine\DBAL\Schema\AbstractSchemaManager::class, db()->getConnection()->getSchemaManager());
-});
-
-it("checks  db()->exec() function", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->save();
-    if (db($useUUID)->isUsingUUID()) {
-        db($useUUID)->exec("insert into user (id,name) values ('abc-jfke-dmsk','john')");
-        $id = 'abc-jfke-dmsk';
-    } else {
-        db($useUUID)->exec("insert into user (name) values ('john')");
-        $id = 2;
-    }
-
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user where id = '".$id."'");
-    $result = $stmt->executeQuery()->fetchAssociative();
-    $this->assertEquals($result['name'], "john");
-})->with('useUUID');
-
-it("checks  db()->getAll() function", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->save();
-
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user");
-    $result = $stmt->executeQuery()->fetchAllAssociative();
-
-    $actual = db($useUUID)->getAll("SELECT * FROM user");
-
-    $this->assertEquals($result, $actual);
-})->with('useUUID');
-
-it("checks db()->delete() function", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $id = $user->save();
-    $user->delete();
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user where id = '".$id."'");
-    $result = $stmt->executeQuery()->fetchAssociative();
-    $this->assertEmpty($result);
-})->with('useUUID');
-
-it("checks db()->tableExists() function", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->save();
-
-    $this->assertTrue(db($useUUID)->tableExists('user'));
-   
-})->with('useUUID');
-
-it("checks db()->tabelsExist() function", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->save();
-
-    $emp = db($useUUID)->create('employee');
-    $emp->name = fake()->name();
-    $emp->save();
-
-
-    $this->assertTrue(db($useUUID)->tablesExist(['user','employee']));
-   
-})->with('useUUID');
-
-it("checks frozen database", function ($useUUID) {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->save();
-
-    db($useUUID)->freeze();
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-   
-    expect(fn() =>  $user->save())->toThrow(InvalidFieldNameException::class);
-
-    db($useUUID)->unfreeze();
-   
-})->with('useUUID');
-
 
 

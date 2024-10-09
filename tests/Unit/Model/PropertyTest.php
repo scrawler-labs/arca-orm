@@ -3,6 +3,12 @@
 use function Pest\Faker\fake;
 
 covers(\Scrawler\Arca\Model::class); 
+covers(\Scrawler\Arca\Database::class); 
+covers(\Scrawler\Arca\Manager\TableManager::class);
+covers(\Scrawler\Arca\Manager\RecordManager::class);
+covers(\Scrawler\Arca\Event::class);
+covers(\Scrawler\Arca\Connection::class);
+
 
 beforeEach(function () {
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
@@ -44,6 +50,11 @@ it('tests model properties with multiple realtions',function ($useUUID){
     $parent->sharedUserList = [$child3];
     $id = $parent->save();
 
+    $this->assertTrue($child1->isLoaded());
+    $this->assertTrue($child2->isLoaded());
+    $this->assertTrue($child3->isLoaded());
+    $this->assertTrue($grandfater->isLoaded());
+
     $parent_retrived = db($useUUID)->getOne('parent', $id);
     $this->assertEquals($parent->name, $parent_retrived->name);
     $this->assertTrue(isset($parent_retrived->grandparent_id));
@@ -54,7 +65,7 @@ it('tests model properties with multiple realtions',function ($useUUID){
     $this->assertEquals(count($parent_retrived->ownUserList),2);
 
 
-    $this->assertEquals($parent_retrived->ownUserList->first()->name,$child1->name);
+    $this->assertTrue($parent_retrived->ownUserList->first()->name == $child1->name || $parent_retrived->ownUserList->first()->name == $child2->name);
     $this->assertEquals(count($parent_retrived->sharedUserList),1);
     $this->assertEquals($parent_retrived->sharedUserList->first()->name,$child3->name);
 

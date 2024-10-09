@@ -78,7 +78,9 @@ class RecordManager
         $query =  (new QueryBuilder($this->connection,$this->modelManager))
                  ->select('*')
                  ->from($table, 't')
-                 ->where("t.id = '".$id."'");
+                 ->where("t.id = ?")
+                 ->setParameter(0, $id);
+
         return $query->first();
     }
 
