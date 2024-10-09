@@ -74,7 +74,7 @@ final class Collection implements CollectionInterface
      * @param bool $normalize
      * @return array<mixed>
      */
-    public function all(bool $normalize = true): array
+    public function all(bool $normalize = false): array
     {
         return $this->collection->all($normalize);
     }
@@ -99,7 +99,7 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return Model|T|null
+     * @return Model|null
      */
     public function first(): Model|null
     {
@@ -179,10 +179,10 @@ final class Collection implements CollectionInterface
 
     /**
      * 
-     * @return Model|T|null
+     * @return Model|null
      * 
      */
-    public function last(): Model
+    public function last(): Model|null
     {
         return $this->collection->last();
     }
