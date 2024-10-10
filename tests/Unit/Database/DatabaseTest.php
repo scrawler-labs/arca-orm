@@ -14,7 +14,6 @@ beforeEach(function () {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS employee; ');
-    db()->unfreeze();
 });
 
 it(' checks db()->isUsingUUID() function ', function ($useUUID) {

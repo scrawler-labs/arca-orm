@@ -22,14 +22,6 @@ class Config
     }
 
     /**
-     * Set if the connection is using UUID.
-     */
-    public function useUUID(bool $isUuid): void
-    {
-        $this->isUUID = $isUuid;
-    }
-
-    /**
      * Get if the connection is using UUID.
      */
     public function isUsingUUID(): bool

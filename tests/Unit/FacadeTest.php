@@ -12,15 +12,8 @@ beforeEach(function () {
 });
 
 it('tests DB::connect()', function () {
-    $connectionParams = [
-        'dbname' => 'test',
-        'user' => 'root',
-        'password' => 'root@1432',
-        'host' => '127.0.0.1',
-        'driver' => 'pdo_mysql',
-        'useUUID' => false,
-    ];
-    $db = Scrawler\Arca\Facade\Database::connect($connectionParams);
+  
+    $db = Scrawler\Arca\Facade\Database::connect(getConnectionParams());
     $this->assertInstanceOf(Scrawler\Arca\Database::class, $db);
 });
 

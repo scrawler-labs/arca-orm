@@ -18,6 +18,22 @@ beforeEach(function () {
 });
 
 it('checks if db()->save() function creates table', function ($useUUID) {
+   
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->active = false;
+
+    $id = db($useUUID)->save($user);
+    assert(db($useUUID)->getConnection()->createSchemaManager()->tablesExist(['user']));
+
+    $user = db($useUUID)->getOne('user', $id);
+    $this->assertEquals($user->name, $user->name);
+    $this->assertEquals($user->email, $user->email);
+
+
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();

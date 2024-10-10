@@ -20,14 +20,13 @@ class DatabaseFactory
 {
     private \Di\Container $container;
 
-    public function __construct(?\DI\ContainerBuilder $container = null)
+    public function __construct(?\DI\Container $container = null)
     {
         if (is_null($container)) {
-            $builder = new \DI\ContainerBuilder();
+            $this->container = new \DI\Container();
         } else {
-            $builder = $container;
+            $this->container = $container;
         }
-        $this->container = $builder->build();
     }
 
     /**
@@ -49,9 +48,14 @@ class DatabaseFactory
      */
     public function wireContainer(array $connectionParams): void
     {
-        $this->createConfig($connectionParams['useUUID'] ?? false, $connectionParams['frozen'] ?? false);
-        unset($connectionParams['use_uuid']);
-        unset($connectionParams['frozen']);
+        if (isset($connectionParams['useUUID'])) {
+            $useUUID = $connectionParams['useUUID'];
+        } else {
+            $useUUID = false;
+        }
+
+        $this->createConfig($useUUID,);
+        unset($connectionParams['useUUID']);
         $this->createConnection($connectionParams);
         $this->createModelManager();
     }
@@ -75,10 +79,10 @@ class DatabaseFactory
         });
     }
 
-    private function createConfig(bool $useUUID = false, bool $frozen = false): void
+    private function createConfig(bool $useUUID): void
     {
-        $this->container->set(Config::class, function () use ($useUUID, $frozen): Config {
-            return new Config($useUUID, $frozen);
+        $this->container->set(Config::class, function () use ($useUUID): Config {
+            return new Config($useUUID);
         });
     }
 }
