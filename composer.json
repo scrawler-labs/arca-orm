@@ -21,7 +21,8 @@
         "loophp/collection": "^7.5",
         "ramsey/uuid": "^4.3",
         "thecodingmachine/safe": "^2.5",
-        "dunglas/doctrine-json-odm": "^1.4"
+        "dunglas/doctrine-json-odm": "^1.4",
+        "php-di/php-di": "^7.0"
     },
     "require-dev": {
         "phpstan/phpstan": "^1.12",

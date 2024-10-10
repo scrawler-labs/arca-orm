@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Scrawler\Arca\Manager;
 
-use Scrawler\Arca\Connection;
 use Scrawler\Arca\Model;
 
 /**
@@ -20,24 +19,15 @@ use Scrawler\Arca\Model;
  */
 class ModelManager
 {
-    /**
-     * Store the instance of current connection.
-     */
-    private Connection $connection;
+    public function __construct(private \Di\Container $container)
+    {
+    }
 
     /**
      * Create a new model.
      */
     public function create(string $name): Model
     {
-        return new Model($name, $this->connection);
-    }
-
-    /**
-     * Set the connection.
-     */
-    public function setConnection(Connection $connection): void
-    {
-        $this->connection = $connection;
+        return $this->container->make(Model::class, ['name' => $name]);
     }
 }

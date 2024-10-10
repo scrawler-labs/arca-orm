@@ -16,6 +16,7 @@ use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Scrawler\Arca\Config;
 use Scrawler\Arca\Model;
 
 /**
@@ -23,14 +24,6 @@ use Scrawler\Arca\Model;
  */
 final class TableManager
 {
-    /**
-     * Store the instance of current connection.
-     */
-    private Connection $connection;
-    /**
-     * Store if the connection is using UUID.
-     */
-    private bool $isUsingUUID;
     /**
      * Store the instance of SchemaManager.
      */
@@ -44,10 +37,10 @@ final class TableManager
     /**
      * create TableManager.
      */
-    public function __construct(Connection $connection, bool $isUsingUUID = false)
-    {
-        $this->connection = $connection;
-        $this->isUsingUUID = $isUsingUUID;
+    public function __construct(
+        private Connection $connection,
+        private Config $config,
+    ) {
         $this->manager = $this->connection->createSchemaManager();
         $this->platform = $this->connection->getDatabasePlatform();
     }
@@ -82,7 +75,7 @@ final class TableManager
     public function createTable(Model $model): Table
     {
         $table = new Table($model->getName());
-        if ($this->isUsingUUID) {
+        if ($this->config->isUsingUUID()) {
             $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true, 'comment' => 'string']);
         } else {
             $table->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true, 'comment' => 'integer']);
@@ -122,7 +115,15 @@ final class TableManager
         $tableDiff = $comparator->compareTables($old_table, $new_table);
         $mod_table = $old_table;
         foreach ($tableDiff->getAddedColumns() as $column) {
-            $mod_table->addColumn($column->getName(), Type::getTypeRegistry()->lookupName($column->getType()), ['notnull' => $column->getNotnull(), 'comment' => $column->getComment(), 'default' => $column->getDefault()]);
+            $mod_table->addColumn(
+                $column->getName(),
+                Type::getTypeRegistry()->lookupName($column->getType()),
+                [
+                    'notnull' => $column->getNotnull(),
+                    'comment' => $column->getComment(),
+                    'default' => $column->getDefault(),
+                ]
+            );
         }
         $new_schema = $this->createTableSchema($mod_table);
         $schemaDiff = $comparator->compareSchemas($old_schema, $new_schema);

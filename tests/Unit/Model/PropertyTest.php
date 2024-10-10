@@ -6,8 +6,7 @@ covers(\Scrawler\Arca\Model::class);
 covers(\Scrawler\Arca\Database::class); 
 covers(\Scrawler\Arca\Manager\TableManager::class);
 covers(\Scrawler\Arca\Manager\RecordManager::class);
-covers(\Scrawler\Arca\Event::class);
-covers(\Scrawler\Arca\Connection::class);
+
 
 
 beforeEach(function () {

@@ -3,7 +3,6 @@ use function Pest\Faker\fake;
 
 covers(\Scrawler\Arca\QueryBuilder::class); 
 covers(\Scrawler\Arca\Manager\ModelManager::class);
-covers(\Scrawler\Arca\Connection::class);
 
  beforeEach(function () {
      db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");

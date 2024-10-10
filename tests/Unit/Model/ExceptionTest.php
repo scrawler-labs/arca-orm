@@ -2,6 +2,7 @@
 use function Pest\Faker\fake;
 covers(\Scrawler\Arca\Model::class); 
 covers(\Scrawler\Arca\Database::class); 
+covers(\Scrawler\Arca\Manager\WriteManager::class);
 covers(\Scrawler\Arca\Exception\InvalidIdException::class); 
 covers(\Scrawler\Arca\Exception\InvalidModelException::class);
 covers(\Scrawler\Arca\Exception\KeyNotFoundException::class);

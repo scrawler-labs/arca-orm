@@ -10,13 +10,15 @@
 
 namespace Scrawler\Arca;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Scrawler\Arca\Manager\ModelManager;
 
 /**
  * Extended implementation of \Doctrine\DBAL\Query\QueryBuilder.
  */
-final class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
+final class QueryBuilder extends DoctrineQueryBuilder
 {
     private string $table;
     /**
@@ -25,11 +27,11 @@ final class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
     private array $relations = [];
 
     private AbstractSchemaManager $SchemaManager;
-    private ModelManager $modelManager;
 
-    public function __construct(\Doctrine\DBAL\Connection $connection, ModelManager $modelManager)
-    {
-        $this->modelManager = $modelManager;
+    public function __construct(
+        Connection $connection,
+        private ModelManager $modelManager,
+    ) {
         $this->SchemaManager = $connection->createSchemaManager();
         parent::__construct($connection);
     }

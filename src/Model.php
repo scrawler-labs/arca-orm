@@ -12,7 +12,11 @@ declare(strict_types=1);
 
 namespace Scrawler\Arca;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
+use Scrawler\Arca\Manager\RecordManager;
+use Scrawler\Arca\Manager\TableManager;
+use Scrawler\Arca\Manager\WriteManager;
 use Scrawler\Arca\Traits\Model\ArrayAccess;
 use Scrawler\Arca\Traits\Model\Getter;
 use Scrawler\Arca\Traits\Model\Iterator;
@@ -47,18 +51,18 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      * @var array<string,mixed>
      */
     private array $__meta = [];
-    /**
-     * Store the connection.
-     */
-    private Connection $connection;
 
     /**
      * Create a new model.
      */
-    public function __construct(string $name, Connection $connection)
-    {
+    public function __construct(
+        string $name,
+        private Connection $connection,
+        private RecordManager $recordManager,
+        private TableManager $tableManager,
+        private WriteManager $writeManager,
+    ) {
         $this->table = $name;
-        $this->connection = $connection;
         $this->__properties['all'] = [];
         $this->__properties['self'] = [];
         $this->__meta['is_loaded'] = false;
@@ -146,7 +150,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if ('own' === strtolower($parts[0])) {
                 if ('list' === strtolower($parts[2])) {
-                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
+                    $result = $this->recordManager->find(strtolower($parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                     $this->set($key, $result);
 
                     return $result;
@@ -154,15 +158,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             }
             if ('shared' === strtolower($parts[0])) {
                 if ('list' === strtolower($parts[2])) {
-                    $rel_table = $this->connection->getTableManager()->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
-                    $relations = $this->connection->getRecordManager()->find($rel_table)->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
+                    $rel_table = $this->tableManager->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
+                    $relations = $this->recordManager->find($rel_table)->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                     $rel_ids = '';
                     foreach ($relations as $relation) {
                         $key = strtolower($parts[1]).'_id';
                         $rel_ids .= "'".$relation->$key."',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    $result = $this->connection->getRecordManager()->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
+                    $result = $this->recordManager->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
                     $this->set($key, $result);
 
                     return $result;
@@ -171,14 +175,14 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         if (array_key_exists($key.'_id', $this->__properties['self'])) {
-            $result = $this->connection->getRecordManager()->getById($key, $this->__properties['self'][$key.'_id']);
+            $result = $this->recordManager->getById($key, $this->__properties['self'][$key.'_id']);
             $this->set($key, $result);
 
             return $result;
         }
 
         if (array_key_exists($key, $this->__properties['self'])) {
-            $type = Type::getType($this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment());
+            $type = Type::getType($this->tableManager->getTable($this->table)->getColumn($key)->getComment());
             $result = $type->convertToPHPValue($this->__properties['self'][$key], $this->connection->getDatabasePlatform());
             $this->set($key, $result);
 
@@ -200,48 +204,6 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         return $this;
-    }
-
-    /**
-     * Get the type of value.
-     */
-    private function getDataType(mixed $value): string
-    {
-        $type = gettype($value);
-
-        if ('array' === $type || 'object' === $type) {
-            return 'json_document';
-        }
-
-        if ('string' === $type) {
-            return 'text';
-        }
-
-        return $type;
-    }
-
-    /**
-     * Check if array passed is instance of model.
-     *
-     * @param array<mixed>|Collection $models
-     *
-     * @throws Exception\InvalidModelException
-     */
-    private function createCollection(?Collection $collection, array|Collection $models): Collection
-    {
-        if (is_null($collection)) {
-            $collection = Collection::fromIterable([]);
-        }
-
-        if ($models instanceof Collection) {
-            return $collection->merge($models);
-        }
-
-        if (count(array_filter($models, fn ($d) => !$d instanceof Model)) > 0) {
-            throw new Exception\InvalidModelException();
-        }
-
-        return $collection->merge(Collection::fromIterable($models));
     }
 
     /**
@@ -299,17 +261,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      */
     public function save(): mixed
     {
-        Event::dispatch('__arca.model.save.'.$this->connection->getConnectionId(), [$this]);
+        $this->id = $this->writeManager->save($this);
 
         return $this->getId();
     }
 
     /**
      * Cleans up model internal state to be consistent after save.
-     *
-     * @return void
      */
-    public function cleanModel()
+    public function cleanModel(): void
     {
         $this->__properties['all'] = $this->__properties['self'];
         $this->__meta['id_error'] = false;
@@ -323,7 +283,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      */
     public function delete(): void
     {
-        Event::dispatch('__arca.model.delete.'.$this->connection->getConnectionId(), [$this]);
+        $this->recordManager->delete($this);
     }
 
     /**
@@ -340,5 +300,47 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     public function hasForeign(string $type): bool
     {
         return !is_null($this->__meta['foreign_models'][$type]);
+    }
+
+    /**
+     * Get the type of value.
+     */
+    private function getDataType(mixed $value): string
+    {
+        $type = gettype($value);
+
+        if ('array' === $type || 'object' === $type) {
+            return 'json_document';
+        }
+
+        if ('string' === $type) {
+            return 'text';
+        }
+
+        return $type;
+    }
+
+    /**
+     * Check if array passed is instance of model.
+     *
+     * @param array<mixed>|Collection $models
+     *
+     * @throws Exception\InvalidModelException
+     */
+    private function createCollection(?Collection $collection, array|Collection $models): Collection
+    {
+        if (is_null($collection)) {
+            $collection = Collection::fromIterable([]);
+        }
+
+        if ($models instanceof Collection) {
+            return $collection->merge($models);
+        }
+
+        if (count(array_filter($models, fn ($d) => !$d instanceof Model)) > 0) {
+            throw new Exception\InvalidModelException();
+        }
+
+        return $collection->merge(Collection::fromIterable($models));
     }
 }

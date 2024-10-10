@@ -3,11 +3,10 @@ use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use function Pest\Faker\fake;
 use Doctrine\DBAL\Exception\DriverException;
 covers(\Scrawler\Arca\Database::class); 
-covers(\Scrawler\Arca\Connection::class);
+covers(\Scrawler\Arca\Manager\WriteManager::class); 
 covers(\Scrawler\Arca\Manager\RecordManager::class);
 covers(\Scrawler\Arca\Manager\TableManager::class);
 covers(\Scrawler\Arca\Manager\ModelManager::class);
-covers(\Scrawler\Arca\Event::class);
 
 
  beforeEach(function () {
@@ -27,7 +26,7 @@ covers(\Scrawler\Arca\Event::class);
 
     $user->save();
 
-    $table= db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
+    $table= db($useUUID)->getConnection()->createSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
         $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true,'comment'=>'string'));
@@ -44,10 +43,10 @@ covers(\Scrawler\Arca\Event::class);
 
     $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
     $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = db($useUUID)->getConnection()->getSchemaManager()->createComparator();
+    $comparator = db($useUUID)->getConnection()->createSchemaManager()->createComparator();
     $diff = $comparator->compareSchemas($actual, $required);
 
-    $this->assertEmpty(db($useUUID)->getConnection()->getPlatform()->getAlterSchemaSQL($diff));
+    $this->assertEmpty(db($useUUID)->getConnection()->getDatabasePlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
 
 

@@ -15,6 +15,7 @@ namespace Scrawler\Arca\Facade;
 use Scrawler\Arca\Collection;
 use Scrawler\Arca\Connection;
 use Scrawler\Arca\Database as DB;
+use Scrawler\Arca\Factory\DatabaseFactory;
 use Scrawler\Arca\Model;
 use Scrawler\Arca\QueryBuilder;
 
@@ -32,8 +33,8 @@ class Database
      */
     public static function connect(array $connectionParams): DB
     {
-        $connection = new Connection($connectionParams);
-        self::$database = new DB($connection);
+        $factory = new DatabaseFactory();
+        self::$database = $factory->build($connectionParams);
 
         return self::$database;
     }

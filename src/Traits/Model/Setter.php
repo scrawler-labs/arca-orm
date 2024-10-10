@@ -41,7 +41,7 @@ trait Setter
         $this->__properties['all'] = $properties;
         $this->__properties['self'] = $properties;
         foreach ($properties as $key => $value) {
-            $this->__properties['type'][$key] = $this->connection->getTableManager()->getTable($this->table)->getColumn($key)->getComment();
+            $this->__properties['type'][$key] = $this->tableManager->getTable($this->table)->getColumn($key)->getComment();
         }
         $this->__meta['id'] = $properties['id'];
 

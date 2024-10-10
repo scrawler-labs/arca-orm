@@ -13,6 +13,7 @@ namespace Scrawler\Arca\Manager;
 use Doctrine\DBAL\Connection;
 use Ramsey\Uuid\Uuid;
 use Scrawler\Arca\Collection;
+use Scrawler\Arca\Config;
 use Scrawler\Arca\Model;
 use Scrawler\Arca\QueryBuilder;
 
@@ -22,28 +23,13 @@ use Scrawler\Arca\QueryBuilder;
 final class RecordManager
 {
     /**
-     * Store the instance of current connection.
-     */
-    private Connection $connection;
-
-    /**
-     * Store if the connection is using UUID.
-     */
-    private bool $isUsingUUID;
-
-    /**
-     * Store the instance of ModelManager.
-     */
-    private ModelManager $modelManager;
-
-    /**
      * Create RecordManager.
      */
-    public function __construct(Connection $connection, ModelManager $modelManager, bool $isUsingUUID = false)
-    {
-        $this->connection = $connection;
-        $this->isUsingUUID = $isUsingUUID;
-        $this->modelManager = $modelManager;
+    public function __construct(
+        private Connection $connection,
+        private ModelManager $modelManager,
+        private Config $config,
+    ) {
     }
 
     /**
@@ -51,11 +37,11 @@ final class RecordManager
      */
     public function insert(Model $model): mixed
     {
-        if ($this->isUsingUUID) {
+        if ($this->config->isUsingUUID()) {
             $model->set('id', Uuid::uuid4()->toString());
         }
         $this->connection->insert($model->getName(), $model->getSelfProperties());
-        if ($this->isUsingUUID) {
+        if ($this->config->isUsingUUID()) {
             return $model->get('id');
         }
 
@@ -88,10 +74,10 @@ final class RecordManager
     public function getById(string $table, mixed $id): ?Model
     {
         $query = (new QueryBuilder($this->connection, $this->modelManager))
-                 ->select('*')
-                 ->from($table, 't')
-                 ->where('t.id = ?')
-                 ->setParameter(0, $id);
+            ->select('*')
+            ->from($table, 't')
+            ->where('t.id = ?')
+            ->setParameter(0, $id);
 
         return $query->first();
     }
@@ -113,7 +99,7 @@ final class RecordManager
     public function find(string $name): QueryBuilder
     {
         return (new QueryBuilder($this->connection, $this->modelManager))
-        ->select('*')
-        ->from($name, 't');
+            ->select('*')
+            ->from($name, 't');
     }
 }

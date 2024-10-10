@@ -1,5 +1,7 @@
 <?php
 use function Pest\Faker\fake;
+covers(\Scrawler\Arca\Facade\Database::class);
+covers(\Scrawler\Arca\Database::class);
 
  beforeEach(function () {
     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
@@ -23,8 +25,8 @@ it('tests DB::connect()',function(){
 
 it('tests DB::create()',function(){
     $user = \Scrawler\Arca\Facade\Database::create('user');
-    $model =  new \Scrawler\Arca\Model('user',db()->getConnection());
-    $this->assertObjectEquals($model, $user);
+   
+    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
 });
 
 it('tests DB::get()',function(){

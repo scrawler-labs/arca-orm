@@ -5,7 +5,7 @@ use Doctrine\DBAL\Exception\DriverException;
 covers(\Scrawler\Arca\Database::class); 
 covers(\Scrawler\Arca\Manager\ModelManager::class);
 covers(\Scrawler\Arca\Manager\RecordManager::class);
-covers(\Scrawler\Arca\Connection::class);
+covers(\Scrawler\Arca\Config::class);
 
 
  beforeEach(function () {
@@ -29,8 +29,7 @@ it(" checks db()->isUsingUUID() function ", function ($useUUID) {
 
 it(" checks db()->create() function ", function ($useUUID) {
     $user = db($useUUID)->create('user');
-    $model =  new \Scrawler\Arca\Model('user',db($useUUID)->getConnection());
-    $this->assertObjectEquals($model, $user);
+    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
 })->with('useUUID');
 
 
@@ -80,9 +79,7 @@ it("checks if db()->find() returns correct records", function () {
 
 
 it("checks if all public instance of database files are correct", function () {
-    $this->assertInstanceOf(\Scrawler\Arca\Connection::class, db()->getConnection());
-    $this->assertInstanceOf(\Doctrine\DBAL\Platforms\AbstractPlatform::class, db()->getConnection()->getPlatform());
-    $this->assertInstanceOf(\Doctrine\DBAL\Schema\AbstractSchemaManager::class, db()->getConnection()->getSchemaManager());
+    $this->assertInstanceOf(\Doctrine\DBAL\Connection::class, db()->getConnection());
 });
 
 it("checks  db()->exec() function", function ($useUUID) {

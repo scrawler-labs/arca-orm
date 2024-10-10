@@ -22,7 +22,7 @@ it('tests table manger update functionality', function ($useUUID) {
     $user->rand = 'abc';
     $id = $user->save();
 
-    $table = db($useUUID)->getConnection()->getSchemaManager()->introspectTable('user');
+    $table = db($useUUID)->getConnection()->createSchemaManager()->introspectTable('user');
     $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
         $requiredTable->addColumn('id', 'string', array('length' => 36, 'notnull' => true, 'comment' => "string"));
@@ -41,9 +41,9 @@ it('tests table manger update functionality', function ($useUUID) {
 
     $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
     $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = db()->getConnection()->getSchemaManager()->createComparator();
+    $comparator = db()->getConnection()->createSchemaManager()->createComparator();
     $diff = $comparator->compareSchemas($actual, $required);
     //print_r($diff->toSql(db()->platform));
 
-    $this->assertEmpty(db($useUUID)->getConnection()->getPlatform()->getAlterSchemaSQL($diff));
+    $this->assertEmpty(db($useUUID)->getConnection()->getDatabasePlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
