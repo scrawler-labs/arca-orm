@@ -37,7 +37,6 @@ final class Database
      */
     public function __construct(
         private Connection $connection,
-        private TableManager $tableManager,
         private RecordManager $recordManager,
         private WriteManager $writeManager,
         private ModelManager $modelManager,

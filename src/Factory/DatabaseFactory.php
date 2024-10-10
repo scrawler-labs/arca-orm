@@ -18,7 +18,7 @@ use Scrawler\Arca\Manager\ModelManager;
 
 class DatabaseFactory
 {
-    private \Di\Container $container;
+    private \DI\Container $container;
 
     public function __construct(?\DI\Container $container = null)
     {
