@@ -1,13 +1,14 @@
-<?php 
-use function Pest\Faker\fake;
-covers(\Scrawler\Arca\Model::class); 
-covers(\Scrawler\Arca\Database::class); 
+<?php
 
+use function Pest\Faker\fake;
+
+covers(Scrawler\Arca\Model::class);
+covers(Scrawler\Arca\Database::class);
 
 beforeEach(function () {
-    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
-    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
-    db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
 });
 
 it('tests for types when loaded ', function ($useUUID) {
@@ -18,7 +19,6 @@ it('tests for types when loaded ', function ($useUUID) {
     $this->assertEquals($types['name'], 'text');
     $this->assertEquals($types['email'], 'text');
 })->with('useUUID');
-
 
 it('tests boolean type bug', function ($useUUID) {
     $user = db()->create('user');
@@ -35,13 +35,13 @@ it('tests boolean type bug', function ($useUUID) {
     $id = $user->save();
     $user_retrived = db()->getOne('user', $id);
     $this->assertFalse($user_retrived->active);
-})->with('useUUID'); 
+})->with('useUUID');
 
-it("checks for storing array in db", function ($useUUID) {
+it('checks for storing array in db', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
-    $user->hobbies = ["swimming", "cycling", "running"];
+    $user->hobbies = ['swimming', 'cycling', 'running'];
     $id = $user->save();
 
     $user_retrived = db($useUUID)->getOne('user', $id);

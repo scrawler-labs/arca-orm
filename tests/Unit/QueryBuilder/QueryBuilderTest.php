@@ -1,16 +1,17 @@
 <?php
+
 use function Pest\Faker\fake;
 
-covers(\Scrawler\Arca\QueryBuilder::class); 
-covers(\Scrawler\Arca\Manager\ModelManager::class);
+covers(Scrawler\Arca\QueryBuilder::class);
+covers(Scrawler\Arca\Manager\ModelManager::class);
 
- beforeEach(function () {
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
- });
+beforeEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
+});
 
-it("checks if db()->find()->first() returns first record", function ($useUUID) {
+it('checks if db()->find()->first() returns first record', function ($useUUID) {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->find('user')->first();
     $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
@@ -19,27 +20,23 @@ it("checks if db()->find()->first() returns first record", function ($useUUID) {
         $result,
         $user->toString()
     );
-    $this->assertInstanceOf(\Scrawler\Arca\Model::class, $user);
+    $this->assertInstanceOf(Scrawler\Arca\Model::class, $user);
 })->with('useUUID');
 
-
-
-it("checks if null is returned if table does not exist",function(){
+it('checks if null is returned if table does not exist', function () {
     $this->assertNull(db()->find('non_existent_table')->first());
-    $this->assertInstanceOf(\Scrawler\Arca\Collection::class,db()->find('non_existent_table')->get());
+    $this->assertInstanceOf(Scrawler\Arca\Collection::class, db()->find('non_existent_table')->get());
     $this->assertEmpty(db()->find('non_existent_table')->get()->toArray());
 });
 
-
-it("checks if null is returned if table empty",function(){
+it('checks if null is returned if table empty', function () {
     $user = db()->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
     $user->save();
     $user->delete();
-    
+
     $this->assertNull(db()->find('user')->first());
-    $this->assertInstanceOf(\Scrawler\Arca\Collection::class,db()->find('user')->get());
+    $this->assertInstanceOf(Scrawler\Arca\Collection::class, db()->find('user')->get());
     $this->assertEmpty(db()->find('user')->get()->toArray());
 });
-

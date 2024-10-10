@@ -1,50 +1,47 @@
 <?php
+
 use function Pest\Faker\fake;
 
-covers(\Scrawler\Arca\QueryBuilder::class); 
-covers(\Scrawler\Arca\Manager\ModelManager::class);
+covers(Scrawler\Arca\QueryBuilder::class);
+covers(Scrawler\Arca\Manager\ModelManager::class);
 
- beforeEach(function () {
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS grandparent; ");
+beforeEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS grandparent; ');
+});
 
- });
+it('checks if db()->find()->with() eager loads relation', function ($useUUID) {
+    $user = db($useUUID)->create('user');
+    $user->name = fake()->name();
+    $user->email = fake()->email();
+    $user->dob = fake()->date();
+    $user->age = fake()->randomNumber(2, false);
+    $user->address = fake()->streetAddress();
+    // $user->save();
 
-it("checks if db()->find()->with() eager loads relation", function ($useUUID) {
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->user = $user;
+    $parent->save();
 
-$user = db($useUUID)->create('user');
-$user->name = fake()->name();
-$user->email = fake()->email();
-$user->dob = fake()->date();
-$user->age = fake()->randomNumber(2, false);
-$user->address = fake()->streetAddress();
-//$user->save();
+    $parent_retrived = db($useUUID)->find('parent')->with('user')->first();
+    $user = db($useUUID)->find('user')->first();
 
-$parent = db($useUUID)->create('parent');
-$parent->name = fake()->name();
-$parent->user = $user;
-$parent->save();
-
-$parent_retrived = db($useUUID)->find('parent')->with('user')->first();
-$user = db($useUUID)->find('user')->first();
-
-$this->assertJsonStringEqualsJsonString(
-    $parent_retrived->user->toString(),
-    $user->toString()
-);
-
+    $this->assertJsonStringEqualsJsonString(
+        $parent_retrived->user->toString(),
+        $user->toString()
+    );
 })->with('useUUID');
 
-
-it('checks if db()->find()->with() eager loads multiple realtions',function ($useUUID){
+it('checks if db()->find()->with() eager loads multiple realtions', function ($useUUID) {
     $child1 = db($useUUID)->create('user');
     $child1->name = fake()->name();
     $child1->email = fake()->email();
     $child1->dob = fake()->date();
     $child1->age = fake()->randomNumber(2, false);
-    
+
     $child2 = db($useUUID)->create('user');
     $child2->name = fake()->name();
     $child2->email = fake()->email();
@@ -65,12 +62,12 @@ it('checks if db()->find()->with() eager loads multiple realtions',function ($us
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
-    $parent->grandparent= $grandfater;
-    $parent->ownUserList = [$child1,$child2];
+    $parent->grandparent = $grandfater;
+    $parent->ownUserList = [$child1, $child2];
     $parent->sharedUserList = [$child3];
     $id = $parent->save();
 
-    $parent_retrived = db($useUUID)->find('parent')->where('id = ?')->setParameter(0,$id)->with('ownUserList')->with('sharedUserList')->with('grandparent')->first();
+    $parent_retrived = db($useUUID)->find('parent')->where('id = ?')->setParameter(0, $id)->with('ownUserList')->with('sharedUserList')->with('grandparent')->first();
     $parent_simple = db($useUUID)->getOne('parent', $id);
 
     $this->assertJsonStringNotEqualsJsonString(
@@ -86,6 +83,4 @@ it('checks if db()->find()->with() eager loads multiple realtions',function ($us
         $parent_retrived->toString(),
         $parent_simple->toString()
     );
-
-
 })->with('useUUID');

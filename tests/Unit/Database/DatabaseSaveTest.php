@@ -1,22 +1,23 @@
-<?php 
-use Doctrine\DBAL\Exception\InvalidFieldNameException;
-use function Pest\Faker\fake;
+<?php
+
 use Doctrine\DBAL\Exception\DriverException;
-covers(\Scrawler\Arca\Database::class); 
-covers(\Scrawler\Arca\Manager\WriteManager::class); 
-covers(\Scrawler\Arca\Manager\RecordManager::class);
-covers(\Scrawler\Arca\Manager\TableManager::class);
-covers(\Scrawler\Arca\Manager\ModelManager::class);
 
+use function Pest\Faker\fake;
 
- beforeEach(function () {
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS user; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS parent_user; ");
-     db()->getConnection()->executeStatement("DROP TABLE IF EXISTS employee; ");
- });
+covers(Scrawler\Arca\Database::class);
+covers(Scrawler\Arca\Manager\WriteManager::class);
+covers(Scrawler\Arca\Manager\RecordManager::class);
+covers(Scrawler\Arca\Manager\TableManager::class);
+covers(Scrawler\Arca\Manager\ModelManager::class);
 
- it("checks if db()->save() function creates table", function ($useUUID) {
+beforeEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS employee; ');
+});
+
+it('checks if db()->save() function creates table', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -26,31 +27,30 @@ covers(\Scrawler\Arca\Manager\ModelManager::class);
 
     $user->save();
 
-    $table= db($useUUID)->getConnection()->createSchemaManager()->introspectTable('user');
-    $requiredTable = new \Doctrine\DBAL\Schema\Table('user');
+    $table = db($useUUID)->getConnection()->createSchemaManager()->introspectTable('user');
+    $requiredTable = new Doctrine\DBAL\Schema\Table('user');
     if (db($useUUID)->isUsingUUID()) {
-        $requiredTable->addColumn('id', 'string', array('length' => 36,'notnull' => true,'comment'=>'string'));
+        $requiredTable->addColumn('id', 'string', ['length' => 36, 'notnull' => true, 'comment' => 'string']);
     } else {
-        $requiredTable->addColumn('id', 'integer', array("unsigned" => true, "autoincrement" => true,'comment'=>'integer'));
+        $requiredTable->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true, 'comment' => 'integer']);
     }
-    $requiredTable->addColumn('name', "text", ['notnull' => false,'comment'=>'text']);
-    $requiredTable->addColumn('email', "text", ['notnull' => false,'comment'=>'text' ]);
-    $requiredTable->addColumn('dob', "text", ['notnull' => false, 'comment'=>'text']);
-    $requiredTable->addColumn('age', "integer", ['notnull' => false, 'comment'=>'integer']);
-    $requiredTable->addColumn('active', "boolean", ['notnull' => false, 'comment'=>'boolean']);
+    $requiredTable->addColumn('name', 'text', ['notnull' => false, 'comment' => 'text']);
+    $requiredTable->addColumn('email', 'text', ['notnull' => false, 'comment' => 'text']);
+    $requiredTable->addColumn('dob', 'text', ['notnull' => false, 'comment' => 'text']);
+    $requiredTable->addColumn('age', 'integer', ['notnull' => false, 'comment' => 'integer']);
+    $requiredTable->addColumn('active', 'boolean', ['notnull' => false, 'comment' => 'boolean']);
 
-    $requiredTable->setPrimaryKey(array("id"));
+    $requiredTable->setPrimaryKey(['id']);
 
-    $actual = new \Doctrine\DBAL\Schema\Schema([$table]);
-    $required = new \Doctrine\DBAL\Schema\Schema([$requiredTable]);
+    $actual = new Doctrine\DBAL\Schema\Schema([$table]);
+    $required = new Doctrine\DBAL\Schema\Schema([$requiredTable]);
     $comparator = db($useUUID)->getConnection()->createSchemaManager()->createComparator();
     $diff = $comparator->compareSchemas($actual, $required);
 
     $this->assertEmpty(db($useUUID)->getConnection()->getDatabasePlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
 
-
-it("checks if db()->save() function saves record", function ($useUUID) {
+it('checks if db()->save() function saves record', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -58,7 +58,6 @@ it("checks if db()->save() function saves record", function ($useUUID) {
     $user->age = fake()->randomNumber(2, false);
     $user->address = fake()->streetAddress();
     $id = $user->save();
-
 
     $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
@@ -68,14 +67,14 @@ it("checks if db()->save() function saves record", function ($useUUID) {
     );
 })->with('useUUID');
 
-it("checks if db()->save() function saves record with one-to-one relation", function ($useUUID) {
+it('checks if db()->save() function saves record with one-to-one relation', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
     $user->dob = fake()->date();
     $user->age = fake()->randomNumber(2, false);
     $user->address = fake()->streetAddress();
-    //$id = $user->save();
+    // $id = $user->save();
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
@@ -90,7 +89,7 @@ it("checks if db()->save() function saves record with one-to-one relation", func
     );
 })->with('useUUID');
 
-it("checks if db()->save() function saves record with one-to-many relation", function ($useUUID) {
+it('checks if db()->save() function saves record with one-to-many relation', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -104,11 +103,11 @@ it("checks if db()->save() function saves record with one-to-many relation", fun
     $user_two->dob = fake()->date();
     $user_two->age = fake()->randomNumber(2, false);
     $user_two->address = fake()->streetAddress();
-    //$id = $user->save();
+    // $id = $user->save();
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
-    $parent->ownUserList = [$user,$user_two];
+    $parent->ownUserList = [$user, $user_two];
     $id = $parent->save();
 
     $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent WHERE id = '".$id."'");
@@ -124,11 +123,11 @@ it("checks if db()->save() function saves record with one-to-many relation", fun
         $parent->toString()
     );
     $this->assertTrue(
-        ($result_child[0] == $user->toArray() || $result_child[0] == $user_two->toArray())
+        $result_child[0] == $user->toArray() || $result_child[0] == $user_two->toArray()
     );
 })->with('useUUID');
 
-it("checks for exception in database save()",function($useUUID){
+it('checks for exception in database save()', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -145,7 +144,7 @@ it("checks for exception in database save()",function($useUUID){
     $user->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it("checks for exception in database saveOto()",function($useUUID){
+it('checks for exception in database saveOto()', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -160,7 +159,7 @@ it("checks for exception in database saveOto()",function($useUUID){
     $user->dob = fake()->date();
     $user->age = 'error';
     $user->address = fake()->streetAddress();
-    #$user->save();
+    // $user->save();
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
@@ -168,8 +167,7 @@ it("checks for exception in database saveOto()",function($useUUID){
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it("checks for exception in database saveMtm()",function($useUUID){
-
+it('checks for exception in database saveMtm()', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -183,16 +181,15 @@ it("checks for exception in database saveMtm()",function($useUUID){
     $user_two->dob = fake()->date();
     $user_two->age = 'error';
     $user_two->address = fake()->streetAddress();
-    //$id = $user->save();
+    // $id = $user->save();
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
-    $parent->sharedUserList = [$user,$user_two];
+    $parent->sharedUserList = [$user, $user_two];
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it("checks for exception in database saveOtm()",function($useUUID){
-
+it('checks for exception in database saveOtm()', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -206,16 +203,15 @@ it("checks for exception in database saveOtm()",function($useUUID){
     $user_two->dob = fake()->date();
     $user_two->age = 'error';
     $user_two->address = fake()->streetAddress();
-    //$id = $user->save();
+    // $id = $user->save();
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
-    $parent->ownUserList = [$user,$user_two];
+    $parent->ownUserList = [$user, $user_two];
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-
-it("checks if db()->save() function saves record with many-to-many relation", function ($useUUID) {
+it('checks if db()->save() function saves record with many-to-many relation', function ($useUUID) {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -229,25 +225,25 @@ it("checks if db()->save() function saves record with many-to-many relation", fu
     $user_two->dob = fake()->date();
     $user_two->age = fake()->randomNumber(2, false);
     $user_two->address = fake()->streetAddress();
-    //$id = $user->save();
+    // $id = $user->save();
 
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
-    $parent->sharedUserList = [$user,$user_two];
+    $parent->sharedUserList = [$user, $user_two];
     $id = $parent->save();
 
     $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent WHERE id = '".$id."'");
     $result = json_encode($stmt->executeQuery()->fetchAssociative());
     $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM parent_user WHERE parent_id = '".$id."'");
     $results_rel = $stmt->executeQuery()->fetchAllAssociative();
-    $rel_ids ='';
+    $rel_ids = '';
     foreach ($results_rel as $relation) {
         $key = 'user_id';
-        $rel_ids .= "'".$relation[$key] . "',";
+        $rel_ids .= "'".$relation[$key]."',";
     }
 
     $rel_ids = substr($rel_ids, 0, -1);
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id IN (" . $rel_ids . ")");
+    $stmt = db($useUUID)->getConnection()->prepare('SELECT * FROM user WHERE id IN ('.$rel_ids.')');
     $result_user = $stmt->executeQuery()->fetchAllAssociative();
     if (!db($useUUID)->isUsingUUID()) {
         unset($result_user[0]['id']);
@@ -259,11 +255,11 @@ it("checks if db()->save() function saves record with many-to-many relation", fu
     );
 
     $this->assertTrue(
-        ($result_user[0] == $user->toArray() || $result_user[0] == $user_two->toArray())
+        $result_user[0] == $user->toArray() || $result_user[0] == $user_two->toArray()
     );
 })->with('useUUID');
 
-it("checks if db()->save() function updates record", function ($useUUID) {
+it('checks if db()->save() function updates record', function ($useUUID) {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
     $user->age = 44;
@@ -276,5 +272,3 @@ it("checks if db()->save() function updates record", function ($useUUID) {
         $user->toString()
     );
 })->with('useUUID');
-
-
