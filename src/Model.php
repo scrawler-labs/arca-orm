@@ -194,6 +194,16 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
+     * Refresh the current model from database.
+     */
+    public function refresh(): void{
+        $model = $this->recordManager->getById($this->getName(), $this->getId());
+        $this->cleanModel();
+        $this->setLoadedProperties($model->getSelfProperties());
+        $this->setLoaded();
+    }
+
+    /**
      * Unset a property from model.
      */
     public function __unset(string $key): void

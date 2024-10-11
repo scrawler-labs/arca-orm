@@ -98,3 +98,26 @@ it('tests id is always 0 before save on a new model', function ($useUUID): void 
     $this->assertNotEquals($user->getId(), 0);
     $this->assertEquals($user->getId(), $id);
 })->with('useUUID');
+
+it('tests model refresh', function ($useUUID): void {
+    $user1 = db($useUUID)->create('user');
+    $user1->name = fake()->name();
+    $user1->email = fake()->email();
+
+    $parent = db($useUUID)->create('parent');
+    $parent->name = fake()->name();
+    $parent->ownUserList = [$user1];
+    $id = $parent->save();
+
+    $parent = db($useUUID)->getOne('parent', $id);
+    $this->assertEquals($parent->ownUserList->first()->name, $user1->name);
+    $user = $parent->ownUserList->first();
+    $user->name = 'test';
+    $user->save();
+    $this->assertNotEquals($parent->ownUserList->first()->name, 'test');
+    $parent->refresh();
+    $this->assertEquals($parent->ownUserList->first()->name, 'test');
+
+
+
+})->with('useUUID');
