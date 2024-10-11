@@ -79,7 +79,7 @@ final class TableManager
         $table = new Table($model->getName());
         $table = $this->addPrimaryKey($table);
         $types = $model->getTypes();
-        foreach ($model->getSelfProperties() as $key => $value) {
+        foreach (array_keys($model->getSelfProperties()) as $key) {
             $key_array = explode('_', $key);
             if ('id' != $key && 'id' == end($key_array)) {
                 $table = $this->addIdColumn($table, $key);

@@ -89,13 +89,10 @@ final class WriteManager
     {
         $constraints = [];
         foreach ($model->getForeignModels('oto') as $foreign) {
-            array_push(
-                $constraints,
-                new TableConstraint(
-                    $foreign->getName(),
-                    $foreign->getName().'_id',
-                    'id',
-                )
+            $constraints[] = new TableConstraint(
+                $foreign->getName(),
+                $foreign->getName().'_id',
+                'id',
             );
         }
 
@@ -109,17 +106,11 @@ final class WriteManager
      */
     private function createConstraintsOtm(Model $model): array
     {
-        $constraints = [];
-        array_push(
-            $constraints,
-            new TableConstraint(
-                $model->getName(),
-                $model->getName().'_id',
-                'id'
-            )
-        );
-
-        return $constraints;
+        return [new TableConstraint(
+            $model->getName(),
+            $model->getName().'_id',
+            'id'
+        )];
     }
 
     /**
@@ -129,25 +120,15 @@ final class WriteManager
      */
     private function createConstraintsMtm(Model $model, Model $foreign): array
     {
-        $constraints = [];
-        array_push(
-            $constraints,
-            new TableConstraint(
-                $model->getName(),
-                $model->getName().'_id',
-                'id'
-            )
-        );
-        array_push(
-            $constraints,
-            new TableConstraint(
-                $foreign->getName(),
-                $foreign->getName().'_id',
-                'id'
-            )
-        );
-
-        return $constraints;
+        return [new TableConstraint(
+            $model->getName(),
+            $model->getName().'_id',
+            'id'
+        ), new TableConstraint(
+            $foreign->getName(),
+            $foreign->getName().'_id',
+            'id'
+        )];
     }
 
     /**

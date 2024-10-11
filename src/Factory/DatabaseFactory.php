@@ -18,15 +18,11 @@ use Scrawler\Arca\Manager\ModelManager;
 
 class DatabaseFactory
 {
-    private \DI\Container $container;
+    private readonly \DI\Container $container;
 
     public function __construct(?\DI\Container $container = null)
     {
-        if (is_null($container)) {
-            $this->container = new \DI\Container();
-        } else {
-            $this->container = $container;
-        }
+        $this->container = is_null($container) ? new \DI\Container() : $container;
     }
 
     /**
@@ -48,11 +44,7 @@ class DatabaseFactory
      */
     public function wireContainer(array $connectionParams): void
     {
-        if (isset($connectionParams['useUUID'])) {
-            $useUUID = $connectionParams['useUUID'];
-        } else {
-            $useUUID = false;
-        }
+        $useUUID = $connectionParams['useUUID'] ?? false;
 
         $this->createConfig($useUUID);
         unset($connectionParams['useUUID']);

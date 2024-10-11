@@ -38,7 +38,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
 
     public function with(string $relation): QueryBuilder
     {
-        array_push($this->relations, $relation);
+        $this->relations[] = $relation;
 
         return $this;
     }
@@ -72,7 +72,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
         $relations = $this->relations;
         $this->relations = [];
         $result = $this->fetchAssociative() ?: [];
-        if (empty($result)) {
+        if ($result === []) {
             return null;
         }
 
