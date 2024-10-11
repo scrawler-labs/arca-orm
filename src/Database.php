@@ -173,9 +173,12 @@ final class Database
 
     /**
      * Register additional json_document type.
+     * Note: storing and retrival of array is being tested
+     * so ignoring this in coverage.
      */
     private function registerJsonDocumentType(): void
     {
+        //@codeCoverageIgnoreStart
         if (!Type::hasType('json_document')) {
             Type::addType('json_document', JsonDocumentType::class);
             // @phpstan-ignore-next-line
@@ -183,5 +186,6 @@ final class Database
                 new Serializer([new BackedEnumNormalizer(), new UidNormalizer(), new DateTimeNormalizer(), new ArrayDenormalizer(), new ObjectNormalizer()], [new JsonEncoder()])
             );
         }
+        //@codeCoverageIgnoreEnd
     }
 }

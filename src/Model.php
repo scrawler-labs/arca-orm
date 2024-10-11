@@ -119,17 +119,8 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         $type = $this->getDataType($val);
-        $db_val = $val;
 
-        if ('boolean' === $type) {
-            ($val) ? $db_val = 1 : $db_val = 0;
-        }
-
-        if ('json_document' === $type) {
-            $db_val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
-        }
-
-        $this->__properties['self'][$key] = $db_val;
+        $this->__properties['self'][$key] = $this->getDbValue($val,$type);
         $this->__properties['all'][$key] = $val;
         $this->__properties['type'][$key] = $type;
     }
@@ -336,5 +327,19 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         return $collection->merge(Collection::fromIterable($models));
+    }
+
+    /**
+     * Get the database value from PHP value.
+     */
+    private function getDbValue(mixed $val,string $type): mixed
+    {
+        if ('boolean' === $type) {
+            return ($val) ?  1 :  0;
+        }
+
+        return Type::getType($type)->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
+
+       
     }
 }
