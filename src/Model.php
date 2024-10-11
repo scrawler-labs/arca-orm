@@ -119,16 +119,17 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         $type = $this->getDataType($val);
+        $db_val = $val;
 
         if ('boolean' === $type) {
-            ($val) ? $val = 1 : $val = 0;
+            ($val) ? $db_val = 1 : $db_val = 0;
         }
 
         if ('json_document' === $type) {
-            $val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
+            $db_val = Type::getType('json_document')->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
         }
 
-        $this->__properties['self'][$key] = $val;
+        $this->__properties['self'][$key] = $db_val;
         $this->__properties['all'][$key] = $val;
         $this->__properties['type'][$key] = $type;
     }
@@ -148,6 +149,11 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      */
     public function get(string $key): mixed
     {
+        // retrun if alraedy loaded
+        if (array_key_exists($key, $this->__properties['all'])) {
+            return $this->__properties['all'][$key];
+        }
+
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if ('own' === strtolower((string) $parts[0])) {
@@ -183,13 +189,6 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $result;
         }
 
-        if (array_key_exists($key, $this->__properties['self'])) {
-            $type = Type::getType($this->tableManager->getTable($this->table)->getColumn($key)->getComment());
-            $result = $type->convertToPHPValue($this->__properties['self'][$key], $this->connection->getDatabasePlatform());
-            $this->set($key, $result);
-
-            return $result;
-        }
 
         throw new Exception\KeyNotFoundException();
     }

@@ -28,10 +28,11 @@ function getConnectionParams($uuid = 'ID', $withUUID = true): array
     if ($withUUID) {
         $config['useUUID'] = 'UUID' == $uuid ? true : false;
     }
+
     return $config;
 }
 
-function populateRandomUser($uuid = 'ID')
+function populateRandomUser($uuid = 'ID'): void
 {
     for ($i = 0; $i < 5; ++$i) {
         $user = db($uuid)->create('user');
@@ -39,7 +40,7 @@ function populateRandomUser($uuid = 'ID')
         $user->email = fake()->email();
         $user->dob = fake()->date();
         $user->age = fake()->randomNumber(2, false);
-        $user->active = 0 == $i % 2 ? true : false;
+        $user->active = $i % 2;
         $user->address = fake()->streetAddress();
         $user->save();
     }
@@ -52,9 +53,8 @@ function createRandomUser($uuid = 'ID')
     $user->email = fake()->email();
     $user->dob = fake()->date();
     $user->age = fake()->randomNumber(2, false);
-    $user->active = 0 == fake()->randomNumber(2, false) % 2 ? true : false;
+    $user->active = fake()->randomNumber(2, false) % 2; 
     $user->address = fake()->streetAddress();
-    $id = $user->save();
 
-    return $id;
+    return $user->save();
 }

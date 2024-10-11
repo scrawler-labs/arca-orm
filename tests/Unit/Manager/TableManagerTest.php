@@ -24,9 +24,10 @@ it('tests table manger update functionality', function ($useUUID): void {
     $user->email = fake()->email();
     $user->dob = fake()->date();
     $user->age = fake()->randomNumber(2, false);
-    $user->active = 0 == fake()->randomNumber(2, false) % 2 ? true : false;
+    $user->active = fake()->randomNumber(2, false) % 2;
     $user->address = fake()->streetAddress();
     $user->rand = 'abc';
+    $user->randbo = 0 === fake()->randomNumber(2, false) % 2 ? true : false;
     $id = $user->save();
 
     $table = db($useUUID)->getConnection()->createSchemaManager()->introspectTable('user');
@@ -40,9 +41,10 @@ it('tests table manger update functionality', function ($useUUID): void {
     $requiredTable->addColumn('email', 'text', ['notnull' => false, 'comment' => 'text']);
     $requiredTable->addColumn('dob', 'text', ['notnull' => false, 'comment' => 'text']);
     $requiredTable->addColumn('age', 'integer', ['notnull' => false, 'comment' => 'integer']);
-    $requiredTable->addColumn('active', 'boolean', ['notnull' => false, 'comment' => 'boolean']);
+    $requiredTable->addColumn('active', 'integer', ['notnull' => false, 'comment' => 'integer']);
     $requiredTable->addColumn('address', 'text', ['notnull' => false, 'comment' => 'text']);
-    $requiredTable->addColumn('rand', 'text', ['notnull' => false, 'comment' => 'text']);
+    $requiredTable->addColumn('rand',  'text', ['notnull' => false, 'comment' => 'text']);
+    $requiredTable->addColumn('randbo',  'boolean', ['notnull' => false, 'comment' => 'boolean']);
 
     $requiredTable->setPrimaryKey(['id']);
 

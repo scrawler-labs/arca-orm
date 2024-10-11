@@ -11,6 +11,8 @@
 namespace Scrawler\Arca\Traits\Model;
 
 use Scrawler\Arca\Model;
+use Doctrine\DBAL\Types\Type;
+
 
 /**
  * Setter trait to provide setter methods to the model.
@@ -38,14 +40,25 @@ trait Setter
      */
     public function setLoadedProperties(array $properties): Model
     {
-        $this->__properties['all'] = $properties;
         $this->__properties['self'] = $properties;
+        $this->setLoadedAllProperties($properties);
         foreach ($properties as $key => $value) {
             $this->__properties['type'][$key] = $this->tableManager->getTable($this->table)->getColumn($key)->getComment();
         }
         $this->__meta['id'] = $properties['id'];
 
         return $this;
+    }
+
+    /**
+     * get php value from database value
+     *
+     */
+    private function setLoadedAllProperties($properties): void{
+        foreach ($properties as $key => $value) {
+            $type = Type::getType($this->tableManager->getTable($this->table)->getColumn($key)->getComment());
+            $this->__properties['all'][$key] = $type->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        }
     }
 
     /**
