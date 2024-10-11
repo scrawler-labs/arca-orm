@@ -55,11 +55,12 @@ composer require scrawler/arca
         'driver' => 'pdo_mysql', //You can use other supported driver this is the most basic mysql driver
     );
 
-    // For Arca ORM 1.x
-    // $db =  new \Scrawler\Arca\Database($connectionParams);
     
-    // For Arca 2.x and later 
     $db = \Scrawler\Arca\Facade\Database::connect($connectionParams);
+
+   //If you dont want to use facade , directly build from factory
+   $factory =  \Scrawler\Arca\Factory\DatabaseFactory()
+   $db = $factory->build($connectionParams)
     
 ```
 For complete list of driver check [here](https://component.scrawlerlabs.com/arca-orm/database/)
@@ -78,19 +79,19 @@ For complete list of driver check [here](https://component.scrawlerlabs.com/arca
     
     // Get record with id 1
     
-    $user = $db->get('user',1);
+    $user = $db->getOne('user',1);
     
     //Get all records
     
     $users = $db->get('user');
     
     // Update a record
-     $user = $db->get('user',1);
+     $user = $db->getOne('user',1);
      $user->name = "Mr Pranjal";
      $user->save();
      
     // Delete a record
-     $user = $db->get('user',1);
+     $user = $db->getOne('user',1);
      $user->delete();
 
 ```
@@ -102,6 +103,12 @@ For complete CRUD documentaion visit [here](https://component.scrawlerlabs.com/a
   // Using where clause
   $users = $db->find('user')
               ->where('name = "Pranjal Pandey"')
+              ->get();
+ // If where input in unsafe or user defined
+ $name = "Pranjal"
+ $users = $db->find('user')
+              ->where('name = ?')
+              ->setParameter(0,$name)
               ->get();
               
   foreach ($users as $user){
@@ -133,7 +140,7 @@ Here is list of few things that i would like to add in upcoming release
 - [ ] Models should be extendible with custom models
 - [ ] Validations for custom models
 - [ ] Automatically create migrations when table is updated or created
-- [ ] Support eager loading for relations
+- [X] Support eager loading for relations
 - [X] Better documentaions
 <br><br>
 
