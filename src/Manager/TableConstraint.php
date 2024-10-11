@@ -16,9 +16,9 @@ namespace Scrawler\Arca\Manager;
 class TableConstraint
 {
     public function __construct(
-        private string $foreignTableName,
-        private string $localColumnName,
-        private string $foreignColumnName,
+        private readonly string $foreignTableName,
+        private readonly string $localColumnName,
+        private readonly string $foreignColumnName,
     ) {
     }
 

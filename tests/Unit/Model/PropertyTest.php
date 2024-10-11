@@ -8,14 +8,14 @@ covers(Scrawler\Arca\Factory\DatabaseFactory::class);
 covers(Scrawler\Arca\Manager\TableManager::class);
 covers(Scrawler\Arca\Manager\RecordManager::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS grandparent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
@@ -23,7 +23,7 @@ afterEach(function () {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS child CASCADE; ');
 });
 
-it('tests model properties with multiple realtions', function ($useUUID) {
+it('tests model properties with multiple realtions', function ($useUUID): void {
     $child1 = db($useUUID)->create('child');
     $child1->name = fake()->name();
     $child1->email = fake()->email();

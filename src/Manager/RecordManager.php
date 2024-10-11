@@ -26,9 +26,9 @@ final class RecordManager
      * Create RecordManager.
      */
     public function __construct(
-        private Connection $connection,
-        private ModelManager $modelManager,
-        private Config $config,
+        private readonly Connection $connection,
+        private readonly ModelManager $modelManager,
+        private readonly Config $config,
     ) {
     }
 

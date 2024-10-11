@@ -4,20 +4,20 @@ use function Pest\Faker\fake;
 
 covers(Scrawler\Arca\Model::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('tests model can be treated as iterable', function () {
+it('tests model can be treated as iterable', function (): void {
     $model = db()->create('user');
     $model->name = fake()->name();
     $model->email = fake()->email();
@@ -33,7 +33,7 @@ it('tests model can be treated as iterable', function () {
     }
 });
 
-it('tests model can be treated as Array', function () {
+it('tests model can be treated as Array', function (): void {
     $model = db()->create('user');
     $model->name = fake()->name();
     $model->email = fake()->email();
@@ -52,10 +52,10 @@ it('tests model can be treated as Array', function () {
     $model['age'] = 10;
     $this->assertEquals($model['age'], $model->age);
 
-    expect(fn () => $model[] = 10)->toThrow(Exception::class);
+    expect(fn (): int => $model[] = 10)->toThrow(Exception::class);
 });
 
-it('tests if class is stringable', function () {
+it('tests if class is stringable', function (): void {
     $model = db()->create('user');
     $model->name = fake()->name();
     $model->email = fake()->email();

@@ -35,11 +35,11 @@ final class Database
      * Create a new Database instance.
      */
     public function __construct(
-        private Connection $connection,
-        private RecordManager $recordManager,
-        private WriteManager $writeManager,
-        private ModelManager $modelManager,
-        private Config $config,
+        private readonly Connection $connection,
+        private readonly RecordManager $recordManager,
+        private readonly WriteManager $writeManager,
+        private readonly ModelManager $modelManager,
+        private readonly Config $config,
     ) {
         $this->registerJsonDocumentType();
     }

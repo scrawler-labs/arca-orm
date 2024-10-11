@@ -10,21 +10,21 @@ covers(Scrawler\Arca\Manager\ModelManager::class);
 covers(Scrawler\Arca\Manager\RecordManager::class);
 covers(Scrawler\Arca\Config::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS employee CASCADE; ');
 });
 
-it(' checks db()->isUsingUUID() function ', function ($useUUID) {
+it(' checks db()->isUsingUUID() function ', function ($useUUID): void {
     if ('UUID' == $useUUID) {
         $this->assertTrue(db($useUUID)->isUsingUUID());
     } else {
@@ -32,12 +32,12 @@ it(' checks db()->isUsingUUID() function ', function ($useUUID) {
     }
 })->with('useUUID');
 
-it(' checks db()->create() function ', function ($useUUID) {
+it(' checks db()->create() function ', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $this->assertInstanceOf(Scrawler\Arca\Model::class, $user);
 })->with('useUUID');
 
-it('checks if db()->getOne() gets single record', function ($useUUID) {
+it('checks if db()->getOne() gets single record', function ($useUUID): void {
     populateRandomUser($useUUID);
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
@@ -52,7 +52,7 @@ it('checks if db()->getOne() gets single record', function ($useUUID) {
     $this->assertInstanceOf(Scrawler\Arca\Model::class, $user);
 })->with('useUUID');
 
-it('checks if db()->get() gets all record', function ($useUUID) {
+it('checks if db()->get() gets all record', function ($useUUID): void {
     populateRandomUser($useUUID);
     $users = db($useUUID)->get('user');
     $stmt = db($useUUID)->getConnection()->prepare('SELECT * FROM user');
@@ -64,12 +64,12 @@ it('checks if db()->get() gets all record', function ($useUUID) {
     $this->assertInstanceOf(Scrawler\Arca\Collection::class, $users);
 })->with('useUUID');
 
-it('checks if db()->find() returns Query Builder', function () {
+it('checks if db()->find() returns Query Builder', function (): void {
     $this->assertInstanceOf(Scrawler\Arca\QueryBuilder::class, db()->find('user'));
     $this->assertInstanceOf(Scrawler\Arca\QueryBuilder::class, db()->find('user')->where('id = 2'));
 });
 
-it('checks if db()->find() returns correct records', function () {
+it('checks if db()->find() returns correct records', function (): void {
     populateRandomUser();
     $users = db()->find('user')->where('active = 1')->get();
     $stmt = db()->getConnection()->prepare('SELECT * FROM user WHERE active = 1');
@@ -81,11 +81,11 @@ it('checks if db()->find() returns correct records', function () {
     $this->assertInstanceOf(Scrawler\Arca\Collection::class, $users);
 });
 
-it('checks if all public instance of database files are correct', function () {
+it('checks if all public instance of database files are correct', function (): void {
     $this->assertInstanceOf(Doctrine\DBAL\Connection::class, db()->getConnection());
 });
 
-it('checks  db()->exec() function', function ($useUUID) {
+it('checks  db()->exec() function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->save();
@@ -102,7 +102,7 @@ it('checks  db()->exec() function', function ($useUUID) {
     $this->assertEquals($result['name'], 'john');
 })->with('useUUID');
 
-it('checks  db()->getAll() function', function ($useUUID) {
+it('checks  db()->getAll() function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->save();
@@ -115,7 +115,7 @@ it('checks  db()->getAll() function', function ($useUUID) {
     $this->assertEquals($result, $actual);
 })->with('useUUID');
 
-it('checks db()->delete() function', function ($useUUID) {
+it('checks db()->delete() function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $id = $user->save();
@@ -125,7 +125,7 @@ it('checks db()->delete() function', function ($useUUID) {
     $this->assertEmpty($result);
 })->with('useUUID');
 
-it('checks db()->tableExists() function', function ($useUUID) {
+it('checks db()->tableExists() function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->save();
@@ -133,7 +133,7 @@ it('checks db()->tableExists() function', function ($useUUID) {
     $this->assertTrue(db($useUUID)->tableExists('user'));
 })->with('useUUID');
 
-it('checks db()->tabelsExist() function', function ($useUUID) {
+it('checks db()->tabelsExist() function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->save();
@@ -145,7 +145,7 @@ it('checks db()->tabelsExist() function', function ($useUUID) {
     $this->assertTrue(db($useUUID)->tablesExist(['user', 'employee']));
 })->with('useUUID');
 
-it('checks frozen database', function ($useUUID) {
+it('checks frozen database', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->save();
@@ -160,12 +160,12 @@ it('checks frozen database', function ($useUUID) {
     db($useUUID)->unfreeze();
 })->with('useUUID');
 
-it('checks for is UUID', function ($uuid) {
+it('checks for is UUID', function ($uuid): void {
     $val = db($uuid)->isUsingUUID();
     $this->assertEquals($val, 'UUID' == $uuid);
 })->with('useUUID');
 
-it('tests registration of json type', function () {
+it('tests registration of json type', function (): void {
     $db = db();
     $this->assertTrue(Type::hasType('json'));
 });

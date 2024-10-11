@@ -6,20 +6,20 @@ covers(Scrawler\Arca\Model::class);
 covers(Scrawler\Arca\Database::class);
 covers(Scrawler\Arca\Factory\DatabaseFactory::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('tests for types when loaded ', function ($useUUID) {
+it('tests for types when loaded ', function ($useUUID): void {
     $id = createRandomUser($useUUID);
     $user_retrived = db($useUUID)->getOne('user', $id);
     $types = $user_retrived->getTypes();
@@ -28,7 +28,7 @@ it('tests for types when loaded ', function ($useUUID) {
     $this->assertEquals($types['email'], 'text');
 })->with('useUUID');
 
-it('tests boolean type bug', function ($useUUID) {
+it('tests boolean type bug', function ($useUUID): void {
     $user = db()->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -45,7 +45,7 @@ it('tests boolean type bug', function ($useUUID) {
     $this->assertFalse($user_retrived->active);
 })->with('useUUID');
 
-it('checks for storing array in db', function ($useUUID) {
+it('checks for storing array in db', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();

@@ -5,20 +5,20 @@ use function Pest\Faker\fake;
 covers(Scrawler\Arca\Model::class);
 covers(Scrawler\Arca\Database::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-AfterAll(function () {
+AfterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('checks if model can retrive one-to-one related models', function ($useUUID) {
+it('checks if model can retrive one-to-one related models', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -42,7 +42,7 @@ it('checks if model can retrive one-to-one related models', function ($useUUID) 
     );
 })->with('useUUID');
 
-it('checks if model can retrive one-to-many related models', function ($useUUID) {
+it('checks if model can retrive one-to-many related models', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -64,7 +64,7 @@ it('checks if model can retrive one-to-many related models', function ($useUUID)
     $id = $parent->save();
 
     $parent_retrived = db($useUUID)->getOne('parent', $id);
-    $users_retrived = $parent->ownUserList->apply(function ($user) {
+    $users_retrived = $parent->ownUserList->apply(function ($user): void {
         unset($user->id);
     });
     if (db($useUUID)->isUsingUUID()) {
@@ -82,7 +82,7 @@ it('checks if model can retrive one-to-many related models', function ($useUUID)
     );
 })->with('useUUID');
 
-it('checks if model can retrive many-to-many related models', function ($useUUID) {
+it('checks if model can retrive many-to-many related models', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -104,7 +104,7 @@ it('checks if model can retrive many-to-many related models', function ($useUUID
     $id = $parent->save();
 
     $parent_retrived = db()->getOne('parent', $id);
-    $users_retrived = $parent->sharedUserList->apply(function ($user) {
+    $users_retrived = $parent->sharedUserList->apply(function ($user): void {
         unset($user->id);
     });
 

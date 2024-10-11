@@ -19,11 +19,11 @@ use Scrawler\Arca\Model;
 final class WriteManager
 {
     public function __construct(
-        private Connection $connection,
-        private TableManager $tableManager,
-        private RecordManager $recordManager,
-        private ModelManager $modelManager,
-        private Config $config,
+        private readonly Connection $connection,
+        private readonly TableManager $tableManager,
+        private readonly RecordManager $recordManager,
+        private readonly ModelManager $modelManager,
+        private readonly Config $config,
     ) {
     }
 
@@ -107,7 +107,7 @@ final class WriteManager
      *
      * @return array<TableConstraint>
      */
-    private function createConstraintsOtm(Model $model, Model $foreign): array
+    private function createConstraintsOtm(Model $model): array
     {
         $constraints = [];
         array_push(
@@ -199,7 +199,7 @@ final class WriteManager
         foreach ($model->getForeignModels('otm') as $foreign) {
             $key = $model->getName().'_id';
             $foreign->$key = $id;
-            $this->createTable($foreign, $this->createConstraintsOtm($model, $foreign));
+            $this->createTable($foreign, $this->createConstraintsOtm($model));
         }
         $this->connection->beginTransaction();
         try {

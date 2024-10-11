@@ -5,18 +5,18 @@ use function Pest\Faker\fake;
 covers(Scrawler\Arca\Manager\TableManager::class);
 covers(Scrawler\Arca\Manager\TableConstraint::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('tests table manger update functionality', function ($useUUID) {
+it('tests table manger update functionality', function ($useUUID): void {
     createRandomUser($useUUID);
 
     $user = db($useUUID)->create('user');

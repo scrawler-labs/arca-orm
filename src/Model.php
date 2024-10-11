@@ -95,13 +95,13 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if ('own' === strtolower($parts[0])) {
+            if ('own' === strtolower((string) $parts[0])) {
                 $this->__meta['foreign_models']['otm'] = $this->createCollection($this->__meta['foreign_models']['otm'], $val);
                 $this->__properties['all'][$key] = $val;
 
                 return;
             }
-            if ('shared' === strtolower($parts[0])) {
+            if ('shared' === strtolower((string) $parts[0])) {
                 $this->__meta['foreign_models']['mtm'] = $this->createCollection($this->__meta['foreign_models']['mtm'], $val);
                 $this->__properties['all'][$key] = $val;
 
@@ -150,25 +150,25 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     {
         if (\Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if ('own' === strtolower($parts[0])) {
-                if ('list' === strtolower($parts[2])) {
-                    $result = $this->recordManager->find(strtolower($parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
+            if ('own' === strtolower((string) $parts[0])) {
+                if ('list' === strtolower((string) $parts[2])) {
+                    $result = $this->recordManager->find(strtolower((string) $parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                     $this->set($key, $result);
 
                     return $result;
                 }
             }
-            if ('shared' === strtolower($parts[0])) {
-                if ('list' === strtolower($parts[2])) {
-                    $rel_table = $this->tableManager->tableExists($this->table.'_'.strtolower($parts[1])) ? $this->table.'_'.strtolower($parts[1]) : strtolower($parts[1]).'_'.$this->table;
+            if ('shared' === strtolower((string) $parts[0])) {
+                if ('list' === strtolower((string) $parts[2])) {
+                    $rel_table = $this->tableManager->tableExists($this->table.'_'.strtolower((string) $parts[1])) ? $this->table.'_'.strtolower((string) $parts[1]) : strtolower((string) $parts[1]).'_'.$this->table;
                     $relations = $this->recordManager->find($rel_table)->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                     $rel_ids = '';
                     foreach ($relations as $relation) {
-                        $key = strtolower($parts[1]).'_id';
+                        $key = strtolower((string) $parts[1]).'_id';
                         $rel_ids .= "'".$relation->$key."',";
                     }
                     $rel_ids = substr($rel_ids, 0, -1);
-                    $result = $this->recordManager->find(strtolower($parts[1]))->where('id IN ('.$rel_ids.')')->get();
+                    $result = $this->recordManager->find(strtolower((string) $parts[1]))->where('id IN ('.$rel_ids.')')->get();
                     $this->set($key, $result);
 
                     return $result;
@@ -339,7 +339,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $collection->merge($models);
         }
 
-        if (count(array_filter($models, fn ($d) => !$d instanceof Model)) > 0) {
+        if (count(array_filter($models, fn ($d): bool => !$d instanceof Model)) > 0) {
             throw new Exception\InvalidModelException();
         }
 

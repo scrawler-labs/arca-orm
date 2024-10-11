@@ -25,7 +25,7 @@ final class Collection implements CollectionInterface
     /**
      * @var LoopCollectionInterface<TKey, T>
      */
-    private LoopCollectionInterface $collection;
+    private readonly LoopCollectionInterface $collection;
 
     private function __construct(?LoopCollectionInterface $collection = null)
     {

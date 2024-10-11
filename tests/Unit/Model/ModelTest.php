@@ -6,20 +6,20 @@ covers(Scrawler\Arca\Model::class);
 covers(Scrawler\Arca\Database::class);
 covers(Scrawler\Arca\Manager\RecordManager::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('checks if model is properly populated on retrive', function ($useUUID) {
+it('checks if model is properly populated on retrive', function ($useUUID): void {
     $id = createRandomUser($useUUID);
     $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id ='".$id."'");
     $user = db($useUUID)->getOne('user', $id);
@@ -28,14 +28,14 @@ it('checks if model is properly populated on retrive', function ($useUUID) {
     $this->assertEquals($user->getProperties(), $result);
 })->with('useUUID');
 
-it('tests for model equals', function ($useUUID) {
+it('tests for model equals', function ($useUUID): void {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
     $user_two = db($useUUID)->getOne('user', $id);
     $this->assertTrue($user->equals($user_two));
 })->with('useUUID');
 
-it('tests for model not equals', function ($useUUID) {
+it('tests for model not equals', function ($useUUID): void {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
     $user_two = db($useUUID)->getOne('user', $id);
@@ -43,7 +43,7 @@ it('tests for model not equals', function ($useUUID) {
     $this->assertFalse($user->equals($user_two));
 })->with('useUUID');
 
-it('checks isset() function of model', function ($useUUID) {
+it('checks isset() function of model', function ($useUUID): void {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
     $truey = isset($user->name);
@@ -52,7 +52,7 @@ it('checks isset() function of model', function ($useUUID) {
     $this->assertFalse($falsey);
 })->with('useUUID');
 
-it('tests bulk property setting', function ($useUUID) {
+it('tests bulk property setting', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->setProperties([
         'name' => fake()->name(),
@@ -67,7 +67,7 @@ it('tests bulk property setting', function ($useUUID) {
     $this->assertEquals($user->email, $user_retrived->email);
 })->with('useUUID');
 
-it('tests for model delete() function', function ($useUUID) {
+it('tests for model delete() function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -76,7 +76,7 @@ it('tests for model delete() function', function ($useUUID) {
     $this->assertNull(db()->getOne('user', $id));
 })->with('useUUID');
 
-it('tests for model clean on load function', function ($useUUID) {
+it('tests for model clean on load function', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -89,7 +89,7 @@ it('tests for model clean on load function', function ($useUUID) {
     $this->assertFalse($user->hasForeign('mtm'));
 })->with('useUUID');
 
-it('tests id is always 0 before save on a new model', function ($useUUID) {
+it('tests id is always 0 before save on a new model', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $this->assertEquals($user->getId(), 0);
     $user->name = fake()->name();

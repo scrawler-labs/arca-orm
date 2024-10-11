@@ -8,7 +8,7 @@ covers(Scrawler\Arca\Manager\WriteManager::class);
 covers(Scrawler\Arca\Database::class);
 covers(Scrawler\Arca\Config::class);
 
-it('tests proper initialization of database', function ($useUUID) {
+it('tests proper initialization of database', function ($useUUID): void {
     $factory = new Scrawler\Arca\Factory\DatabaseFactory();
 
     $db = $factory->build(getConnectionParams($useUUID));
@@ -20,7 +20,7 @@ it('tests proper initialization of database', function ($useUUID) {
     $this->assertEquals(false, $db->isUsingUUID());
 })->with('useUUID');
 
-it('tests proper initialization of database with container provided', function ($useUUID) {
+it('tests proper initialization of database with container provided', function ($useUUID): void {
     $factory = new Scrawler\Arca\Factory\DatabaseFactory(container: new DI\Container());
 
     $db = $factory->build(getConnectionParams($useUUID));

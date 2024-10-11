@@ -5,14 +5,14 @@ use function Pest\Faker\fake;
 covers(Scrawler\Arca\QueryBuilder::class);
 covers(Scrawler\Arca\Manager\ModelManager::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS grandparent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
@@ -20,7 +20,7 @@ afterEach(function () {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS child CASCADE; ');
 });
 
-it('checks if db()->find()->with() eager loads relation', function ($useUUID) {
+it('checks if db()->find()->with() eager loads relation', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -43,7 +43,7 @@ it('checks if db()->find()->with() eager loads relation', function ($useUUID) {
     );
 })->with('useUUID');
 
-it('checks if db()->find()->with() eager loads multiple realtions', function ($useUUID) {
+it('checks if db()->find()->with() eager loads multiple realtions', function ($useUUID): void {
     $child1 = db($useUUID)->create('child');
     $child1->name = fake()->name();
     $child1->email = fake()->email();

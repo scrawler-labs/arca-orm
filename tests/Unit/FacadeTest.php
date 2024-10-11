@@ -5,31 +5,31 @@ use function Pest\Faker\fake;
 covers(Scrawler\Arca\Facade\Database::class);
 covers(Scrawler\Arca\Database::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('tests DB::connect()', function () {
+it('tests DB::connect()', function (): void {
     $db = Scrawler\Arca\Facade\Database::connect(getConnectionParams());
     $this->assertInstanceOf(Scrawler\Arca\Database::class, $db);
 });
 
-it('tests DB::create()', function () {
+it('tests DB::create()', function (): void {
     $user = Scrawler\Arca\Facade\Database::create('user');
 
     $this->assertInstanceOf(Scrawler\Arca\Model::class, $user);
 });
 
-it('tests DB::get()', function () {
+it('tests DB::get()', function (): void {
     populateRandomUser();
     $users = Scrawler\Arca\Facade\Database::get('user');
     $stmt = db()->getConnection()->prepare('SELECT * FROM user');
@@ -41,7 +41,7 @@ it('tests DB::get()', function () {
     $this->assertInstanceOf(Scrawler\Arca\Collection::class, $users);
 });
 
-it('tests DB::getOne()', function () {
+it('tests DB::getOne()', function (): void {
     db();
     $id = createRandomUser();
     $user = Scrawler\Arca\Facade\Database::getOne('user', $id);
@@ -56,7 +56,7 @@ it('tests DB::getOne()', function () {
     $this->assertInstanceOf(Scrawler\Arca\Model::class, $user);
 });
 
-it('test DB::exec()', function () {
+it('test DB::exec()', function (): void {
     $user = Scrawler\Arca\Facade\Database::create('user');
     $user->name = fake()->name();
     $user->save();
@@ -69,7 +69,7 @@ it('test DB::exec()', function () {
     $this->assertEquals($result['name'], 'john');
 });
 
-it('test DB::delete()', function () {
+it('test DB::delete()', function (): void {
     $user = Scrawler\Arca\Facade\Database::create('user');
     $user->name = fake()->name();
     $id = $user->save();
@@ -79,7 +79,7 @@ it('test DB::delete()', function () {
     $this->assertEmpty($result);
 });
 
-it('test DB::find()', function () {
+it('test DB::find()', function (): void {
     populateRandomUser();
     $users = Scrawler\Arca\Facade\Database::find('user')->where('active = 1')->get();
     $stmt = db()->getConnection()->prepare('SELECT * FROM user WHERE active = 1');

@@ -67,22 +67,16 @@ class DatabaseFactory
      */
     private function createConnection(array $connectionParams): void
     {
-        $this->container->set(Connection::class, function () use ($connectionParams): Connection {
-            return DriverManager::getConnection($connectionParams);
-        });
+        $this->container->set(Connection::class, fn (): Connection => DriverManager::getConnection($connectionParams));
     }
 
     private function createModelManager(): void
     {
-        $this->container->set(ModelManager::class, function (): ModelManager {
-            return new ModelManager($this->container);
-        });
+        $this->container->set(ModelManager::class, fn (): ModelManager => new ModelManager($this->container));
     }
 
     private function createConfig(bool $useUUID): void
     {
-        $this->container->set(Config::class, function () use ($useUUID): Config {
-            return new Config($useUUID);
-        });
+        $this->container->set(Config::class, fn (): Config => new Config($useUUID));
     }
 }

@@ -11,20 +11,20 @@ covers(Scrawler\Arca\Manager\RecordManager::class);
 covers(Scrawler\Arca\Manager\TableManager::class);
 covers(Scrawler\Arca\Manager\ModelManager::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('checks if db()->save() function creates table', function ($useUUID) {
+it('checks if db()->save() function creates table', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -71,7 +71,7 @@ it('checks if db()->save() function creates table', function ($useUUID) {
     $this->assertEmpty(db($useUUID)->getConnection()->getDatabasePlatform()->getAlterSchemaSQL($diff));
 })->with('useUUID');
 
-it('checks if db()->save() function saves record', function ($useUUID) {
+it('checks if db()->save() function saves record', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -88,7 +88,7 @@ it('checks if db()->save() function saves record', function ($useUUID) {
     );
 })->with('useUUID');
 
-it('checks if db()->save() function saves record with one-to-one relation', function ($useUUID) {
+it('checks if db()->save() function saves record with one-to-one relation', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -110,7 +110,7 @@ it('checks if db()->save() function saves record with one-to-one relation', func
     );
 })->with('useUUID');
 
-it('checks if db()->save() function saves record with one-to-many relation', function ($useUUID) {
+it('checks if db()->save() function saves record with one-to-many relation', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -148,7 +148,7 @@ it('checks if db()->save() function saves record with one-to-many relation', fun
     );
 })->with('useUUID');
 
-it('checks for exception in database save()', function ($useUUID) {
+it('checks for exception in database save()', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -165,7 +165,7 @@ it('checks for exception in database save()', function ($useUUID) {
     $user->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it('checks for exception in database saveOto()', function ($useUUID) {
+it('checks for exception in database saveOto()', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -188,7 +188,7 @@ it('checks for exception in database saveOto()', function ($useUUID) {
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it('checks for exception in database saveMtm()', function ($useUUID) {
+it('checks for exception in database saveMtm()', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -210,7 +210,7 @@ it('checks for exception in database saveMtm()', function ($useUUID) {
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it('checks for exception in database saveOtm()', function ($useUUID) {
+it('checks for exception in database saveOtm()', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -232,7 +232,7 @@ it('checks for exception in database saveOtm()', function ($useUUID) {
     $id = $parent->save();
 })->with('useUUID')->throws(DriverException::class);
 
-it('checks if db()->save() function saves record with many-to-many relation', function ($useUUID) {
+it('checks if db()->save() function saves record with many-to-many relation', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -280,7 +280,7 @@ it('checks if db()->save() function saves record with many-to-many relation', fu
     );
 })->with('useUUID');
 
-it('checks if db()->save() function updates record', function ($useUUID) {
+it('checks if db()->save() function updates record', function ($useUUID): void {
     $id = createRandomUser($useUUID);
     $user = db($useUUID)->getOne('user', $id);
     $user->age = 44;

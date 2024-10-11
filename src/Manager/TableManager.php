@@ -27,19 +27,19 @@ final class TableManager
     /**
      * Store the instance of SchemaManager.
      */
-    private AbstractSchemaManager $manager;
+    private readonly AbstractSchemaManager $manager;
 
     /**
      * Store the instance of Platform.
      */
-    private \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
+    private readonly \Doctrine\DBAL\Platforms\AbstractPlatform $platform;
 
     /**
      * create TableManager.
      */
     public function __construct(
-        private Connection $connection,
-        private Config $config,
+        private readonly Connection $connection,
+        private readonly Config $config,
     ) {
         $this->manager = $this->connection->createSchemaManager();
         $this->platform = $this->connection->getDatabasePlatform();
@@ -199,7 +199,7 @@ final class TableManager
             $this->getTable($table_name);
 
             return true;
-        } catch (TableDoesNotExist $e) {
+        } catch (TableDoesNotExist) {
             return false;
         }
     }
@@ -216,7 +216,5 @@ final class TableManager
         }
 
         $this->saveTable($new_table);
-
-        return;
     }
 }

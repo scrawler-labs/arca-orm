@@ -19,7 +19,7 @@ use Scrawler\Arca\Model;
  */
 class ModelManager
 {
-    public function __construct(private \DI\Container $container)
+    public function __construct(private readonly \DI\Container $container)
     {
     }
 

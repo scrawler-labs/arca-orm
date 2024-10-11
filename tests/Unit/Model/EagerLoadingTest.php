@@ -4,20 +4,20 @@ use function Pest\Faker\fake;
 
 covers(Scrawler\Arca\Model::class);
 
-beforeAll(function () {
+beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
-afterAll(function () {
+afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user cascade; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent cascade; ');
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user cascade; ');
 });
 
-it('tests for model with() one-to-one relation', function ($useUUID) {
+it('tests for model with() one-to-one relation', function ($useUUID): void {
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -48,7 +48,7 @@ it('tests for model with() one-to-one relation', function ($useUUID) {
     );
 })->with('useUUID');
 
-it('tests for model with() one-to-many relation', function ($useUUID) {
+it('tests for model with() one-to-many relation', function ($useUUID): void {
     $user1 = db($useUUID)->create('user');
     $user1->name = fake()->name();
     $user1->email = fake()->email();
@@ -86,7 +86,7 @@ it('tests for model with() one-to-many relation', function ($useUUID) {
     );
 })->with('useUUID');
 
-it('tests for model with() many-to-many relation', function ($useUUID) {
+it('tests for model with() many-to-many relation', function ($useUUID): void {
     $user1 = db($useUUID)->create('user');
     $user1->name = fake()->name();
     $user1->email = fake()->email();

@@ -26,11 +26,11 @@ final class QueryBuilder extends DoctrineQueryBuilder
      */
     private array $relations = [];
 
-    private AbstractSchemaManager $SchemaManager;
+    private readonly AbstractSchemaManager $SchemaManager;
 
     public function __construct(
         Connection $connection,
-        private ModelManager $modelManager,
+        private readonly ModelManager $modelManager,
     ) {
         $this->SchemaManager = $connection->createSchemaManager();
         parent::__construct($connection);
@@ -43,7 +43,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
         return $this;
     }
 
-    public function from($table, $alias = null): QueryBuilder
+    public function from(string $table, ?string $alias = null): QueryBuilder
     {
         $this->table = $table;
 
@@ -71,7 +71,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
         }
         $relations = $this->relations;
         $this->relations = [];
-        $result = $this->fetchAssociative() ? $this->fetchAssociative() : [];
+        $result = $this->fetchAssociative() ?: [];
         if (empty($result)) {
             return null;
         }

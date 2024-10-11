@@ -16,7 +16,7 @@ namespace Scrawler\Arca;
 class Config
 {
     public function __construct(
-        private bool $isUUID = false,
+        private readonly bool $isUUID = false,
         private bool $isFrozen = false)
     {
     }
