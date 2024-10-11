@@ -178,7 +178,7 @@ final class Database
      */
     private function registerJsonDocumentType(): void
     {
-        //@codeCoverageIgnoreStart
+        // @codeCoverageIgnoreStart
         if (!Type::hasType('json_document')) {
             Type::addType('json_document', JsonDocumentType::class);
             // @phpstan-ignore-next-line
@@ -186,6 +186,6 @@ final class Database
                 new Serializer([new BackedEnumNormalizer(), new UidNormalizer(), new DateTimeNormalizer(), new ArrayDenormalizer(), new ObjectNormalizer()], [new JsonEncoder()])
             );
         }
-        //@codeCoverageIgnoreEnd
+        // @codeCoverageIgnoreEnd
     }
 }

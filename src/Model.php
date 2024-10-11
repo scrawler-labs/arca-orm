@@ -93,7 +93,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             $this->__meta['id_error'] = true;
         }
 
-        if (\Safe\preg_match('/[A-Z]/', $key) !== 0) {
+        if (0 !== \Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if ('own' === strtolower((string) $parts[0])) {
                 $this->__meta['foreign_models']['otm'] = $this->createCollection($this->__meta['foreign_models']['otm'], $val);
@@ -120,7 +120,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
         $type = $this->getDataType($val);
 
-        $this->__properties['self'][$key] = $this->getDbValue($val,$type);
+        $this->__properties['self'][$key] = $this->getDbValue($val, $type);
         $this->__properties['all'][$key] = $val;
         $this->__properties['type'][$key] = $type;
     }
@@ -145,11 +145,12 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $this->__properties['all'][$key];
         }
 
-        if (\Safe\preg_match('/[A-Z]/', $key) !== 0) {
+        if (0 !== \Safe\preg_match('/[A-Z]/', $key)) {
             $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
             if ('own' === strtolower((string) $parts[0]) && 'list' === strtolower((string) $parts[2])) {
                 $result = $this->recordManager->find(strtolower((string) $parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
                 $this->set($key, $result);
+
                 return $result;
             }
             if ('shared' === strtolower((string) $parts[0]) && 'list' === strtolower((string) $parts[2])) {
@@ -163,6 +164,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
                 $rel_ids = substr($rel_ids, 0, -1);
                 $result = $this->recordManager->find(strtolower((string) $parts[1]))->where('id IN ('.$rel_ids.')')->get();
                 $this->set($key, $result);
+
                 return $result;
             }
         }
@@ -322,7 +324,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $collection->merge($models);
         }
 
-        if (array_filter($models, fn ($d): bool => !$d instanceof Model) !== []) {
+        if ([] !== array_filter($models, fn ($d): bool => !$d instanceof Model)) {
             throw new Exception\InvalidModelException();
         }
 
@@ -332,14 +334,12 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     /**
      * Get the database value from PHP value.
      */
-    private function getDbValue(mixed $val,string $type): mixed
+    private function getDbValue(mixed $val, string $type): mixed
     {
         if ('boolean' === $type) {
-            return ($val) ?  1 :  0;
+            return ($val) ? 1 : 0;
         }
 
         return Type::getType($type)->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
-
-       
     }
 }

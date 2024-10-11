@@ -72,7 +72,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
         $relations = $this->relations;
         $this->relations = [];
         $result = $this->fetchAssociative() ?: [];
-        if ($result === []) {
+        if ([] === $result) {
             return null;
         }
 
