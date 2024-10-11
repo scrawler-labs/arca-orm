@@ -25,6 +25,7 @@ use Scrawler\Arca\Traits\Model\Stringable;
 
 /**
  * Model class that represents single record in database.
+ *
  * @property int|string $id
  */
 class Model implements \Stringable, \IteratorAggregate, \ArrayAccess

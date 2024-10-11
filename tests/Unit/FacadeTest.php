@@ -5,14 +5,20 @@ use function Pest\Faker\fake;
 covers(Scrawler\Arca\Facade\Database::class);
 covers(Scrawler\Arca\Database::class);
 
-beforeEach(function () {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
+beforeAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+});
+afterAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+});
+
+afterEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
 it('tests DB::connect()', function () {
-  
     $db = Scrawler\Arca\Facade\Database::connect(getConnectionParams());
     $this->assertInstanceOf(Scrawler\Arca\Database::class, $db);
 });

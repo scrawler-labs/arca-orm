@@ -71,21 +71,76 @@ final class TableManager
 
     /**
      * Create table from model.
+     *
+     * @param array<TableConstraint> $constraints
      */
-    public function createTable(Model $model): Table
+    public function createTable(Model $model, array $constraints = []): Table
     {
         $table = new Table($model->getName());
-        if ($this->config->isUsingUUID()) {
-            $table->addColumn('id', 'string', ['length' => 36, 'notnull' => true, 'comment' => 'string']);
-        } else {
-            $table->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true, 'comment' => 'integer']);
-        }
-        $table->setPrimaryKey(['id']);
+        $table = $this->addPrimaryKey($table);
         $types = $model->getTypes();
         foreach ($model->getSelfProperties() as $key => $value) {
-            if ('id' != $key) {
-                $table->addColumn($key, $types[$key], ['notnull' => false, 'comment' => $types[$key]]);
+            $key_array = explode('_', $key);
+            if ('id' != $key && 'id' == end($key_array)) {
+                $table = $this->addIdColumn($table, $key);
+            } elseif ('id' != $key) {
+                $table->addColumn(
+                    $key,
+                    $types[$key],
+                    ['notnull' => false, 'comment' => $types[$key]]
+                );
             }
+        }
+
+        foreach ($constraints as $constraint) {
+            $table->addForeignKeyConstraint(
+                $constraint->getForeignTableName(),
+                [$constraint->getLocalColumnName()],
+                [$constraint->getForeignColumnName()],
+                ['onUpdate' => 'CASCADE', 'onDelete' => 'CASCADE']
+            );
+        }
+
+        return $table;
+    }
+
+    private function addPrimaryKey(Table $table): Table
+    {
+        if ($this->config->isUsingUUID()) {
+            $table->addColumn(
+                'id',
+                'string',
+                ['length' => 36, 'notnull' => true, 'comment' => 'string']
+            );
+        } else {
+            $table->addColumn(
+                'id',
+                'integer',
+                ['unsigned' => true, 'autoincrement' => true, 'comment' => 'integer']
+            );
+        }
+        $table->setPrimaryKey(['id']);
+
+        return $table;
+    }
+
+    /**
+     * Add id column to table.
+     */
+    private function addIdColumn(Table $table, string $key): Table
+    {
+        if ($this->config->isUsingUUID()) {
+            $table->addColumn(
+                $key,
+                'string',
+                ['length' => 36, 'notnull' => true, 'comment' => 'string']
+            );
+        } else {
+            $table->addColumn(
+                $key,
+                'integer',
+                ['unsigned' => true, 'notnull' => true, 'comment' => 'integer']
+            );
         }
 
         return $table;

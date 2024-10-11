@@ -54,7 +54,7 @@ class DatabaseFactory
             $useUUID = false;
         }
 
-        $this->createConfig($useUUID,);
+        $this->createConfig($useUUID);
         unset($connectionParams['useUUID']);
         $this->createConnection($connectionParams);
         $this->createModelManager();

@@ -18,7 +18,6 @@ use Dunglas\DoctrineJsonOdm\Serializer;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use Scrawler\Arca\Manager\ModelManager;
 use Scrawler\Arca\Manager\RecordManager;
-use Scrawler\Arca\Manager\TableManager;
 use Scrawler\Arca\Manager\WriteManager;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;

@@ -38,7 +38,10 @@ final class WriteManager
             $this->saveForeignOto($model);
         }
 
-        $this->createTables($model);
+        $this->createTable(
+            $model,
+            $this->createConstraintsOto($model)
+        );
         $this->connection->beginTransaction();
 
         try {
@@ -51,11 +54,11 @@ final class WriteManager
         }
 
         if ($model->hasForeign('otm')) {
-            $this->saveForeignOtm($model, $id);
+            $this->saveForeignOtm($model);
         }
 
         if ($model->hasForeign('mtm')) {
-            $this->saveForeignMtm($model, $id);
+            $this->saveForeignMtm($model);
         }
 
         $model->cleanModel();
@@ -66,13 +69,85 @@ final class WriteManager
 
     /**
      * Create tables.
+     *
+     * @param array<TableConstraint> $constraints
      */
-    private function createTables(Model $model): void
+    private function createTable(Model $model, array $constraints = []): void
     {
         if (!$this->config->isFrozen()) {
-            $table = $this->tableManager->createTable($model);
+            $table = $this->tableManager->createTable($model, $constraints);
             $this->tableManager->saveOrUpdateTable($model->getName(), $table);
         }
+    }
+
+    /**
+     * Add constraint to table.
+     *
+     * @return array<TableConstraint>
+     */
+    private function createConstraintsOto(Model $model): array
+    {
+        $constraints = [];
+        foreach ($model->getForeignModels('oto') as $foreign) {
+            array_push(
+                $constraints,
+                new TableConstraint(
+                    $foreign->getName(),
+                    $foreign->getName().'_id',
+                    'id',
+                )
+            );
+        }
+
+        return $constraints;
+    }
+
+    /**
+     * Add constraint to table.
+     *
+     * @return array<TableConstraint>
+     */
+    private function createConstraintsOtm(Model $model, Model $foreign): array
+    {
+        $constraints = [];
+        array_push(
+            $constraints,
+            new TableConstraint(
+                $model->getName(),
+                $model->getName().'_id',
+                'id'
+            )
+        );
+
+        return $constraints;
+    }
+
+    /**
+     * Add constraint to table.
+     *
+     * @return array<TableConstraint>
+     */
+    private function createConstraintsMtm(Model $model, Model $foreign): array
+    {
+        $constraints = [];
+        array_push(
+            $constraints,
+            new TableConstraint(
+                $model->getName(),
+                $model->getName().'_id',
+                'id'
+            )
+        );
+        array_push(
+            $constraints,
+            new TableConstraint(
+                $foreign->getName(),
+                $foreign->getName().'_id',
+                'id'
+            )
+        );
+
+        return $constraints;
     }
 
     /**
@@ -97,9 +172,8 @@ final class WriteManager
     private function saveForeignOto(Model $model): void
     {
         foreach ($model->getForeignModels('oto') as $foreign) {
-            $this->createTables($foreign);
+            $this->createTable($foreign);
         }
-
         $this->connection->beginTransaction();
         try {
             foreach ($model->getForeignModels('oto') as $foreign) {
@@ -119,12 +193,13 @@ final class WriteManager
     /**
      * Save One to Many related model into database.
      */
-    private function saveForeignOtm(Model $model, mixed $id): void
+    private function saveForeignOtm(Model $model): void
     {
+        $id = $model->getId();
         foreach ($model->getForeignModels('otm') as $foreign) {
             $key = $model->getName().'_id';
             $foreign->$key = $id;
-            $this->createTables($foreign);
+            $this->createTable($foreign, $this->createConstraintsOtm($model, $foreign));
         }
         $this->connection->beginTransaction();
         try {
@@ -143,8 +218,9 @@ final class WriteManager
     /**
      * Save Many to Many related model into database.
      */
-    private function saveForeignMtm(Model $model, mixed $id): void
+    private function saveForeignMtm(Model $model): void
     {
+        $id = $model->getId();
         foreach ($model->getForeignModels('mtm') as $foreign) {
             $model_id = $model->getName().'_id';
             $foreign_id = $foreign->getName().'_id';
@@ -156,8 +232,8 @@ final class WriteManager
                 $relational_table->$model_id = 0;
                 $relational_table->$foreign_id = 0;
             }
-            $this->createTables($relational_table);
-            $this->createTables($foreign);
+            $this->createTable($foreign);
+            $this->createTable($relational_table, $this->createConstraintsMtm($model, $foreign));
         }
         $this->connection->beginTransaction();
         try {

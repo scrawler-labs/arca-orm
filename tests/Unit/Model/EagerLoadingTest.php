@@ -4,10 +4,17 @@ use function Pest\Faker\fake;
 
 covers(Scrawler\Arca\Model::class);
 
-beforeEach(function () {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
+beforeAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+});
+afterAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+});
+
+afterEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user cascade; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent cascade; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user cascade; ');
 });
 
 it('tests for model with() one-to-one relation', function ($useUUID) {

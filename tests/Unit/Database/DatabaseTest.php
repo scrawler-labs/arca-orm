@@ -1,6 +1,7 @@
 <?php
 
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
+use Doctrine\DBAL\Types\Type;
 
 use function Pest\Faker\fake;
 
@@ -9,11 +10,18 @@ covers(Scrawler\Arca\Manager\ModelManager::class);
 covers(Scrawler\Arca\Manager\RecordManager::class);
 covers(Scrawler\Arca\Config::class);
 
-beforeEach(function () {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS employee; ');
+beforeAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+});
+afterAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+});
+
+afterEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS employee CASCADE; ');
 });
 
 it(' checks db()->isUsingUUID() function ', function ($useUUID) {
@@ -156,3 +164,8 @@ it('checks for is UUID', function ($uuid) {
     $val = db($uuid)->isUsingUUID();
     $this->assertEquals($val, 'UUID' == $uuid);
 })->with('useUUID');
+
+it('tests registration of json type', function () {
+    $db = db();
+    $this->assertTrue(Type::hasType('json'));
+});

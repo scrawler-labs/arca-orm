@@ -5,20 +5,26 @@ use Doctrine\DBAL\Exception\DriverException;
 use function Pest\Faker\fake;
 
 covers(Scrawler\Arca\Database::class);
+covers(Scrawler\Arca\Manager\TableConstraint::class);
 covers(Scrawler\Arca\Manager\WriteManager::class);
 covers(Scrawler\Arca\Manager\RecordManager::class);
 covers(Scrawler\Arca\Manager\TableManager::class);
 covers(Scrawler\Arca\Manager\ModelManager::class);
 
-beforeEach(function () {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS employee; ');
+beforeAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+});
+afterAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+});
+
+afterEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
 it('checks if db()->save() function creates table', function ($useUUID) {
-   
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();
     $user->email = fake()->email();
@@ -32,7 +38,6 @@ it('checks if db()->save() function creates table', function ($useUUID) {
     $user = db($useUUID)->getOne('user', $id);
     $this->assertEquals($user->name, $user->name);
     $this->assertEquals($user->email, $user->email);
-
 
     $user = db($useUUID)->create('user');
     $user->name = fake()->name();

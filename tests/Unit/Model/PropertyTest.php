@@ -4,24 +4,33 @@ use function Pest\Faker\fake;
 
 covers(Scrawler\Arca\Model::class);
 covers(Scrawler\Arca\Database::class);
+covers(Scrawler\Arca\Factory\DatabaseFactory::class);
 covers(Scrawler\Arca\Manager\TableManager::class);
 covers(Scrawler\Arca\Manager\RecordManager::class);
 
-beforeEach(function () {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS grandparent; ');
+beforeAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+});
+afterAll(function () {
+    db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+});
+
+afterEach(function () {
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS grandparent CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
+    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS child CASCADE; ');
 });
 
 it('tests model properties with multiple realtions', function ($useUUID) {
-    $child1 = db($useUUID)->create('user');
+    $child1 = db($useUUID)->create('child');
     $child1->name = fake()->name();
     $child1->email = fake()->email();
     $child1->dob = fake()->date();
     $child1->age = fake()->randomNumber(2, false);
 
-    $child2 = db($useUUID)->create('user');
+    $child2 = db($useUUID)->create('child');
     $child2->name = fake()->name();
     $child2->email = fake()->email();
     $child2->dob = fake()->date();
@@ -42,7 +51,7 @@ it('tests model properties with multiple realtions', function ($useUUID) {
     $parent = db($useUUID)->create('parent');
     $parent->name = fake()->name();
     $parent->grandparent = $grandfater;
-    $parent->ownUserList = [$child1, $child2];
+    $parent->ownChildList = [$child1, $child2];
     $parent->sharedUserList = [$child3];
     $id = $parent->save();
 
@@ -58,9 +67,9 @@ it('tests model properties with multiple realtions', function ($useUUID) {
     $this->assertEquals($grandfater->name, $parent_retrived->grandparent->name);
     $this->assertFalse(isset($parent_retrived->grandparent_id));
     $this->assertTrue(isset($parent_retrived->grandparent));
-    $this->assertEquals(count($parent_retrived->ownUserList), 2);
+    $this->assertEquals(count($parent_retrived->ownChildList), 2);
 
-    $this->assertTrue($parent_retrived->ownUserList->first()->name == $child1->name || $parent_retrived->ownUserList->first()->name == $child2->name);
+    $this->assertTrue($parent_retrived->ownChildList->first()->name == $child1->name || $parent_retrived->ownChildList->first()->name == $child2->name);
     $this->assertEquals(count($parent_retrived->sharedUserList), 1);
     $this->assertEquals($parent_retrived->sharedUserList->first()->name, $child3->name);
 })->with('useUUID');
