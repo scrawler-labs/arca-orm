@@ -1,6 +1,6 @@
 <div align="center">
 <h1> 🚀 ARCA ORM</h1>
-<a href="https://github.com/scrawler-labs/arca-orm/actions/workflows/tests.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/scrawler-labs/arca-orm/tests.yml?style=flat-square"></a>&nbsp;
+<a href="https://github.com/scrawler-labs/arca-orm/actions/workflows/main.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/scrawler-labs/arca-orm/tests.yml?style=flat-square"></a>&nbsp;
 <a href="https://app.codecov.io/gh/scrawler-labs/arca-orm"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/scrawler-labs/arca-orm?style=flat-square"></a>&nbsp;
 <a href="https://scrutinizer-ci.com/g/scrawler-labs/arca-orm/"><img alt="Scrutinizer code quality (GitHub/Bitbucket)" src="https://img.shields.io/scrutinizer/quality/g/scrawler-labs/arca-orm?style=flat-square"></a>&nbsp;
 <a href="https://github.com/scrawler-labs/arca-orm/actions/workflows/main.yml"><img src="https://img.shields.io/badge/PHPStan-enabled-brightgreen.svg?style=flat-square" alt="PHPStan Enabled"></a>
