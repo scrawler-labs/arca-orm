@@ -316,6 +316,10 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return 'text';
         }
 
+        if ('double' === $type) {
+            return 'float';
+        }
+
         return $type;
     }
 
