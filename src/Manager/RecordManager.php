@@ -102,4 +102,12 @@ final class RecordManager
             ->select('*')
             ->from($name, 't');
     }
+
+    /**
+     * get query builder from db.
+     */
+    public function select(string $expression): QueryBuilder
+    {
+        return (new QueryBuilder($this->connection, $this->modelManager));
+    }
 }

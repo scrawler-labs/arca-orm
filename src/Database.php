@@ -118,6 +118,16 @@ final class Database
     }
 
     /**
+     * Returns QueryBuilder to build query for finding data
+     * Eg: db()->select('*')->from('user')->where('active = 1')->get();.
+     */
+    public function select(string $expression): QueryBuilder
+    {
+        return $this->recordManager->select($expression);
+    }
+
+
+    /**
      * Freezes table for production.
      */
     public function freeze(): void
