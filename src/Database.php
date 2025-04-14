@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Scrawler package.
  *
@@ -125,7 +126,6 @@ final class Database
     {
         return $this->recordManager->select($expression);
     }
-
 
     /**
      * Freezes table for production.

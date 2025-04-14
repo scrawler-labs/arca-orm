@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Scrawler package.
  *
@@ -28,6 +29,6 @@ class ModelManager
      */
     public function create(string $name): Model
     {
-        return $this->container->make(Model::class, ['name' => $name]);
+        return $this->container->make(Model::class, ['table' => $name]);
     }
 }

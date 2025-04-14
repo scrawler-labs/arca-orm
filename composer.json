@@ -20,16 +20,16 @@
         "doctrine/dbal": "^4.0",
         "loophp/collection": "^7.5",
         "ramsey/uuid": "^4.3",
-        "thecodingmachine/safe": "^2.5",
+        "thecodingmachine/safe": "^3.0",
         "dunglas/doctrine-json-odm": "^1.4",
         "php-di/php-di": "^7.0"
     },
     "require-dev": {
-        "phpstan/phpstan": "^1.12",
+        "phpstan/phpstan": "^2.0",
         "pestphp/pest": "^3.0",
         "pestphp/pest-plugin-faker": "^3.0",
         "thecodingmachine/phpstan-safe-rule": "^1.2",
-        "rector/rector": "^1.0"
+        "rector/rector": "^2.0"
     },
     "config": {
         "allow-plugins": {

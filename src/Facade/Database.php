@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Scrawler package.
  *
@@ -57,10 +58,8 @@ class Database
 
     /**
      * Save a model.
-     *
-     * @param string $table
      */
-    public static function get($table): Collection
+    public static function get(string $table): Collection
     {
         return self::getDB()->get($table);
     }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Scrawler package.
  *
@@ -42,11 +43,6 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      * @var array<string,array<string,mixed>>
      */
     private array $__properties = [];
-
-    /**
-     * Store the table name of model.
-     */
-    private string $table;
     /**
      * Store the metadata of model.
      *
@@ -58,13 +54,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      * Create a new model.
      */
     public function __construct(
-        string $name,
+        /**
+         * Store the table name of model.
+         */
+        private string $table,
         private Connection $connection,
         private RecordManager $recordManager,
         private TableManager $tableManager,
         private WriteManager $writeManager,
     ) {
-        $this->table = $name;
         $this->__properties['all'] = [];
         $this->__properties['self'] = [];
         $this->__meta['is_loaded'] = false;
@@ -196,9 +194,10 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     /**
      * Refresh the current model from database.
      */
-    public function refresh(): void{
+    public function refresh(): void
+    {
         $model = $this->recordManager->getById($this->getName(), $this->getId());
-        if(!is_null($model)){
+        if (!is_null($model)) {
             $this->cleanModel();
             $this->setLoadedProperties($model->getSelfProperties());
             $this->setLoaded();

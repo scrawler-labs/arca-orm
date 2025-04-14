@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Scrawler package.
  *
@@ -108,6 +109,7 @@ final class RecordManager
      */
     public function select(string $expression): QueryBuilder
     {
-        return (new QueryBuilder($this->connection, $this->modelManager));
+        return (new QueryBuilder($this->connection, $this->modelManager))
+            ->select($expression);
     }
 }

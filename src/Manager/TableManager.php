@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Scrawler package.
  *
@@ -81,7 +82,7 @@ final class TableManager
         $types = $model->getTypes();
         foreach (array_keys($model->getSelfProperties()) as $key) {
             $key_array = explode('_', $key);
-            if ('id' != $key && 'id' == end($key_array)) {
+            if ('id' != $key && 'id' === end($key_array)) {
                 $table = $this->addIdColumn($table, $key);
             } elseif ('id' != $key) {
                 $table->addColumn(
