@@ -64,7 +64,7 @@ final class Collection implements CollectionInterface
      */
     public function toArray(): array
     {
-        $toArray = static fn ($val) => $val->toArray();
+        $toArray = static fn ($val) => $val instanceof Model ? $val->toArray() : $val;
 
         return $this->map($toArray)->jsonSerialize();
     }

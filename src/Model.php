@@ -15,6 +15,8 @@ namespace Scrawler\Arca;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\ArrayParameterType;
 use Scrawler\Arca\Manager\RecordManager;
 use Scrawler\Arca\Manager\TableManager;
 use Scrawler\Arca\Manager\WriteManager;
@@ -86,41 +88,110 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      */
     public function set(string $key, mixed $val): void
     {
+        // Handle ID setting
         if ('id' === $key) {
             $this->__meta['id'] = $val;
             $this->__meta['id_error'] = true;
-        }
-
-        if (0 !== \Safe\preg_match('/[A-Z]/', $key)) {
-            $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if ('own' === strtolower((string) $parts[0])) {
-                $this->__meta['foreign_models']['otm'] = $this->createCollection($this->__meta['foreign_models']['otm'], $val);
-                $this->__properties['all'][$key] = $val;
-
-                return;
-            }
-            if ('shared' === strtolower((string) $parts[0])) {
-                $this->__meta['foreign_models']['mtm'] = $this->createCollection($this->__meta['foreign_models']['mtm'], $val);
-                $this->__properties['all'][$key] = $val;
-
-                return;
-            }
-        }
-        if ($val instanceof Model) {
-            if (isset($this->__properties['all'][$key.'_id'])) {
-                unset($this->__properties['all'][$key.'_id']);
-            }
-            $this->__meta['foreign_models']['oto'] = $this->createCollection($this->__meta['foreign_models']['oto'], Collection::fromIterable([$val]));
-            $this->__properties['all'][$key] = $val;
-
+            $this->setRegularProperty('id', $val);
             return;
         }
 
-        $type = $this->getDataType($val);
+        // Handle model relations
+        if ($val instanceof Model) {
+            $this->handleModelRelation($key, $val);
+            return;
+        }
 
-        $this->__properties['self'][$key] = $this->getDbValue($val, $type);
-        $this->__properties['all'][$key] = $val;
-        $this->__properties['type'][$key] = $type;
+        // Handle complex relations (own/shared)
+        if (0 !== \Safe\preg_match('/[A-Z]/', $key)) {
+            if ($this->handleComplexRelation($key, $val)) {
+                return;
+            }
+        }
+
+        // Handle regular properties
+        $this->setRegularProperty($key, $val);
+    }
+
+    private function handleRelationalKey(string $key, array $parts): mixed
+    {
+        if ('own' === strtolower((string) $parts[0])) {
+            return $this->handleOwnRelation($key, $parts);
+        }
+
+        if ('shared' === strtolower((string) $parts[0])) {
+            return $this->handleSharedRelation($key, $parts);
+        }
+
+        return null;
+    }
+
+    private function handleOwnRelation(string $key, array $parts): mixed
+    {
+        if ('list' !== strtolower((string) $parts[2])) {
+            return null;
+        }
+
+        $qb = $this->recordManager->find(strtolower((string) $parts[1]));
+        $qb->where($this->getName() . '_id = :id')
+           ->setParameter('id', $this->__meta['id'], 
+                $this->determineIdType($this->__meta['id'])
+           );
+        
+        $result = $qb->get();
+
+        $this->set($key, $result);
+        return $result;
+    }
+
+    private function handleSharedRelation(string $key, array $parts): mixed
+    {
+        if ('list' !== strtolower((string) $parts[2])) {
+            return null;
+        }
+
+        $targetTable = strtolower((string) $parts[1]);
+        $relTable = $this->getRelationTable($targetTable);
+
+        $db = $this->recordManager->find($relTable);
+        $db->where($this->getName() . '_id = :id')
+           ->setParameter('id', $this->__meta['id'], 
+                $this->determineIdType($this->__meta['id'])
+           );
+        
+        $relations = $db->get();
+        $relIds = $this->extractRelationIds($relations, $targetTable);
+
+        if (empty($relIds)) {
+            return Collection::fromIterable([]);
+        }
+
+        $db = $this->recordManager->find($targetTable);
+        $db->where('id IN (:ids)')
+           ->setParameter('ids', $relIds, 
+                $this->determineIdsType($relIds)
+           );
+
+        $result = $db->get();
+
+        $this->set($key, $result);
+        return $result;
+    }
+
+    private function getRelationTable(string $targetTable): string
+    {
+        return $this->tableManager->tableExists($this->table . '_' . $targetTable)
+            ? $this->table . '_' . $targetTable
+            : $targetTable . '_' . $this->table;
+    }
+
+    private function extractRelationIds(Collection $relations, string $targetTable): array
+    {
+        return $relations->map(function ($relation) use ($targetTable) {
+            $key = $targetTable . '_id';
+
+            return $relation->$key;
+        })->toArray();
     }
 
     /**
@@ -138,40 +209,26 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      */
     public function get(string $key): mixed
     {
-        // retrun if alraedy loaded
+        // Early return for cached properties
         if (array_key_exists($key, $this->__properties['all'])) {
             return $this->__properties['all'][$key];
         }
 
-        if (0 !== \Safe\preg_match('/[A-Z]/', $key)) {
-            $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
-            if ('own' === strtolower((string) $parts[0]) && 'list' === strtolower((string) $parts[2])) {
-                $result = $this->recordManager->find(strtolower((string) $parts[1]))->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
-                $this->set($key, $result);
-
-                return $result;
-            }
-            if ('shared' === strtolower((string) $parts[0]) && 'list' === strtolower((string) $parts[2])) {
-                $rel_table = $this->tableManager->tableExists($this->table.'_'.strtolower((string) $parts[1])) ? $this->table.'_'.strtolower((string) $parts[1]) : strtolower((string) $parts[1]).'_'.$this->table;
-                $relations = $this->recordManager->find($rel_table)->where($this->getName().'_id = "'.$this->__meta['id'].'"')->get();
-                $rel_ids = '';
-                foreach ($relations as $relation) {
-                    $key = strtolower((string) $parts[1]).'_id';
-                    $rel_ids .= "'".$relation->$key."',";
-                }
-                $rel_ids = substr($rel_ids, 0, -1);
-                $result = $this->recordManager->find(strtolower((string) $parts[1]))->where('id IN ('.$rel_ids.')')->get();
-                $this->set($key, $result);
-
-                return $result;
-            }
-        }
-
-        if (array_key_exists($key.'_id', $this->__properties['self'])) {
-            $result = $this->recordManager->getById($key, $this->__properties['self'][$key.'_id']);
+        // Handle foreign key relations
+        if (array_key_exists($key . '_id', $this->__properties['self'])) {
+            $result = $this->recordManager->getById($key, $this->__properties['self'][$key . '_id']);
             $this->set($key, $result);
 
-            return $result;
+            return $result; 
+        }
+
+        // Handle complex relations (own/shared)
+        if (0 !== \Safe\preg_match('/[A-Z]/', $key)) {
+            $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
+            $result = $this->handleRelationalKey($key, $parts);
+            if (null !== $result) {
+                return $result;
+            }
         }
 
         throw new Exception\KeyNotFoundException();
@@ -339,7 +396,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $collection->merge($models);
         }
 
-        if ([] !== array_filter($models, fn ($d): bool => !$d instanceof Model)) {
+        if ([] !== array_filter($models, fn($d): bool => !$d instanceof Model)) {
             throw new Exception\InvalidModelException();
         }
 
@@ -357,4 +414,81 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
         return Type::getType($type)->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
     }
+
+    private function handleModelRelation(string $key, Model $val): void
+    {
+        if (isset($this->__properties['all'][$key . '_id'])) {
+            unset($this->__properties['all'][$key . '_id']);
+        }
+
+        $this->__meta['foreign_models']['oto'] = $this->createCollection(
+            $this->__meta['foreign_models']['oto'],
+            Collection::fromIterable([$val])
+        );
+        $this->__properties['all'][$key] = $val;
+    }
+
+    private function handleComplexRelation(string $key, mixed $val): bool
+    {
+        $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
+        $type = strtolower((string) $parts[0]);
+
+        if ('own' === $type) {
+            $this->__meta['foreign_models']['otm'] = $this->createCollection(
+                $this->__meta['foreign_models']['otm'],
+                $val
+            );
+            $this->__properties['all'][$key] = $val;
+
+            return true;
+        }
+
+        if ('shared' === $type) {
+            $this->__meta['foreign_models']['mtm'] = $this->createCollection(
+                $this->__meta['foreign_models']['mtm'],
+                $val
+            );
+            $this->__properties['all'][$key] = $val;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private function setRegularProperty(string $key, mixed $val): void
+    {
+        $type = $this->getDataType($val);
+        $this->__properties['self'][$key] = $this->getDbValue($val, $type);
+        $this->__properties['all'][$key] = $val;
+        $this->__properties['type'][$key] = $type;
+    }
+
+    /**
+     * Determines the ParameterType for an ID value
+     */
+    private function determineIdType(int|string $id): ParameterType
+    {
+        return is_int($id) ? ParameterType::INTEGER : ParameterType::STRING;
+    }
+
+    /**
+     * Get all properties of model.
+     *
+     * @return ArrayParameterType
+     */
+    private function determineIdsType(array $ids): ArrayParameterType
+    {
+        if (empty($ids)) {
+            return ArrayParameterType::STRING;
+        }
+
+        $firstIdType = $this->determineIdType($ids[0]);
+
+        return match ($firstIdType) {
+            ParameterType::INTEGER => ArrayParameterType::INTEGER,
+            ParameterType::STRING => ArrayParameterType::STRING,
+        };
+    }
+
 }
