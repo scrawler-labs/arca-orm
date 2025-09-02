@@ -23,6 +23,10 @@ use Scrawler\Arca\QueryBuilder;
  */
 final class RecordManager
 {
+    private const ID_COLUMN = 'id';
+    private const DEFAULT_ALIAS = 't';
+    private const ALL_COLUMNS = '*';
+
     /**
      * Create RecordManager.
      */
@@ -34,19 +38,47 @@ final class RecordManager
     }
 
     /**
+     * Execute operations within a transaction
+     * 
+     * @template T
+     * @param callable(): T $callback
+     * @return T
+     * @throws \Exception
+     */
+    private function executeInTransaction(callable $callback): mixed
+    {
+        $this->connection->beginTransaction();
+        try {
+            $result = $callback();
+            $this->connection->commit();
+            return $result;
+        } catch (\Exception $e) {
+            $this->connection->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * Create a new record.
      */
     public function insert(Model $model): mixed
     {
-        if ($this->config->isUsingUUID()) {
-            $model->set('id', Uuid::uuid4()->toString());
-        }
-        $this->connection->insert($model->getName(), $model->getSelfProperties());
-        if ($this->config->isUsingUUID()) {
-            return $model->get('id');
-        }
+        return $this->executeInTransaction(function() use ($model) {
+            if ($this->config->isUsingUUID()) {
+                $model->set(self::ID_COLUMN, Uuid::uuid4()->toString());
+            }
+            
+            $this->connection->insert(
+                $model->getName(), 
+                $model->getSelfProperties()
+            );
+            
+            if ($this->config->isUsingUUID()) {
+                return $model->get(self::ID_COLUMN);
+            }
 
-        return (int) $this->connection->lastInsertId();
+            return (int) $this->connection->lastInsertId();
+        });
     }
 
     /**
@@ -54,9 +86,14 @@ final class RecordManager
      */
     public function update(Model $model): mixed
     {
-        $this->connection->update($model->getName(), $model->getSelfProperties(), ['id' => $model->getId()]);
-
-        return $model->getId();
+        return $this->executeInTransaction(function() use ($model) {
+            $this->connection->update(
+                $model->getName(),
+                $model->getSelfProperties(),
+                [self::ID_COLUMN => $model->getId()]
+            );
+            return $model->getId();
+        });
     }
 
     /**
@@ -64,9 +101,13 @@ final class RecordManager
      */
     public function delete(Model $model): mixed
     {
-        $this->connection->delete($model->getName(), ['id' => $model->getId()]);
-
-        return $model->getId();
+        return $this->executeInTransaction(function() use ($model) {
+            $this->connection->delete(
+                $model->getName(),
+                [self::ID_COLUMN => $model->getId()]
+            );
+            return $model->getId();
+        });
     }
 
     /**
@@ -74,13 +115,14 @@ final class RecordManager
      */
     public function getById(string $table, mixed $id): ?Model
     {
-        $query = (new QueryBuilder($this->connection, $this->modelManager))
-            ->select('*')
-            ->from($table, 't')
-            ->where('t.id = ?')
-            ->setParameter(0, $id);
-
-        return $query->first();
+        return $this->executeInTransaction(function() use ($table, $id) {
+            return $this->createQueryBuilder()
+                ->select(self::ALL_COLUMNS)
+                ->from($table, self::DEFAULT_ALIAS)
+                ->where(self::DEFAULT_ALIAS . '.' . self::ID_COLUMN . ' = ?')
+                ->setParameter(0, $id)
+                ->first();
+        });
     }
 
     /**
@@ -88,28 +130,37 @@ final class RecordManager
      */
     public function getAll(string $tableName): Collection
     {
-        return (new QueryBuilder($this->connection, $this->modelManager))
-            ->select('*')
-            ->from($tableName, 't')
-            ->get();
+        return $this->executeInTransaction(function() use ($tableName) {
+            return $this->createQueryBuilder()
+                ->select(self::ALL_COLUMNS)
+                ->from($tableName, self::DEFAULT_ALIAS)
+                ->get();
+        });
     }
 
     /**
-     * get query builder from db.
+     * Create a new QueryBuilder instance
+     */
+    private function createQueryBuilder(): QueryBuilder
+    {
+        return new QueryBuilder($this->connection, $this->modelManager);
+    }
+
+    /**
+     * Get query builder from db.
      */
     public function find(string $name): QueryBuilder
     {
-        return (new QueryBuilder($this->connection, $this->modelManager))
-            ->select('*')
-            ->from($name, 't');
+        return $this->createQueryBuilder()
+            ->select(self::ALL_COLUMNS)
+            ->from($name, self::DEFAULT_ALIAS);
     }
 
     /**
-     * get query builder from db.
+     * Get query builder from db.
      */
     public function select(string $expression): QueryBuilder
     {
-        return (new QueryBuilder($this->connection, $this->modelManager))
-            ->select($expression);
+        return $this->createQueryBuilder()->select($expression);
     }
 }
