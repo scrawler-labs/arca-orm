@@ -31,7 +31,6 @@ interface CollectionInterface extends \IteratorAggregate, \Countable
     public function apply(callable $callables): CollectionInterface;
 
     public function map(callable $callable): CollectionInterface;
-    
 
     /**
      * @param mixed[] $array

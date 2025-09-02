@@ -19,6 +19,12 @@ use Scrawler\Arca\Model;
 
 final class WriteManager
 {
+    private const RELATION_ONE_TO_ONE = 'oto';
+    private const RELATION_ONE_TO_MANY = 'otm';
+    private const RELATION_MANY_TO_MANY = 'mtm';
+    private const ID_FIELD = 'id';
+    private const ID_SUFFIX = '_id';
+
     public function __construct(
         private readonly Connection $connection,
         private readonly TableManager $tableManager,
@@ -31,41 +37,62 @@ final class WriteManager
     /**
      * Save model into database.
      *
-     * @return mixed returns int for id and string for uuid
+     * @template T of mixed
+     *
+     * @return T
+     *
+     * @throws InvalidIdException
      */
     public function save(Model $model): mixed
     {
-        if ($model->hasForeign('oto')) {
-            $this->saveForeignOto($model);
+        if ($model->hasForeign(self::RELATION_ONE_TO_ONE)) {
+            $this->saveForeignOneToOne($model);
         }
 
-        $this->createTable(
-            $model,
-            $this->createConstraintsOto($model)
-        );
-        $this->connection->beginTransaction();
+        $this->ensureTableExists($model);
 
-        try {
+        $id = $this->executeInTransaction(function () use ($model) {
             $id = $this->createRecords($model);
-            $model->set('id', $id);
+            $model->set(self::ID_FIELD, $id);
+
+            return $id;
+        });
+
+        $this->handleRelations($model);
+        $this->finalizeModel($model);
+
+        return $id;
+    }
+
+    private function handleRelations(Model $model): void
+    {
+        if ($model->hasForeign(self::RELATION_ONE_TO_MANY)) {
+            $this->saveForeignOneToMany($model);
+        }
+
+        if ($model->hasForeign(self::RELATION_MANY_TO_MANY)) {
+            $this->saveForeignManyToMany($model);
+        }
+    }
+
+    private function finalizeModel(Model $model): void
+    {
+        $model->cleanModel();
+        $model->setLoaded();
+    }
+
+    private function executeInTransaction(callable $callback): mixed
+    {
+        $this->connection->beginTransaction();
+        try {
+            $result = $callback();
             $this->connection->commit();
+
+            return $result;
         } catch (\Exception $e) {
             $this->connection->rollBack();
             throw $e;
         }
-
-        if ($model->hasForeign('otm')) {
-            $this->saveForeignOtm($model);
-        }
-
-        if ($model->hasForeign('mtm')) {
-            $this->saveForeignMtm($model);
-        }
-
-        $model->cleanModel();
-        $model->setLoaded();
-
-        return $id;
     }
 
     /**
@@ -107,11 +134,13 @@ final class WriteManager
      */
     private function createConstraintsOtm(Model $model): array
     {
-        return [new TableConstraint(
-            $model->getName(),
-            $model->getName().'_id',
-            'id'
-        )];
+        return [
+            new TableConstraint(
+                $model->getName(),
+                $model->getName().'_id',
+                'id'
+            ),
+        ];
     }
 
     /**
@@ -121,15 +150,18 @@ final class WriteManager
      */
     private function createConstraintsMtm(Model $model, Model $foreign): array
     {
-        return [new TableConstraint(
-            $model->getName(),
-            $model->getName().'_id',
-            'id'
-        ), new TableConstraint(
-            $foreign->getName(),
-            $foreign->getName().'_id',
-            'id'
-        )];
+        return [
+            new TableConstraint(
+                $model->getName(),
+                $model->getName().'_id',
+                'id'
+            ),
+            new TableConstraint(
+                $foreign->getName(),
+                $foreign->getName().'_id',
+                'id'
+            ),
+        ];
     }
 
     /**
@@ -151,89 +183,91 @@ final class WriteManager
     /**
      * Save One to One related model into database.
      */
-    private function saveForeignOto(Model $model): void
+    private function saveForeignOneToOne(Model $model): void
     {
-        foreach ($model->getForeignModels('oto') as $foreign) {
+        foreach ($model->getForeignModels(self::RELATION_ONE_TO_ONE) as $foreign) {
             $this->createTable($foreign);
         }
-        $this->connection->beginTransaction();
-        try {
-            foreach ($model->getForeignModels('oto') as $foreign) {
+
+        $this->executeInTransaction(function () use ($model) {
+            foreach ($model->getForeignModels(self::RELATION_ONE_TO_ONE) as $foreign) {
                 $id = $this->createRecords($foreign);
-                $foreign->cleanModel();
-                $foreign->setLoaded();
-                $name = $foreign->getName().'_id';
+                $this->finalizeModel($foreign);
+                $name = $foreign->getName().self::ID_SUFFIX;
                 $model->$name = $id;
             }
-            $this->connection->commit();
-        } catch (\Exception $e) {
-            $this->connection->rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**
      * Save One to Many related model into database.
      */
-    private function saveForeignOtm(Model $model): void
+    private function saveForeignOneToMany(Model $model): void
     {
         $id = $model->getId();
-        foreach ($model->getForeignModels('otm') as $foreign) {
-            $key = $model->getName().'_id';
+        foreach ($model->getForeignModels(self::RELATION_ONE_TO_MANY) as $foreign) {
+            $key = $model->getName().self::ID_SUFFIX;
             $foreign->$key = $id;
             $this->createTable($foreign, $this->createConstraintsOtm($model));
         }
-        $this->connection->beginTransaction();
-        try {
-            foreach ($model->getForeignModels('otm') as $foreign) {
+
+        $this->executeInTransaction(function () use ($model) {
+            foreach ($model->getForeignModels(self::RELATION_ONE_TO_MANY) as $foreign) {
                 $this->createRecords($foreign);
-                $foreign->cleanModel();
-                $foreign->setLoaded();
+                $this->finalizeModel($foreign);
             }
-            $this->connection->commit();
-        } catch (\Exception $e) {
-            $this->connection->rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**
      * Save Many to Many related model into database.
      */
-    private function saveForeignMtm(Model $model): void
+    private function saveForeignManyToMany(Model $model): void
     {
         $id = $model->getId();
-        foreach ($model->getForeignModels('mtm') as $foreign) {
-            $model_id = $model->getName().'_id';
-            $foreign_id = $foreign->getName().'_id';
-            $relational_table = $this->modelManager->create($model->getName().'_'.$foreign->getName());
-            if ($this->config->isUsingUUID()) {
-                $relational_table->$model_id = '';
-                $relational_table->$foreign_id = '';
-            } else {
-                $relational_table->$model_id = 0;
-                $relational_table->$foreign_id = 0;
-            }
+        foreach ($model->getForeignModels(self::RELATION_MANY_TO_MANY) as $foreign) {
+            $model_id = $model->getName().self::ID_SUFFIX;
+            $foreign_id = $foreign->getName().self::ID_SUFFIX;
+            $relational_table = $this->modelManager->create(
+                $model->getName().'_'.$foreign->getName()
+            );
+
+            $default_id = $this->config->isUsingUUID() ? '' : 0;
+            $relational_table->$model_id = $default_id;
+            $relational_table->$foreign_id = $default_id;
+
             $this->createTable($foreign);
-            $this->createTable($relational_table, $this->createConstraintsMtm($model, $foreign));
+            $this->createTable(
+                $relational_table,
+                $this->createConstraintsMtm($model, $foreign)
+            );
         }
-        $this->connection->beginTransaction();
-        try {
-            foreach ($model->getForeignModels('mtm') as $foreign) {
+
+        $this->executeInTransaction(function () use ($model, $id) {
+            foreach ($model->getForeignModels(self::RELATION_MANY_TO_MANY) as $foreign) {
                 $rel_id = $this->createRecords($foreign);
-                $foreign->cleanModel();
-                $foreign->setLoaded();
-                $model_id = $model->getName().'_id';
-                $foreign_id = $foreign->getName().'_id';
-                $relational_table = $this->modelManager->create($model->getName().'_'.$foreign->getName());
+                $this->finalizeModel($foreign);
+
+                $model_id = $model->getName().self::ID_SUFFIX;
+                $foreign_id = $foreign->getName().self::ID_SUFFIX;
+
+                $relational_table = $this->modelManager->create(
+                    $model->getName().'_'.$foreign->getName()
+                );
                 $relational_table->$model_id = $id;
                 $relational_table->$foreign_id = $rel_id;
+
                 $this->createRecords($relational_table);
             }
-            $this->connection->commit();
-        } catch (\Exception $e) {
-            $this->connection->rollBack();
-            throw $e;
+        });
+    }
+
+    private function ensureTableExists(Model $model): void
+    {
+        $constraints = [];
+        if ($model->hasForeign(self::RELATION_ONE_TO_ONE)) {
+            $constraints = $this->createConstraintsOto($model);
         }
+        $this->createTable($model, $constraints);
     }
 }

@@ -117,7 +117,4 @@ it('tests model refresh', function ($useUUID): void {
     $this->assertNotEquals($parent->ownUserList->first()->name, 'test');
     $parent->refresh();
     $this->assertEquals($parent->ownUserList->first()->name, 'test');
-
-
-
 })->with('useUUID');

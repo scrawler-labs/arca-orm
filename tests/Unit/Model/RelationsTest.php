@@ -73,9 +73,9 @@ it('checks if model can retrive one-to-many related models', function ($useUUID)
     }
 
     $test_collection = Scrawler\Arca\Collection::fromIterable([$user, $user_two])
-    ->map(static fn ($model): \Scrawler\Arca\Model => $model->setLoaded());
+    ->map(static fn ($model): Scrawler\Arca\Model => $model->setLoaded());
     $test_collection_two = Scrawler\Arca\Collection::fromIterable([$user_two, $user])
-    ->map(static fn ($model): \Scrawler\Arca\Model => $model->setLoaded());
+    ->map(static fn ($model): Scrawler\Arca\Model => $model->setLoaded());
 
     $this->assertTrue(
         $users_retrived->toString() == $test_collection->toString() || $users_retrived->toString() == $test_collection_two->toString()
@@ -114,10 +114,10 @@ it('checks if model can retrive many-to-many related models', function ($useUUID
     }
 
     $test_collection = Scrawler\Arca\Collection::fromIterable([$user, $user_two])
-    ->map(static fn ($model): \Scrawler\Arca\Model => $model->setLoaded());
+    ->map(static fn ($model): Scrawler\Arca\Model => $model->setLoaded());
 
     $test_collection_two = Scrawler\Arca\Collection::fromIterable([$user_two, $user])
-    ->map(static fn ($model): \Scrawler\Arca\Model => $model->setLoaded());
+    ->map(static fn ($model): Scrawler\Arca\Model => $model->setLoaded());
     $this->assertTrue(
         $users_retrived->toString() == $test_collection->toString() || $users_retrived->toString() == $test_collection_two->toString()
     );
