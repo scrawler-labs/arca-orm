@@ -18,8 +18,17 @@ class Config
 {
     public function __construct(
         private readonly bool $isUUID = false,
+        private readonly string $modelNamespace = '',
         private bool $isFrozen = false)
     {
+    }
+
+    /**
+     * Get the model namespace.
+     */
+    public function getModelNamespace(): string
+    {
+        return $this->modelNamespace;
     }
 
     /**
