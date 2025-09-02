@@ -30,6 +30,8 @@ use Scrawler\Arca\Traits\Model\Stringable;
  * Model class that represents single record in database.
  *
  * @property int|string $id
+ * @property array<string,array<string,mixed>> $__properties
+ * @property array<string,mixed> $__meta
  */
 class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 {
@@ -40,39 +42,82 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     use Setter;
 
     /**
-     * Store all properties of model.
-     *
+     * Relation type constants
+     */
+    private const RELATION_ONE_TO_MANY = 'otm';
+    private const RELATION_ONE_TO_ONE = 'oto';
+    private const RELATION_MANY_TO_MANY = 'mtm';
+    
+    /**
+     * Property type constants
+     */
+    private const TYPE_JSON = 'json_document';
+    private const TYPE_TEXT = 'text';
+    private const TYPE_FLOAT = 'float';
+    
+    /**
+     * Relation keywords
+     */
+    private const KEYWORD_OWN = 'own';
+    private const KEYWORD_SHARED = 'shared';
+    private const KEYWORD_LIST = 'list';
+
+    /**
+     * Valid relation types
+     */
+    private const RELATION_TYPES = [
+        self::RELATION_ONE_TO_MANY,
+        self::RELATION_ONE_TO_ONE,
+        self::RELATION_MANY_TO_MANY
+    ];
+
+    /**
      * @var array<string,array<string,mixed>>
      */
     private array $__properties = [];
+
     /**
-     * Store the metadata of model.
-     *
      * @var array<string,mixed>
      */
     private array $__meta = [];
 
     /**
-     * Create a new model.
+     * Cache for relation table names
+     * @var array<string,string>
      */
+    private array $relationTableCache = [];
+
     public function __construct(
-        /**
-         * Store the table name of model.
-         */
         private string $table,
         private Connection $connection,
         private RecordManager $recordManager,
         private TableManager $tableManager,
         private WriteManager $writeManager,
     ) {
-        $this->__properties['all'] = [];
-        $this->__properties['self'] = [];
-        $this->__meta['is_loaded'] = false;
-        $this->__meta['id_error'] = false;
-        $this->__meta['foreign_models']['otm'] = null;
-        $this->__meta['foreign_models']['oto'] = null;
-        $this->__meta['foreign_models']['mtm'] = null;
-        $this->__meta['id'] = 0;
+        $this->initializeProperties();
+    }
+
+    /**
+     * Initialize model properties and metadata
+     */
+    private function initializeProperties(): void
+    {
+        $this->__properties = [
+            'all' => [],
+            'self' => [],
+            'type' => []
+        ];
+        
+        $this->__meta = [
+            'is_loaded' => false,
+            'id_error' => false,
+            'foreign_models' => [
+                self::RELATION_ONE_TO_MANY => null,
+                self::RELATION_ONE_TO_ONE => null,
+                self::RELATION_MANY_TO_MANY => null
+            ],
+            'id' => 0
+        ];
     }
 
     /**
@@ -115,11 +160,11 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     private function handleRelationalKey(string $key, array $parts): mixed
     {
-        if ('own' === strtolower((string) $parts[0])) {
+        if (self::KEYWORD_OWN === strtolower((string) $parts[0])) {
             return $this->handleOwnRelation($key, $parts);
         }
 
-        if ('shared' === strtolower((string) $parts[0])) {
+        if (self::KEYWORD_SHARED === strtolower((string) $parts[0])) {
             return $this->handleSharedRelation($key, $parts);
         }
 
@@ -128,19 +173,19 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     private function handleOwnRelation(string $key, array $parts): mixed
     {
-        if ('list' !== strtolower((string) $parts[2])) {
+        if (self::KEYWORD_LIST !== strtolower((string) $parts[2])) {
             return null;
         }
 
-        $qb = $this->recordManager->find(strtolower((string) $parts[1]));
-        $qb->where($this->getName() . '_id = :id')
+        $db = $this->recordManager->find(strtolower((string) $parts[1]));
+        $db->where($this->getName() . '_id = :id')
            ->setParameter('id', $this->__meta['id'], 
                 $this->determineIdType($this->__meta['id'])
            );
-        
-        $result = $qb->get();
 
+        $result = $db->get();
         $this->set($key, $result);
+        
         return $result;
     }
 
@@ -180,9 +225,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     private function getRelationTable(string $targetTable): string
     {
-        return $this->tableManager->tableExists($this->table . '_' . $targetTable)
-            ? $this->table . '_' . $targetTable
-            : $targetTable . '_' . $this->table;
+        $cacheKey = $this->table . '_' . $targetTable;
+        
+        if (!isset($this->relationTableCache[$cacheKey])) {
+            $this->relationTableCache[$cacheKey] = $this->tableManager->tableExists($cacheKey)
+                ? $cacheKey
+                : $targetTable . '_' . $this->table;
+        }
+        
+        return $this->relationTableCache[$cacheKey];
     }
 
     private function extractRelationIds(Collection $relations, string $targetTable): array
@@ -350,33 +401,18 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Check if model has any relations.
-     */
-    public function hasForeign(string $type): bool
-    {
-        return !is_null($this->__meta['foreign_models'][$type]);
-    }
-
-    /**
-     * Get the type of value.
+     * Get the type of value
      */
     private function getDataType(mixed $value): string
     {
         $type = gettype($value);
 
-        if ('array' === $type || 'object' === $type) {
-            return 'json_document';
-        }
-
-        if ('string' === $type) {
-            return 'text';
-        }
-
-        if ('double' === $type) {
-            return 'float';
-        }
-
-        return $type;
+        return match($type) {
+            'array', 'object' => self::TYPE_JSON,
+            'string' => self::TYPE_TEXT,
+            'double' => self::TYPE_FLOAT,
+            default => $type
+        };
     }
 
     /**
@@ -433,23 +469,21 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         $parts = \Safe\preg_split('/(?=[A-Z])/', $key, -1, PREG_SPLIT_NO_EMPTY);
         $type = strtolower((string) $parts[0]);
 
-        if ('own' === $type) {
-            $this->__meta['foreign_models']['otm'] = $this->createCollection(
-                $this->__meta['foreign_models']['otm'],
+        if (self::KEYWORD_OWN === $type) {
+            $this->__meta['foreign_models'][self::RELATION_ONE_TO_MANY] = $this->createCollection(
+                $this->__meta['foreign_models'][self::RELATION_ONE_TO_MANY],
                 $val
             );
             $this->__properties['all'][$key] = $val;
-
             return true;
         }
 
-        if ('shared' === $type) {
-            $this->__meta['foreign_models']['mtm'] = $this->createCollection(
-                $this->__meta['foreign_models']['mtm'],
+        if (self::KEYWORD_SHARED === $type) {
+            $this->__meta['foreign_models'][self::RELATION_MANY_TO_MANY] = $this->createCollection(
+                $this->__meta['foreign_models'][self::RELATION_MANY_TO_MANY],
                 $val
             );
             $this->__properties['all'][$key] = $val;
-
             return true;
         }
 
@@ -491,4 +525,20 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         };
     }
 
+    /**
+     * Validates if the given relation type is valid
+     * @throws Exception\InvalidRelationTypeException
+     */
+    private function validateRelationType(string $type): void
+    {
+        if (!in_array($type, self::RELATION_TYPES, true)) {
+            throw new Exception\InvalidRelationTypeException($type);
+        }
+    }
+
+    public function hasForeign(string $type): bool
+    {
+        $this->validateRelationType($type);
+        return !is_null($this->__meta['foreign_models'][$type]);
+    }
 }
