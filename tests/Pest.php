@@ -2,9 +2,15 @@
 
 use function Pest\Faker\fake;
 
+// Include shared test helpers
+require_once __DIR__.'/TestHelpers.php';
+
+// Include datasets
+require_once __DIR__.'/Datasets/DatabaseTest.php';
+
 function db($uuid = 'ID')
 {
-    $useUUID = 'UUID' == $uuid ? true : false;
+    $useUUID = 'UUID' == $uuid;
     static $dbUUID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('UUID'));
 
     static $dbID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('ID'));
@@ -26,7 +32,7 @@ function getConnectionParams($uuid = 'ID', $withUUID = true): array
         'driver' => 'pdo_mysql',
     ];
     if ($withUUID) {
-        $config['useUUID'] = 'UUID' == $uuid ? true : false;
+        $config['useUUID'] = 'UUID' == $uuid;
     }
 
     return $config;
@@ -53,7 +59,7 @@ function createRandomUser($uuid = 'ID')
     $user->email = fake()->email();
     $user->dob = fake()->date();
     $user->age = fake()->randomNumber(2, false);
-    $user->active = fake()->randomNumber(2, false) % 2; 
+    $user->active = fake()->randomNumber(2, false) % 2;
     $user->address = fake()->streetAddress();
 
     return $user->save();
