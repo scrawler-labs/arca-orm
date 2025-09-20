@@ -12,14 +12,23 @@ require_once __DIR__.'/Datasets/DatabaseTest.php';
 function db($uuid = 'ID')
 {
     $useUUID = 'UUID' == $uuid;
-    $factory = new Scrawler\Arca\Factory\DatabaseFactory();
-    static $dbUUID = $factory->build(connectionParams: getConnectionParams('UUID'));
-    static $dbID = $factory->build(connectionParams: getConnectionParams('ID'));
+    static $dbUUID = null;
+    static $dbID = null;
+    static $factory = null;
 
+    if ($factory === null) {
+        $factory = new Scrawler\Arca\Factory\DatabaseFactory();
+    }
 
     if ($useUUID) {
+        if ($dbUUID === null) {
+            $dbUUID = $factory->build(connectionParams: getConnectionParams('UUID'));
+        }
         return $dbUUID;
     } else {
+        if ($dbID === null) {
+            $dbID = $factory->build(connectionParams: getConnectionParams('ID'));
+        }
         return $dbID;
     }
 }
