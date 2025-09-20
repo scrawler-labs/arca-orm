@@ -158,8 +158,6 @@ final class TableManager
         foreach ($queries as $query) {
             $this->connection->executeQuery($query);
         }
-
-      
     }
 
     /**
@@ -192,7 +190,6 @@ final class TableManager
         foreach ($queries as $query) {
             $this->connection->executeQuery($query);
         }
-
     }
 
     /**
@@ -214,13 +211,10 @@ final class TableManager
      */
     public function saveOrUpdateTable(string $table_name, Table $new_table): void
     {
-
         if ($this->tableExists($table_name)) {
             $this->updateTable($table_name, $new_table);
         } else {
             $this->saveTable($new_table);
         }
-
     }
-
 }

@@ -38,11 +38,14 @@ final class RecordManager
     }
 
     /**
-     * Execute operations within a transaction
-     * 
+     * Execute operations within a transaction.
+     *
      * @template T
+     *
      * @param callable(): T $callback
+     *
      * @return T
+     *
      * @throws \Exception
      */
     private function executeInTransaction(callable $callback): mixed
@@ -60,11 +63,11 @@ final class RecordManager
             if (!$isNestedTransaction) {
                 $this->connection->commit();
             }
-            return $result;
 
+            return $result;
         } catch (\Exception $e) {
-                $this->connection->rollBack();
-                throw $e;
+            $this->connection->rollBack();
+            throw $e;
         }
     }
 
@@ -102,6 +105,7 @@ final class RecordManager
                 $model->getSelfProperties(),
                 [self::ID_COLUMN => $model->getId()]
             );
+
             return $model->getId();
         });
     }
@@ -116,6 +120,7 @@ final class RecordManager
                 $model->getName(),
                 [self::ID_COLUMN => $model->getId()]
             );
+
             return $model->getId();
         });
     }
@@ -129,7 +134,7 @@ final class RecordManager
             return $this->createQueryBuilder()
                 ->select(self::ALL_COLUMNS)
                 ->from($table, self::DEFAULT_ALIAS)
-                ->where(self::DEFAULT_ALIAS . '.' . self::ID_COLUMN . ' = ?')
+                ->where(self::DEFAULT_ALIAS.'.'.self::ID_COLUMN.' = ?')
                 ->setParameter(0, $id)
                 ->first();
         });
@@ -149,7 +154,7 @@ final class RecordManager
     }
 
     /**
-     * Create a new QueryBuilder instance
+     * Create a new QueryBuilder instance.
      */
     private function createQueryBuilder(): QueryBuilder
     {

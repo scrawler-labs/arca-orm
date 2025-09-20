@@ -91,7 +91,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     private string $table;
 
     /**
-     * Get table name from class name if not specified
+     * Get table name from class name if not specified.
      */
     public function __construct(
         private Connection $connection,
@@ -106,16 +106,17 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Get default table name from class name
+     * Get default table name from class name.
      */
     private function getDefaultTableName(): string
     {
         $className = (new \ReflectionClass($this))->getShortName();
+
         return strtolower($className);
     }
 
     /**
-     * Hook called after model initialization
+     * Hook called after model initialization.
      */
     protected function initialize(): void
     {
@@ -123,7 +124,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Hook called before saving the model
+     * Hook called before saving the model.
      */
     protected function beforeSave(): void
     {
@@ -131,7 +132,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Hook called after saving the model
+     * Hook called after saving the model.
      */
     protected function afterSave(): void
     {
@@ -139,7 +140,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Hook called before deleting the model
+     * Hook called before deleting the model.
      */
     protected function beforeDelete(): void
     {
@@ -147,7 +148,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Hook called after deleting the model
+     * Hook called after deleting the model.
      */
     protected function afterDelete(): void
     {
@@ -218,9 +219,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * @param string $key
      * @param array<string> $parts
-     * @return mixed
      */
     private function handleRelationalKey(string $key, array $parts): mixed
     {
@@ -235,11 +234,9 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         return null;
     }
 
-    /** 
-    * @param string $key
-    * @param array<string> $parts
-    * @return mixed
-    */
+    /**
+     * @param array<string> $parts
+     */
     private function handleOwnRelation(string $key, array $parts): mixed
     {
         if (self::KEYWORD_LIST !== strtolower((string) $parts[2])) {
@@ -247,7 +244,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         $db = $this->recordManager->find(strtolower((string) $parts[1]));
-        $db->where($this->getName() . '_id = :id')
+        $db->where($this->getName().'_id = :id')
             ->setParameter(
                 'id',
                 $this->__meta['id'],
@@ -261,9 +258,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * @param string $key
      * @param array<string> $parts
-     * @return Collection|null
      */
     private function handleSharedRelation(string $key, array $parts): ?Collection
     {
@@ -275,7 +270,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         $relTable = $this->getRelationTable($targetTable);
 
         $db = $this->recordManager->find($relTable);
-        $db->where($this->getName() . '_id = :id')
+        $db->where($this->getName().'_id = :id')
             ->setParameter(
                 'id',
                 $this->__meta['id'],
@@ -306,12 +301,12 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     private function getRelationTable(string $targetTable): string
     {
-        $cacheKey = $this->table . '_' . $targetTable;
+        $cacheKey = $this->table.'_'.$targetTable;
 
         if (!isset($this->relationTableCache[$cacheKey])) {
             $this->relationTableCache[$cacheKey] = $this->tableManager->tableExists($cacheKey)
                 ? $cacheKey
-                : $targetTable . '_' . $this->table;
+                : $targetTable.'_'.$this->table;
         }
 
         return $this->relationTableCache[$cacheKey];
@@ -320,15 +315,12 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     /**
      * Extract relation ids from relation models.
      *
-     * @param Collection $relations
-     * @param string     $targetTable
-     *
      * @return array<int|string>
      */
     private function extractRelationIds(Collection $relations, string $targetTable): array
     {
         return $relations->map(function ($relation) use ($targetTable) {
-            $key = $targetTable . '_id';
+            $key = $targetTable.'_id';
 
             return $relation->$key;
         })->toArray();
@@ -355,8 +347,8 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         }
 
         // Handle foreign key relations
-        if (array_key_exists($key . '_id', $this->__properties['self'])) {
-            $result = $this->recordManager->getById($key, $this->__properties['self'][$key . '_id']);
+        if (array_key_exists($key.'_id', $this->__properties['self'])) {
+            $result = $this->recordManager->getById($key, $this->__properties['self'][$key.'_id']);
             $this->set($key, $result);
 
             return $result;
@@ -459,6 +451,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         $this->beforeSave();
         $this->id = $this->writeManager->save($this);
         $this->afterSave();
+
         return $this->getId();
     }
 
@@ -524,7 +517,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
             return $collection->merge($models);
         }
 
-        if ([] !== array_filter($models, fn($d): bool => !$d instanceof Model)) {
+        if ([] !== array_filter($models, fn ($d): bool => !$d instanceof Model)) {
             throw new Exception\InvalidModelException();
         }
 
@@ -538,15 +531,15 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     {
         if ('boolean' === $type) {
             return ($val) ? 1 : 0;
-        }      
+        }
 
         return Type::getType($type)->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
     }
 
     private function handleModelRelation(string $key, Model $val): void
     {
-        if (isset($this->__properties['all'][$key . '_id'])) {
-            unset($this->__properties['all'][$key . '_id']);
+        if (isset($this->__properties['all'][$key.'_id'])) {
+            unset($this->__properties['all'][$key.'_id']);
         }
 
         $this->__meta['foreign_models']['oto'] = $this->createCollection(
@@ -602,7 +595,9 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     /**
      * Get all properties of model.
+     *
      * @param array<string|int> $ids
+     *
      * @return ArrayParameterType::INTEGER|ArrayParameterType::STRING
      */
     private function determineIdsType(array $ids): ArrayParameterType

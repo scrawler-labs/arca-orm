@@ -66,7 +66,7 @@ class DatabaseFactory
 
     private function createModelManager(): void
     {
-        $this->container->set(ModelManager::class, fn (): ModelManager => new ModelManager($this->container,$this->container->get(Config::class)));
+        $this->container->set(ModelManager::class, fn (): ModelManager => new ModelManager($this->container, $this->container->get(Config::class)));
     }
 
     private function createConfig(bool $useUUID, string $modelNamespace): void

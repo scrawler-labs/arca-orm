@@ -15,6 +15,6 @@ class InvalidRelationTypeException extends \Exception
 {
     public function __construct(?string $type)
     {
-        parent::__construct('Invalid relation type: ' . $type);
+        parent::__construct('Invalid relation type: '.$type);
     }
 }

@@ -14,15 +14,14 @@ declare(strict_types=1);
 namespace Scrawler\Arca\Manager;
 
 use DI\Container;
-use Scrawler\Arca\Model;
 use Scrawler\Arca\Config;
+use Scrawler\Arca\Model;
 
 /**
  * Class for initializing and managing models.
  */
 final class ModelManager
 {
-
     public function __construct(
         private readonly Container $container,
         private readonly Config $config,
@@ -40,7 +39,7 @@ final class ModelManager
         // Try to load specific model class first if modelNamespace is not empty
         $namespace = $this->config->getModelNamespace();
         if (!empty($namespace)) {
-            $modelClass = $namespace . ucfirst($name);
+            $modelClass = $namespace.ucfirst($name);
             if (class_exists($modelClass)) {
                 return $this->container->make($modelClass);
             }
