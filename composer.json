@@ -16,7 +16,7 @@
         }
     },
     "require": {
-        "php": ">=8.1.0",
+        "php": ">=8.1.0 <8.5.0",
         "doctrine/dbal": "^4.0",
         "loophp/collection": "^7.5",
         "ramsey/uuid": "^4.3",
@@ -29,11 +29,16 @@
         "pestphp/pest": "^3.0",
         "pestphp/pest-plugin-faker": "^3.0",
         "thecodingmachine/phpstan-safe-rule": "^1.2",
-        "rector/rector": "^2.0"
+        "rector/rector": "^2.0",
+        "phpunit/php-code-coverage": "^11.0"
     },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:coverage": "XDEBUG_MODE=coverage pest --coverage"
     }
 }
