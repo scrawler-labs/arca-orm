@@ -25,7 +25,6 @@ final class QueryBuilder extends DoctrineQueryBuilder
     /**
      * @var array<string>
      */
-    private array $relations = [];
 
     private readonly AbstractSchemaManager $SchemaManager;
 
@@ -50,12 +49,10 @@ final class QueryBuilder extends DoctrineQueryBuilder
             return Collection::fromIterable([]);
         }
         $model = $this->modelManager->create($this->table);
-        $relations = $this->relations;
-        $this->relations = [];
         $results = $this->fetchAllAssociative();
 
         return Collection::fromIterable($results)
-            ->map(static fn ($value): Model => $model->setLoadedProperties($value)->with($relations)->setLoaded());
+            ->map(static fn ($value): Model => $model->setLoadedProperties($value)->setLoaded());
     }
 
     public function first(): ?Model
@@ -63,13 +60,12 @@ final class QueryBuilder extends DoctrineQueryBuilder
         if (!$this->SchemaManager->tableExists($this->table)) {
             return null;
         }
-        $relations = $this->relations;
-        $this->relations = [];
+
         $result = $this->fetchAssociative() ?: [];
         if ([] === $result) {
             return null;
         }
 
-        return $this->modelManager->create($this->table)->setLoadedProperties($result)->with($relations)->setLoaded();
+        return $this->modelManager->create($this->table)->setLoadedProperties($result)->setLoaded();
     }
 }

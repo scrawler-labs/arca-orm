@@ -34,6 +34,10 @@ class Database
      */
     public static function connect(array $connectionParams): DB
     {
+        if(isset(self::$database)) {
+            return self::$database;
+        }
+        
         $factory = new DatabaseFactory();
         self::$database = $factory->build($connectionParams);
 
