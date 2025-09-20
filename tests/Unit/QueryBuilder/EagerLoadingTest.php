@@ -1,13 +1,12 @@
 <?php
 
-use function Pest\Faker\fake;
-
 covers(Scrawler\Arca\QueryBuilder::class);
 covers(Scrawler\Arca\Manager\ModelManager::class);
 
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
@@ -20,75 +19,149 @@ afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS child CASCADE; ');
 });
 
-it('checks if db()->find()->with() eager loads relation', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $user->dob = fake()->date();
-    $user->age = fake()->randomNumber(2, false);
-    $user->address = fake()->streetAddress();
-    // $user->save();
+// Note: Helper functions moved to TestHelpers.php to avoid redeclaration errors
 
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->user = $user;
-    $parent->save();
+function areModelsEqual(object $model1, object $model2): bool
+{
+    return $model1->toString() === $model2->toString();
+}
 
-    $parent_retrived = db($useUUID)->find('parent')->with('user')->first();
-    $user = db($useUUID)->find('user')->first();
+function areModelsNotEqual(object $model1, object $model2): bool
+{
+    return $model1->toString() !== $model2->toString();
+}
 
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived->user->toString(),
-        $user->toString()
-    );
-})->with('useUUID');
+describe('QueryBuilder Eager Loading', function (): void {
+    it('eager loads single relation using with() method', function (string $useUUID): void {
+        // Create user and parent with relationship
+        $user = createTestUser($useUUID);
+        $parent = createTestParent($useUUID, ['user' => $user]);
+        $parent->save();
 
-it('checks if db()->find()->with() eager loads multiple realtions', function ($useUUID): void {
-    $child1 = db($useUUID)->create('child');
-    $child1->name = fake()->name();
-    $child1->email = fake()->email();
-    $child1->dob = fake()->date();
-    $child1->age = fake()->randomNumber(2, false);
+        // Retrieve parent with eager loaded user
+        $parentWithEagerUser = db($useUUID)->find('parent')->with('user')->first();
+        $standaloneUser = db($useUUID)->find('user')->first();
 
-    $child2 = db($useUUID)->create('child');
-    $child2->name = fake()->name();
-    $child2->email = fake()->email();
-    $child2->dob = fake()->date();
-    $child2->age = fake()->randomNumber(2, false);
+        expect($parentWithEagerUser)->not()->toBeNull();
+        expect($parentWithEagerUser->user)->not()->toBeNull();
+        expect(areModelsEqual($parentWithEagerUser->user, $standaloneUser))->toBeTrue();
+    })->with('useUUID');
 
-    $child3 = db($useUUID)->create('user');
-    $child3->name = fake()->name();
-    $child3->email = fake()->email();
-    $child3->dob = fake()->date();
-    $child3->age = fake()->randomNumber(2, false);
+    it('eager loads multiple relations using multiple with() calls', function (string $useUUID): void {
+        // Create related entities
+        $child1 = createTestChild($useUUID);
+        $child2 = createTestChild($useUUID);
+        $user = createTestUser($useUUID);
+        $grandparent = createTestGrandparent($useUUID);
 
-    $grandfater = db($useUUID)->create('grandparent');
-    $grandfater->name = fake()->name();
-    $grandfater->email = fake()->email();
-    $grandfater->dob = fake()->date();
-    $grandfater->age = fake()->randomNumber(2, false);
+        // Create parent with multiple relationships
+        $parent = createTestParent($useUUID, [
+            'grandparent' => $grandparent,
+            'ownChildList' => [$child1, $child2],
+            'sharedUserList' => [$user],
+        ]);
+        $parentId = $parent->save();
 
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->grandparent = $grandfater;
-    $parent->ownChildList = [$child1, $child2];
-    $parent->sharedUserList = [$child3];
-    $id = $parent->save();
+        // Retrieve parent with eager loaded relations
+        $parentWithEagerRelations = db($useUUID)->find('parent')
+            ->where('id = ?')
+            ->setParameter(0, $parentId)
+            ->with('ownChildList')
+            ->with('sharedUserList')
+            ->with('grandparent')
+            ->first();
 
-    $parent_retrived = db($useUUID)->find('parent')->where('id = ?')->setParameter(0, $id)->with('ownChildList')->with('sharedUserList')->with('grandparent')->first();
-    $parent_simple = db($useUUID)->getOne('parent', $id);
+        // Retrieve parent without eager loading
+        $parentWithoutEagerLoading = db($useUUID)->getOne('parent', $parentId);
 
-    $this->assertJsonStringNotEqualsJsonString(
-        $parent_retrived->toString(),
-        $parent_simple->toString()
-    );
+        // Before accessing relations, models should be different
+        expect(areModelsNotEqual($parentWithEagerRelations, $parentWithoutEagerLoading))->toBeTrue();
 
-    $parent_simple->ownChildList;
-    $parent_simple->sharedUserList;
-    $parent_simple->grandparent;
+        // Access relations on non-eager loaded parent (triggers lazy loading)
+        $parentWithoutEagerLoading->ownChildList;
+        $parentWithoutEagerLoading->sharedUserList;
+        $parentWithoutEagerLoading->grandparent;
 
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived->toString(),
-        $parent_simple->toString()
-    );
-})->with('useUUID');
+        // After accessing relations, models should be equal
+        expect(areModelsEqual($parentWithEagerRelations, $parentWithoutEagerLoading))->toBeTrue();
+    })->with('useUUID');
+});
+
+describe('QueryBuilder Eager Loading Performance', function (): void {
+    it('reduces queries when eager loading relations', function (string $useUUID): void {
+        // Create test data
+        $user = createTestUser($useUUID);
+        $parent = createTestParent($useUUID, ['user' => $user]);
+        $parent->save();
+
+        // Test eager loading
+        $parentWithEagerLoading = db($useUUID)->find('parent')->with('user')->first();
+
+        // Verify relation is already loaded
+        expect($parentWithEagerLoading->user)->not()->toBeNull();
+        expect($parentWithEagerLoading->user->name)->toBeString();
+        expect($parentWithEagerLoading->user->email)->toBeString();
+    })->with('useUUID');
+
+    it('handles eager loading with empty results', function (string $useUUID): void {
+        // Try to eager load from non-existent parent
+        $result = db($useUUID)->find('parent')->with('user')->first();
+
+        expect($result)->toBeNull();
+    })->with('useUUID');
+});
+
+describe('QueryBuilder Eager Loading Edge Cases', function (): void {
+    it('handles eager loading with complex where conditions', function (string $useUUID): void {
+        // Create multiple parents with users
+        $user1 = createTestUser($useUUID, ['name' => 'John Doe']);
+        $user2 = createTestUser($useUUID, ['name' => 'Jane Smith']);
+
+        $parent1 = createTestParent($useUUID, ['user' => $user1, 'name' => 'Parent One']);
+        $parent2 = createTestParent($useUUID, ['user' => $user2, 'name' => 'Parent Two']);
+
+        $parent1->save();
+        $parent2->save();
+
+        // Eager load with specific condition
+        $specificParent = db($useUUID)->find('parent')
+            ->where('name = ?')
+            ->setParameter(0, 'Parent One')
+            ->with('user')
+            ->first();
+
+        expect($specificParent)->not()->toBeNull();
+        expect($specificParent->name)->toEqual('Parent One');
+        expect($specificParent->user)->not()->toBeNull();
+        expect($specificParent->user->name)->toEqual('John Doe');
+    })->with('useUUID');
+
+    it('handles multiple eager loading chains', function (string $useUUID): void {
+        // Create hierarchical data
+        $grandparent = createTestGrandparent($useUUID);
+        $user = createTestUser($useUUID);
+        $child = createTestChild($useUUID);
+
+        $parent = createTestParent($useUUID, [
+            'grandparent' => $grandparent,
+            'user' => $user,
+            'ownChildList' => [$child],
+        ]);
+        $parentId = $parent->save();
+
+        // Eager load multiple different relation types
+        $fullyLoadedParent = db($useUUID)->find('parent')
+            ->where('id = ?')
+            ->setParameter(0, $parentId)
+            ->with('grandparent')  // One-to-One
+            ->with('user')         // One-to-One
+            ->with('ownChildList') // One-to-Many
+            ->first();
+
+        expect($fullyLoadedParent)->not()->toBeNull();
+        expect($fullyLoadedParent->grandparent)->not()->toBeNull();
+        expect($fullyLoadedParent->user)->not()->toBeNull();
+        expect($fullyLoadedParent->ownChildList)->not()->toBeNull();
+        expect($fullyLoadedParent->ownChildList)->toHaveCount(1);
+    })->with('useUUID');
+});

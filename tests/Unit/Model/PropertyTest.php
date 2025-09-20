@@ -1,7 +1,5 @@
 <?php
 
-use function Pest\Faker\fake;
-
 covers(Scrawler\Arca\Model::class);
 covers(Scrawler\Arca\Database::class);
 covers(Scrawler\Arca\Factory\DatabaseFactory::class);
@@ -11,6 +9,7 @@ covers(Scrawler\Arca\Manager\RecordManager::class);
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
@@ -23,53 +22,73 @@ afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS child CASCADE; ');
 });
 
-it('tests model properties with multiple realtions', function ($useUUID): void {
-    $child1 = db($useUUID)->create('child');
-    $child1->name = fake()->name();
-    $child1->email = fake()->email();
-    $child1->dob = fake()->date();
-    $child1->age = fake()->randomNumber(2, false);
+// Note: Helper functions moved to TestHelpers.php to avoid redeclaration errors
 
-    $child2 = db($useUUID)->create('child');
-    $child2->name = fake()->name();
-    $child2->email = fake()->email();
-    $child2->dob = fake()->date();
-    $child2->age = fake()->randomNumber(2, false);
+function assertModelIsLoaded(object $model): void
+{
+    expect($model->isLoaded())->toBeTrue();
+}
 
-    $child3 = db($useUUID)->create('user');
-    $child3->name = fake()->name();
-    $child3->email = fake()->email();
-    $child3->dob = fake()->date();
-    $child3->age = fake()->randomNumber(2, false);
+function assertRelationshipPropertiesWork(object $parent, object $grandparent, array $children, array $users): void
+{
+    // Assert grandparent relationship works correctly
+    expect(isset($parent->grandparent_id))->toBeTrue();
+    expect(isset($parent->grandparent))->toBeFalse();
 
-    $grandfater = db($useUUID)->create('grandparent');
-    $grandfater->name = fake()->name();
-    $grandfater->email = fake()->email();
-    $grandfater->dob = fake()->date();
-    $grandfater->age = fake()->randomNumber(2, false);
+    // Accessing grandparent should load it and change property availability
+    expect($parent->grandparent->name)->toEqual($grandparent->name);
+    expect(isset($parent->grandparent_id))->toBeFalse();
+    expect(isset($parent->grandparent))->toBeTrue();
 
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->grandparent = $grandfater;
-    $parent->ownChildList = [$child1, $child2];
-    $parent->sharedUserList = [$child3];
-    $id = $parent->save();
+    // Assert one-to-many relationship (ownChildList)
+    expect($parent->ownChildList)->toHaveCount(2);
+    $firstChildName = $parent->ownChildList->first()->name;
+    expect($firstChildName)->toBeIn([$children[0]->name, $children[1]->name]);
 
-    $this->assertTrue($child1->isLoaded());
-    $this->assertTrue($child2->isLoaded());
-    $this->assertTrue($child3->isLoaded());
-    $this->assertTrue($grandfater->isLoaded());
+    // Assert many-to-many relationship (sharedUserList)
+    expect($parent->sharedUserList)->toHaveCount(1);
+    expect($parent->sharedUserList->first()->name)->toEqual($users[0]->name);
+}
 
-    $parent_retrived = db($useUUID)->getOne('parent', $id);
-    $this->assertEquals($parent->name, $parent_retrived->name);
-    $this->assertTrue(isset($parent_retrived->grandparent_id));
-    $this->assertFalse(isset($parent_retrived->grandparent));
-    $this->assertEquals($grandfater->name, $parent_retrived->grandparent->name);
-    $this->assertFalse(isset($parent_retrived->grandparent_id));
-    $this->assertTrue(isset($parent_retrived->grandparent));
-    $this->assertEquals(count($parent_retrived->ownChildList), 2);
+describe('Model Property Tests', function (): void {
+    describe('Complex Relationship Properties', function (): void {
+        it('handles multiple relationship types correctly', function (string $useUUID): void {
+            // Arrange: Create models with different relationship types
+            $child1 = createTestChild($useUUID);
+            $child2 = createTestChild($useUUID);
+            $user = createTestUser($useUUID);
+            $grandparent = createTestGrandparent($useUUID);
 
-    $this->assertTrue($parent_retrived->ownChildList->first()->name == $child1->name || $parent_retrived->ownChildList->first()->name == $child2->name);
-    $this->assertEquals(count($parent_retrived->sharedUserList), 1);
-    $this->assertEquals($parent_retrived->sharedUserList->first()->name, $child3->name);
-})->with('useUUID');
+            $parent = createTestParent($useUUID);
+            $parent->grandparent = $grandparent;       // One-to-One relationship
+            $parent->ownChildList = [$child1, $child2]; // One-to-Many relationship
+            $parent->sharedUserList = [$user];         // Many-to-Many relationship
+
+            // Act: Save the parent with all relationships
+            $parentId = $parent->save();
+
+            // Assert: All related models should be loaded
+            assertModelIsLoaded($child1);
+            assertModelIsLoaded($child2);
+            assertModelIsLoaded($user);
+            assertModelIsLoaded($grandparent);
+
+            // Act: Retrieve the parent and test properties
+            $retrievedParent = db($useUUID)->getOne('parent', $parentId);
+
+            // Assert: Basic properties should match
+            expect($retrievedParent->name)->toEqual($parent->name);
+
+            // Assert: Complex relationship properties work correctly
+            assertRelationshipPropertiesWork(
+                $retrievedParent,
+                $grandparent,
+                [$child1, $child2],
+                [$user]
+            );
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
+});

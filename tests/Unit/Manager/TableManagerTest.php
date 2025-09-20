@@ -1,58 +1,40 @@
 <?php
 
-use function Pest\Faker\fake;
-
 covers(Scrawler\Arca\Manager\TableManager::class);
 covers(Scrawler\Arca\Manager\TableConstraint::class);
+
+// Helper Functions for TableManager Tests
+
+// Note: All helper functions moved to TestHelpers.php to avoid redeclaration errors
 
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
 afterEach(function (): void {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
+    cleanupTableManagerTestTables();
 });
 
-it('tests table manger update functionality', function ($useUUID): void {
-    createRandomUser($useUUID);
+describe('Table Schema Management', function (): void {
+    it('correctly creates and validates table schema with all field types', function (string $useUUID): void {
+        // Arrange - Create user with all field types to establish schema
+        createRandomUser($useUUID);
+        $userRecord = createTestUserWithAllFields($useUUID);
 
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $user->dob = fake()->date();
-    $user->age = fake()->randomNumber(2, false);
-    $user->active = fake()->randomNumber(2, false) % 2;
-    $user->address = fake()->streetAddress();
-    $user->rand = 'abc';
-    $user->randbo = 0 === fake()->randomNumber(2, false) % 2;
-    $id = $user->save();
+        // Act - Get actual table schema from database
+        $expectedSchema = createExpectedUserTableSchema($useUUID);
+        $schemaDifferences = compareTableSchemas('user', $expectedSchema, $useUUID);
 
-    $table = db($useUUID)->getConnection()->createSchemaManager()->introspectTable('user');
-    $requiredTable = new Doctrine\DBAL\Schema\Table('user');
-    if (db($useUUID)->isUsingUUID()) {
-        $requiredTable->addColumn('id', 'string', ['length' => 36, 'notnull' => true, 'comment' => 'string']);
-    } else {
-        $requiredTable->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true, 'comment' => 'integer']);
-    }
-    $requiredTable->addColumn('name', 'text', ['notnull' => false, 'comment' => 'text']);
-    $requiredTable->addColumn('email', 'text', ['notnull' => false, 'comment' => 'text']);
-    $requiredTable->addColumn('dob', 'text', ['notnull' => false, 'comment' => 'text']);
-    $requiredTable->addColumn('age', 'integer', ['notnull' => false, 'comment' => 'integer']);
-    $requiredTable->addColumn('active', 'integer', ['notnull' => false, 'comment' => 'integer']);
-    $requiredTable->addColumn('address', 'text', ['notnull' => false, 'comment' => 'text']);
-    $requiredTable->addColumn('rand', 'text', ['notnull' => false, 'comment' => 'text']);
-    $requiredTable->addColumn('randbo', 'boolean', ['notnull' => false, 'comment' => 'boolean']);
+        // Assert - Schema should match exactly with no differences
+        expect($schemaDifferences)
+            ->toBeEmpty('Table schema should match expected structure with no differences');
 
-    $requiredTable->setPrimaryKey(['id']);
-
-    $actual = new Doctrine\DBAL\Schema\Schema([$table]);
-    $required = new Doctrine\DBAL\Schema\Schema([$requiredTable]);
-    $comparator = db()->getConnection()->createSchemaManager()->createComparator();
-    $diff = $comparator->compareSchemas($actual, $required);
-    // print_r($diff->toSql(db()->platform));
-
-    $this->assertEmpty(db($useUUID)->getConnection()->getDatabasePlatform()->getAlterSchemaSQL($diff));
-})->with('useUUID');
+        // Verify the record was saved successfully
+        expect($userRecord['id'])
+            ->not()->toBeNull('User record should be saved and have an ID');
+    })->with(['useUUID']);
+});

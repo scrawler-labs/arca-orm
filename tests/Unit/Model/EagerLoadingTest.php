@@ -1,141 +1,131 @@
 <?php
 
-use function Pest\Faker\fake;
-
 covers(Scrawler\Arca\Model::class);
 
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
 
-afterEach(function (): void {
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent_user cascade; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS parent cascade; ');
-    db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user cascade; ');
+beforeEach(function (): void {
+    // Clean up both configurations before each test to ensure complete isolation
+    foreach (['UUID', 'ID'] as $config) {
+        try {
+            cleanupTestTables($config);
+        } catch (Exception) {
+            // Ignore errors during cleanup
+        }
+    }
 });
 
-it('tests for model with() one-to-one relation', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $user->dob = fake()->date();
-    $user->age = fake()->randomNumber(2, false);
-    $user->address = fake()->streetAddress();
-    // $user->save();
+afterEach(function (): void {
+    // Clean up both UUID and ID configurations to prevent schema conflicts
+    foreach (['UUID', 'ID'] as $config) {
+        try {
+            cleanupTestTables($config);
+        } catch (Exception) {
+            // Ignore errors during cleanup
+        }
+    }
+});
 
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->user = $user;
+// Note: Helper functions moved to TestHelpers.php to avoid redeclaration errors
 
-    $id = $parent->save();
+function assertEagerLoadingWorks(object $modelWithRelations, object $modelWithoutRelations, string $relationProperty): void
+{
+    // Before accessing relation: models should be different
+    expect($modelWithRelations->toString())->not->toEqual($modelWithoutRelations->toString());
 
-    $parent_retrived_with = db($useUUID)->getOne('parent', $id)->with(['user']);
-    $parent_retrived = db($useUUID)->getOne('parent', $id);
+    // After accessing relation: models should be the same
+    $modelWithoutRelations->$relationProperty; // This triggers lazy loading
+    expect($modelWithRelations->toString())->toEqual($modelWithoutRelations->toString());
+}
 
-    $user = db($useUUID)->find('user')->first();
+describe('Eager Loading Tests', function (): void {
+    describe('One-to-One Relationships', function (): void {
+        it('loads one-to-one relation eagerly with with() method', function (string $useUUID): void {
+            // Arrange: Create user and parent with one-to-one relationship
+            $user = createTestUser($useUUID);
+            $parent = createTestParent($useUUID);
+            $parent->user = $user;
 
-    $this->assertJsonStringNotEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-    $parent_retrived->user;
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-})->with('useUUID');
+            $id = $parent->save();
 
-it('tests for model with() one-to-many relation', function ($useUUID): void {
-    $user1 = db($useUUID)->create('user');
-    $user1->name = fake()->name();
-    $user1->email = fake()->email();
-    $user1->dob = fake()->date();
-    $user1->age = fake()->randomNumber(2, false);
-    $user1->address = fake()->streetAddress();
+            // Act: Retrieve parent with and without eager loading
+            $parentWithEagerLoading = db($useUUID)->getOne('parent', $id)->with(['user']);
+            $parentWithoutEagerLoading = db($useUUID)->getOne('parent', $id);
 
-    $user2 = db($useUUID)->create('user');
-    $user2->name = fake()->name();
-    $user2->email = fake()->email();
-    $user2->dob = fake()->date();
-    $user2->age = fake()->randomNumber(2, false);
-    $user2->address = fake()->streetAddress();
-    // $user->save();
+            // Assert: Eager loading should work correctly
+            assertEagerLoadingWorks($parentWithEagerLoading, $parentWithoutEagerLoading, 'user');
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
 
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->ownUserList = [$user1, $user2];
+    describe('One-to-Many Relationships', function (): void {
+        it('loads one-to-many relation eagerly with with() method', function (string $useUUID): void {
+            // Arrange: Create parent with multiple users (one-to-many)
+            $user1 = createTestUser($useUUID);
+            $user2 = createTestUser($useUUID);
 
-    $id = $parent->save();
+            $parent = createTestParent($useUUID);
+            $parent->ownUserList = [$user1, $user2];
 
-    $parent_retrived_with = db($useUUID)->getOne('parent', $id)->with(['ownUserList']);
-    $parent_retrived = db($useUUID)->getOne('parent', $id);
+            $id = $parent->save();
 
-    $user = db($useUUID)->find('user')->first();
+            // Act: Retrieve parent with and without eager loading
+            $parentWithEagerLoading = db($useUUID)->getOne('parent', $id)->with(['ownUserList']);
+            $parentWithoutEagerLoading = db($useUUID)->getOne('parent', $id);
 
-    $this->assertJsonStringNotEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-    $parent_retrived->ownUserList;
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-})->with('useUUID');
+            // Assert: Eager loading should work correctly
+            assertEagerLoadingWorks($parentWithEagerLoading, $parentWithoutEagerLoading, 'ownUserList');
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
 
-it('tests for model with() many-to-many relation', function ($useUUID): void {
-    $user1 = db($useUUID)->create('user');
-    $user1->name = fake()->name();
-    $user1->email = fake()->email();
-    $user1->dob = fake()->date();
-    $user1->age = fake()->randomNumber(2, false);
-    $user1->address = fake()->streetAddress();
+    describe('Many-to-Many Relationships', function (): void {
+        it('loads many-to-many relation eagerly with with() method', function (string $useUUID): void {
+            // Arrange: Create multiple parents sharing users (many-to-many)
+            $user1 = createTestUser($useUUID);
+            $user2 = createTestUser($useUUID);
 
-    $user2 = db($useUUID)->create('user');
-    $user2->name = fake()->name();
-    $user2->email = fake()->email();
-    $user2->dob = fake()->date();
-    $user2->age = fake()->randomNumber(2, false);
-    $user2->address = fake()->streetAddress();
-    // $user->save();
+            // Save users first to ensure they exist in the database
+            $user1Id = $user1->save();
+            $user2Id = $user2->save();
 
-    $parent1 = db($useUUID)->create('parent');
-    $parent1->name = fake()->name();
-    $parent1->sharedUserList = [$user1, $user2];
+            // Retrieve saved users to ensure they have proper IDs
+            $savedUser1 = db($useUUID)->getOne('user', $user1Id);
+            $savedUser2 = db($useUUID)->getOne('user', $user2Id);
 
-    $parent2 = db($useUUID)->create('parent');
-    $parent2->name = fake()->name();
-    $parent2->sharedUserList = [$user1];
+            $parent1 = createTestParent($useUUID);
+            $parent1->sharedUserList = [$savedUser1, $savedUser2];
 
-    $id1 = $parent1->save();
-    $id2 = $parent2->save();
+            $parent2 = createTestParent($useUUID);
+            $parent2->sharedUserList = [$savedUser1];
 
-    $parent_retrived_with = db($useUUID)->getOne('parent', $id1)->with(['sharedUserList']);
-    $parent_retrived = db($useUUID)->getOne('parent', $id1);
+            $id1 = $parent1->save();
+            $id2 = $parent2->save();
 
-    $this->assertJsonStringNotEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-    $parent_retrived->sharedUserList;
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
+            // Act & Assert: Test first parent
+            $parent1WithEagerLoading = db($useUUID)->getOne('parent', $id1)->with(['sharedUserList']);
+            $parent1WithoutEagerLoading = db($useUUID)->getOne('parent', $id1);
 
-    $parent_retrived_with = db($useUUID)->getOne('parent', $id2)->with(['sharedUserList']);
-    $parent_retrived = db($useUUID)->getOne('parent', $id2);
+            assertEagerLoadingWorks($parent1WithEagerLoading, $parent1WithoutEagerLoading, 'sharedUserList');
 
-    $this->assertJsonStringNotEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-    $parent_retrived->sharedUserList;
-    $this->assertJsonStringEqualsJsonString(
-        $parent_retrived_with->toString(),
-        $parent_retrived->toString()
-    );
-})->with('useUUID');
+            // Act & Assert: Test second parent
+            $parent2WithEagerLoading = db($useUUID)->getOne('parent', $id2)->with(['sharedUserList']);
+            $parent2WithoutEagerLoading = db($useUUID)->getOne('parent', $id2);
+
+            assertEagerLoadingWorks($parent2WithEagerLoading, $parent2WithoutEagerLoading, 'sharedUserList');
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
+});

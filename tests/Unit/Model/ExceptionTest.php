@@ -1,7 +1,5 @@
 <?php
 
-use function Pest\Faker\fake;
-
 covers(Scrawler\Arca\Model::class);
 covers(Scrawler\Arca\Database::class);
 covers(Scrawler\Arca\Manager\WriteManager::class);
@@ -12,6 +10,7 @@ covers(Scrawler\Arca\Exception\KeyNotFoundException::class);
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
@@ -22,30 +21,60 @@ afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('check exception is thrown when non existent key is accessed', function ($useUUID): void {
-    $id = createRandomUser($useUUID);
-    $user = db($useUUID)->getOne('user', $id);
-    $user->somekey;
-})->throws(Scrawler\Arca\Exception\KeyNotFoundException::class, 'Key you are trying to access does not exist')->with('useUUID');
+// Note: Helper functions moved to TestHelpers.php to avoid redeclaration errors
 
-it('checks exception is thrown when id is force set on a model', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $user->id = 1;
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $user->save();
-})->with('useUUID')->throws(Scrawler\Arca\Exception\InvalidIdException::class, 'Force setting of id for model is not allowed');
+describe('Model Exception Tests', function (): void {
+    describe('Key Access Exceptions', function (): void {
+        it('throws KeyNotFoundException when accessing non-existent key', function (string $useUUID): void {
+            // Arrange: Create and save a user
+            $id = createRandomUser($useUUID);
+            $user = db($useUUID)->getOne('user', $id);
 
-it('checks exception is thrown if share list is not array of model', function ($useUUID): void {
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->sharedUserList = ['test', 'test1'];
-    $id = $parent->save();
-})->with('useUUID')->throws(Scrawler\Arca\Exception\InvalidModelException::class);
+            // Act & Assert: Accessing non-existent key should throw exception
+            $user->somekey; // This should trigger the exception
+        })->with([
+            'UUID',
+            'ID',
+        ])->throws(Scrawler\Arca\Exception\KeyNotFoundException::class, 'Key you are trying to access does not exist');
+    });
 
-it('checks exception is thrown if own list is not array of model', function ($useUUID): void {
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->ownUserList = ['test', 'test1'];
-    $id = $parent->save();
-})->with('useUUID')->throws(Scrawler\Arca\Exception\InvalidModelException::class, 'parameter passed to shared list or own list should be array of class \Arca\Model');
+    describe('ID Setting Exceptions', function (): void {
+        it('throws InvalidIdException when force setting id on model', function (string $useUUID): void {
+            // Arrange: Create a new user model
+            $user = createTestUser($useUUID);
+
+            // Act & Assert: Force setting ID should throw exception
+            $user->id = 1; // This should trigger the exception
+            $user->save();
+        })->with([
+            'UUID',
+            'ID',
+        ])->throws(Scrawler\Arca\Exception\InvalidIdException::class, 'Force setting of id for model is not allowed');
+    });
+
+    describe('Invalid Model Exceptions', function (): void {
+        it('throws InvalidModelException when sharedUserList contains non-model values', function (string $useUUID): void {
+            // Arrange: Create a parent model
+            $parent = createTestParent($useUUID);
+
+            // Act & Assert: Setting shared list with non-model values should throw exception
+            $parent->sharedUserList = ['test', 'test1']; // Should be array of models
+            $parent->save();
+        })->with([
+            'UUID',
+            'ID',
+        ])->throws(Scrawler\Arca\Exception\InvalidModelException::class);
+
+        it('throws InvalidModelException when ownUserList contains non-model values', function (string $useUUID): void {
+            // Arrange: Create a parent model
+            $parent = createTestParent($useUUID);
+
+            // Act & Assert: Setting own list with non-model values should throw exception
+            $parent->ownUserList = ['test', 'test1']; // Should be array of models
+            $parent->save();
+        })->with([
+            'UUID',
+            'ID',
+        ])->throws(Scrawler\Arca\Exception\InvalidModelException::class, 'parameter passed to shared list or own list should be array of class \Arca\Model');
+    });
+});

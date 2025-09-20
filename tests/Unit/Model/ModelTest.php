@@ -9,6 +9,7 @@ covers(Scrawler\Arca\Manager\RecordManager::class);
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
@@ -19,102 +20,183 @@ afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('checks if model is properly populated on retrive', function ($useUUID): void {
-    $id = createRandomUser($useUUID);
-    $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id ='".$id."'");
-    $user = db($useUUID)->getOne('user', $id);
-    $result = $stmt->executeQuery()->fetchAssociative();
-    $this->assertEquals($user->name, $result['name']);
-    $this->assertEquals($user->getProperties(), $result);
-})->with('useUUID');
+// Note: Helper functions moved to TestHelpers.php to avoid redeclaration errors
 
-it('tests for model equals', function ($useUUID): void {
-    $id = createRandomUser($useUUID);
-    $user = db($useUUID)->getOne('user', $id);
-    $user_two = db($useUUID)->getOne('user', $id);
-    $this->assertTrue($user->equals($user_two));
-})->with('useUUID');
+function assertUserPropertiesMatch(object $user1, object $user2): void
+{
+    expect($user1->name)->toEqual($user2->name);
+    expect($user1->email)->toEqual($user2->email);
+}
 
-it('tests for model not equals', function ($useUUID): void {
-    $id = createRandomUser($useUUID);
-    $user = db($useUUID)->getOne('user', $id);
-    $user_two = db($useUUID)->getOne('user', $id);
-    $user_two->name = 'test';
-    $this->assertFalse($user->equals($user_two));
-})->with('useUUID');
+describe('Model Tests', function (): void {
+    describe('Model Data Population', function (): void {
+        it('properly populates model data on retrieval', function (string $useUUID): void {
+            // Arrange: Create and save a user
+            $id = createRandomUser($useUUID);
 
-it('checks isset() function of model', function ($useUUID): void {
-    $id = createRandomUser($useUUID);
-    $user = db($useUUID)->getOne('user', $id);
-    $truey = isset($user->name);
-    $falsey = isset($user->somekey);
-    $this->assertTrue($truey);
-    $this->assertFalse($falsey);
-})->with('useUUID');
+            // Act: Retrieve user model and database record
+            $user = db($useUUID)->getOne('user', $id);
+            $stmt = db($useUUID)->getConnection()->prepare("SELECT * FROM user WHERE id = '".$id."'");
+            $result = $stmt->executeQuery()->fetchAssociative();
 
-it('tests bulk property setting', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $user->setProperties([
-        'name' => fake()->name(),
-        'email' => fake()->email(),
-        'dob' => fake()->date(),
-        'age' => fake()->randomNumber(2, false),
-        'address' => fake()->streetAddress(),
-    ]);
-    $id = $user->save();
-    $user_retrived = db($useUUID)->getOne('user', $id);
-    $this->assertEquals($user->name, $user_retrived->name);
-    $this->assertEquals($user->email, $user_retrived->email);
-})->with('useUUID');
+            // Assert: Model properties should match database record
+            expect($user->name)->toEqual($result['name']);
+            expect($user->getProperties())->toEqual($result);
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
 
-it('tests for model delete() function', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $id = $user->save();
-    $user->delete();
-    $this->assertNull(db()->getOne('user', $id));
-})->with('useUUID');
+    describe('Model Equality', function (): void {
+        it('returns true when comparing equal models', function (string $useUUID): void {
+            // Arrange: Create and retrieve same user twice
+            $id = createRandomUser($useUUID);
+            $user1 = db($useUUID)->getOne('user', $id);
+            $user2 = db($useUUID)->getOne('user', $id);
 
-it('tests for model clean on load function', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $id = $user->save();
+            // Assert: Models should be equal
+            expect($user1->equals($user2))->toBeTrue();
+        })->with([
+            'UUID',
+            'ID',
+        ]);
 
-    $user = db($useUUID)->getOne('user', $id);
-    $this->assertFalse($user->hasIdError());
-    $this->assertFalse($user->hasForeign('oto'));
-    $this->assertFalse($user->hasForeign('otm'));
-    $this->assertFalse($user->hasForeign('mtm'));
-})->with('useUUID');
+        it('returns false when comparing different models', function (string $useUUID): void {
+            // Arrange: Create and modify one model
+            $id = createRandomUser($useUUID);
+            $user1 = db($useUUID)->getOne('user', $id);
+            $user2 = db($useUUID)->getOne('user', $id);
+            $user2->name = 'test';
 
-it('tests id is always 0 before save on a new model', function ($useUUID): void {
-    $user = db($useUUID)->create('user');
-    $this->assertEquals($user->getId(), 0);
-    $user->name = fake()->name();
-    $user->email = fake()->email();
-    $id = $user->save();
-    $this->assertNotEquals($user->getId(), 0);
-    $this->assertEquals($user->getId(), $id);
-})->with('useUUID');
+            // Assert: Models should not be equal
+            expect($user1->equals($user2))->toBeFalse();
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
 
-it('tests model refresh', function ($useUUID): void {
-    $user1 = db($useUUID)->create('user');
-    $user1->name = fake()->name();
-    $user1->email = fake()->email();
+    describe('Model Property Access', function (): void {
+        it('correctly implements isset() for model properties', function (string $useUUID): void {
+            // Arrange: Create and retrieve a user
+            $id = createRandomUser($useUUID);
+            $user = db($useUUID)->getOne('user', $id);
 
-    $parent = db($useUUID)->create('parent');
-    $parent->name = fake()->name();
-    $parent->ownUserList = [$user1];
-    $id = $parent->save();
+            // Assert: isset should work correctly
+            expect(isset($user->name))->toBeTrue();
+            expect(isset($user->somekey))->toBeFalse();
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
 
-    $parent = db($useUUID)->getOne('parent', $id);
-    $this->assertEquals($parent->ownUserList->first()->name, $user1->name);
-    $user = $parent->ownUserList->first();
-    $user->name = 'test';
-    $user->save();
-    $this->assertNotEquals($parent->ownUserList->first()->name, 'test');
-    $parent->refresh();
-    $this->assertEquals($parent->ownUserList->first()->name, 'test');
-})->with('useUUID');
+    describe('Bulk Property Operations', function (): void {
+        it('allows bulk property setting via setProperties()', function (string $useUUID): void {
+            // Arrange: Create a new user model
+            $user = db($useUUID)->create('user');
+            $properties = [
+                'name' => fake()->name(),
+                'email' => fake()->email(),
+                'dob' => fake()->date(),
+                'age' => fake()->randomNumber(2, false),
+                'address' => fake()->streetAddress(),
+            ];
+
+            // Act: Set properties in bulk and save
+            $user->setProperties($properties);
+            $id = $user->save();
+
+            // Assert: Retrieved model should have same properties
+            $retrievedUser = db($useUUID)->getOne('user', $id);
+            assertUserPropertiesMatch($user, $retrievedUser);
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
+
+    describe('Model Lifecycle Operations', function (): void {
+        it('successfully deletes model records', function (string $useUUID): void {
+            // Arrange: Create and save a user
+            $user = createTestUser($useUUID);
+            $id = $user->save();
+
+            // Act: Delete the user
+            $user->delete();
+
+            // Assert: User should no longer exist
+            expect(db($useUUID)->getOne('user', $id))->toBeNull();
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+
+        it('properly initializes clean state on model load', function (string $useUUID): void {
+            // Arrange: Create, save, and reload a user
+            $user = createTestUser($useUUID);
+            $id = $user->save();
+            $reloadedUser = db($useUUID)->getOne('user', $id);
+
+            // Assert: Model should be in clean state
+            expect($reloadedUser->hasIdError())->toBeFalse();
+            expect($reloadedUser->hasForeign('oto'))->toBeFalse();
+            expect($reloadedUser->hasForeign('otm'))->toBeFalse();
+            expect($reloadedUser->hasForeign('mtm'))->toBeFalse();
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
+
+    describe('Model ID Management', function (): void {
+        it('manages model ID correctly during lifecycle', function (string $useUUID): void {
+            // Arrange: Create a new user model
+            $user = createTestUser($useUUID);
+
+            // Assert: ID should be 0 before save
+            expect($user->getId())->toEqual(0);
+
+            // Act: Save the user
+            $id = $user->save();
+
+            // Assert: ID should be set after save
+            expect($user->getId())->not->toEqual(0);
+            expect($user->getId())->toEqual($id);
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
+
+    describe('Model Refresh Operations', function (): void {
+        it('refreshes model data from database', function (string $useUUID): void {
+            // Arrange: Create parent with user relationship
+            $user = createTestUser($useUUID);
+            $parent = createTestParent($useUUID);
+            $parent->ownUserList = [$user];
+            $parentId = $parent->save();
+
+            // Act: Retrieve parent and modify child user
+            $retrievedParent = db($useUUID)->getOne('parent', $parentId);
+            $originalName = $retrievedParent->ownUserList->first()->name;
+
+            $childUser = $retrievedParent->ownUserList->first();
+            $childUser->name = 'test';
+            $childUser->save();
+
+            // Assert: Parent should still have old data until refresh
+            expect($retrievedParent->ownUserList->first()->name)->not->toEqual('test');
+
+            // Act: Refresh parent
+            $retrievedParent->refresh();
+
+            // Assert: Parent should now have updated data
+            expect($retrievedParent->ownUserList->first()->name)->toEqual('test');
+        })->with([
+            'UUID',
+            'ID',
+        ]);
+    });
+});

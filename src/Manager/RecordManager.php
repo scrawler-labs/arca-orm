@@ -50,25 +50,21 @@ final class RecordManager
      */
     private function executeInTransaction(callable $callback): mixed
     {
-        // Check if we're already in a transaction
-        $isNestedTransaction = $this->connection->isTransactionActive();
-
-        try {
-            if (!$isNestedTransaction) {
-                $this->connection->beginTransaction();
-            }
-
-            $result = $callback();
-
-            if (!$isNestedTransaction) {
+        if (!$this->connection->isTransactionActive()) {
+            $this->connection->beginTransaction();
+            try {
+                $result = $callback();
                 $this->connection->commit();
-            }
 
-            return $result;
-        } catch (\Exception $e) {
-            $this->connection->rollBack();
-            throw $e;
+                return $result;
+            } catch (\Exception $e) {
+                $this->connection->rollBack();
+                throw $e;
+            }
         }
+
+        // If already in transaction, just execute the callback
+        return $callback();
     }
 
     /**

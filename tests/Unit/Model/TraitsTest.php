@@ -7,6 +7,7 @@ covers(Scrawler\Arca\Model::class);
 beforeAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
 });
+
 afterAll(function (): void {
     db()->getConnection()->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
 });
@@ -17,53 +18,108 @@ afterEach(function (): void {
     db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
 });
 
-it('tests model can be treated as iterable', function (): void {
-    $model = db()->create('user');
-    $model->name = fake()->name();
-    $model->email = fake()->email();
-    $model->dob = fake()->date();
-    $model->age = fake()->randomNumber(2, false);
-    $model->address = fake()->streetAddress();
-    $model->save();
+// Helper Functions for Traits Tests
 
-    $model = db()->find('user')->first();
-    foreach ($model as $key => $value) {
-        $this->assertNotNull($key);
-        $this->assertNotNull($value);
-    }
+// Note: Helper functions moved to TestHelpers.php to avoid redeclaration errors
+
+describe('Model Iterator Trait', function (): void {
+    it('can be treated as iterable', function (): void {
+        $model = createAndSaveUserForTraits();
+
+        $iteratedKeys = [];
+        $iteratedValues = [];
+
+        foreach ($model as $key => $value) {
+            $iteratedKeys[] = $key;
+            $iteratedValues[] = $value;
+        }
+
+        expect($iteratedKeys)->not()->toBeEmpty();
+        expect($iteratedValues)->not()->toBeEmpty();
+
+        foreach ($iteratedKeys as $key) {
+            expect($key)->not()->toBeNull();
+        }
+
+        foreach ($iteratedValues as $value) {
+            expect($value)->not()->toBeNull();
+        }
+    });
 });
 
-it('tests model can be treated as Array', function (): void {
-    $model = db()->create('user');
-    $model->name = fake()->name();
-    $model->email = fake()->email();
-    $model->dob = fake()->date();
-    $model->age = fake()->randomNumber(2, false);
-    $model->address = fake()->streetAddress();
-    $model->save();
+describe('Model ArrayAccess Trait', function (): void {
+    it('can be treated as array with all operations', function (): void {
+        $userData = createTestUserDataArray();
+        $model = createAndSaveUserForTraits($userData);
 
-    $model = db()->find('user')->first();
-    $this->assertIsArray($model->toArray());
-    $this->assertEquals($model['name'], $model->name);
-    $this->assertTrue(isset($model['email']));
-    unset($model['age']);
-    $this->assertFalse($model->isset('age'));
+        // Test toArray conversion
+        expect($model->toArray())->toBeArray();
 
-    $model['age'] = 10;
-    $this->assertEquals($model['age'], $model->age);
+        // Test array access for reading
+        expect($model['name'])->toEqual($model->name);
+        expect($model['email'])->toEqual($model->email);
 
-    expect(fn (): int => $model[] = 10)->toThrow(Exception::class);
+        // Test isset
+        expect(isset($model['email']))->toBeTrue();
+        expect(isset($model['nonexistent']))->toBeFalse();
+
+        // Test unset
+        unset($model['age']);
+        expect($model->isset('age'))->toBeFalse();
+
+        // Test array access for writing
+        $model['age'] = 25;
+        expect($model['age'])->toEqual(25);
+        expect($model->age)->toEqual(25);
+
+        // Test exception on invalid array access
+        expect(fn (): int => $model[] = 10)->toThrow(Exception::class);
+    });
+
+    it('maintains data consistency between array and object access', function (): void {
+        $userData = createTestUserDataArray();
+        $model = createAndSaveUserForTraits($userData);
+
+        // Test that array access and object access return same values
+        expect($model['name'])->toEqual($model->name);
+        expect($model['email'])->toEqual($model->email);
+
+        // Test that changes via array access reflect in object access
+        $newEmail = fake()->email();
+        $model['email'] = $newEmail;
+        expect($model->email)->toEqual($newEmail);
+
+        // Test that changes via object access reflect in array access
+        $newName = fake()->name();
+        $model->name = $newName;
+        expect($model['name'])->toEqual($newName);
+    });
 });
 
-it('tests if class is stringable', function (): void {
-    $model = db()->create('user');
-    $model->name = fake()->name();
-    $model->email = fake()->email();
-    $model->save();
+describe('Model Stringable Trait', function (): void {
+    it('can be converted to string', function (): void {
+        $userData = createTestUserDataArray();
+        $model = createAndSaveUserForTraits($userData);
 
-    ob_start();
-    echo $model;
-    $data = ob_get_clean();
+        ob_start();
+        echo $model;
+        $echoOutput = ob_get_clean();
 
-    $this->assertEquals($data, $model->toString());
+        expect($echoOutput)->toEqual($model->toString());
+        expect($echoOutput)->toBeString();
+        expect($echoOutput)->not()->toBeEmpty();
+    });
+
+    it('toString method produces valid output', function (): void {
+        $userData = createTestUserDataArray();
+        $model = createAndSaveUserForTraits($userData);
+
+        $stringOutput = $model->toString();
+
+        expect($stringOutput)->toBeString();
+        expect($stringOutput)->not()->toBeEmpty();
+
+        // Should contain some form of model data representation
+        expect($stringOutput)->toContain($userData['name']);
+    });
 });
