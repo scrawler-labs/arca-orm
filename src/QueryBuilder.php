@@ -23,10 +23,9 @@ final class QueryBuilder extends DoctrineQueryBuilder
 {
     private string $table;
     /**
-     * @var array<string>
+     * @var AbstractSchemaManager
      */
-
-    private readonly AbstractSchemaManager $SchemaManager;
+    private readonly AbstractSchemaManager $schemaManager;
 
     public function __construct(
         Connection $connection,
@@ -45,7 +44,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
 
     public function get(): Collection
     {
-        if (!$this->SchemaManager->tableExists($this->table)) {
+        if (!$this->schemaManager->tableExists($this->table)) {
             return Collection::fromIterable([]);
         }
         $model = $this->modelManager->create($this->table);
@@ -57,7 +56,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
 
     public function first(): ?Model
     {
-        if (!$this->SchemaManager->tableExists($this->table)) {
+        if (!$this->schemaManager->tableExists($this->table)) {
             return null;
         }
 

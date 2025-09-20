@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Scrawler\Arca\Facade;
 
 use Scrawler\Arca\Collection;
-use Scrawler\Arca\Connection;
 use Scrawler\Arca\Database as DB;
 use Scrawler\Arca\Factory\DatabaseFactory;
 use Scrawler\Arca\Model;
@@ -34,10 +33,6 @@ class Database
      */
     public static function connect(array $connectionParams): DB
     {
-        if(isset(self::$database)) {
-            return self::$database;
-        }
-        
         $factory = new DatabaseFactory();
         self::$database = $factory->build($connectionParams);
 
