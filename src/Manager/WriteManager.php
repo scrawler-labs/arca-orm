@@ -37,11 +37,10 @@ final class WriteManager
     /**
      * Save model into database.
      *
-     * @template T of mixed
-     * @return T
+     * @return string|int
      * @throws InvalidIdException
      */
-    public function save(Model $model): mixed
+    public function save(Model $model): string|int
     {
         if ($model->hasForeign(self::RELATION_ONE_TO_ONE)) {
             $this->saveForeignOneToOne($model);

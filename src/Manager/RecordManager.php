@@ -63,10 +63,8 @@ final class RecordManager
             return $result;
 
         } catch (\Exception $e) {
-            if (!$isNestedTransaction && $this->connection->isTransactionActive()) {
                 $this->connection->rollBack();
-            }
-            throw $e;
+                throw $e;
         }
     }
 

@@ -191,7 +191,6 @@ final class Database
         // @codeCoverageIgnoreStart
         if (!Type::hasType('json_document')) {
             Type::addType('json_document', JsonDocumentType::class);
-            // @phpstan-ignore-next-line
             $jsonDocumentType = Type::getType('json_document');
             if ($jsonDocumentType instanceof JsonDocumentType) {
                 $jsonDocumentType->setSerializer(

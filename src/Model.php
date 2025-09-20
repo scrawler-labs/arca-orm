@@ -94,11 +94,11 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
      * Get table name from class name if not specified
      */
     public function __construct(
-        ?string $table = null,
         private Connection $connection,
         private RecordManager $recordManager,
         private TableManager $tableManager,
         private WriteManager $writeManager,
+        ?string $table = null,
     ) {
         $this->table = $table ?? $this->getDefaultTableName();
         $this->initializeProperties();
@@ -217,6 +217,11 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         $this->setRegularProperty($key, $val);
     }
 
+    /**
+     * @param string $key
+     * @param array<string> $parts
+     * @return mixed
+     */
     private function handleRelationalKey(string $key, array $parts): mixed
     {
         if (self::KEYWORD_OWN === strtolower((string) $parts[0])) {
@@ -230,6 +235,11 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         return null;
     }
 
+    /** 
+    * @param string $key
+    * @param array<string> $parts
+    * @return mixed
+    */
     private function handleOwnRelation(string $key, array $parts): mixed
     {
         if (self::KEYWORD_LIST !== strtolower((string) $parts[2])) {
@@ -250,7 +260,12 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         return $result;
     }
 
-    private function handleSharedRelation(string $key, array $parts): mixed
+    /**
+     * @param string $key
+     * @param array<string> $parts
+     * @return Collection|null
+     */
+    private function handleSharedRelation(string $key, array $parts): ?Collection
     {
         if ('list' !== strtolower((string) $parts[2])) {
             return null;
@@ -302,6 +317,14 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         return $this->relationTableCache[$cacheKey];
     }
 
+    /**
+     * Extract relation ids from relation models.
+     *
+     * @param Collection $relations
+     * @param string     $targetTable
+     *
+     * @return array<int|string>
+     */
     private function extractRelationIds(Collection $relations, string $targetTable): array
     {
         return $relations->map(function ($relation) use ($targetTable) {
@@ -579,6 +602,8 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
 
     /**
      * Get all properties of model.
+     * @param array<string|int> $ids
+     * @return ArrayParameterType::INTEGER|ArrayParameterType::STRING
      */
     private function determineIdsType(array $ids): ArrayParameterType
     {
@@ -591,6 +616,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         return match ($firstIdType) {
             ParameterType::INTEGER => ArrayParameterType::INTEGER,
             ParameterType::STRING => ArrayParameterType::STRING,
+            default => ArrayParameterType::STRING, // fallback for unhandled types
         };
     }
 
