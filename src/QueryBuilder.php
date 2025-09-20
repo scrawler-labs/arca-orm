@@ -37,13 +37,6 @@ final class QueryBuilder extends DoctrineQueryBuilder
         parent::__construct($connection);
     }
 
-    public function with(string $relation): QueryBuilder
-    {
-        $this->relations[] = $relation;
-
-        return $this;
-    }
-
     public function from(string $table, ?string $alias = null): QueryBuilder
     {
         $this->table = $table;

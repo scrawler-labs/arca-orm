@@ -366,19 +366,6 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
         throw new Exception\KeyNotFoundException();
     }
 
-    /**
-     * Eager Load relation variable.
-     *
-     * @param array<string> $relations
-     */
-    public function with(array $relations): Model
-    {
-        foreach ($relations as $relation) {
-            $this->get($relation);
-        }
-
-        return $this;
-    }
 
     /**
      * Refresh the current model from database.
