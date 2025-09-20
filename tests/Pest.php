@@ -8,11 +8,14 @@ require_once __DIR__.'/TestHelpers.php';
 // Include datasets
 require_once __DIR__.'/Datasets/DatabaseTest.php';
 
+
 function db($uuid = 'ID')
 {
     $useUUID = 'UUID' == $uuid;
-    static $dbUUID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('UUID'));;
-    static $dbID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('ID'));
+    $factory = new Scrawler\Arca\Factory\DatabaseFactory();
+    static $dbUUID = $factory->build(connectionParams: getConnectionParams('UUID'));
+    static $dbID = $factory->build(connectionParams: getConnectionParams('ID'));
+
 
     if ($useUUID) {
         return $dbUUID;
