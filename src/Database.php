@@ -192,9 +192,12 @@ final class Database
         if (!Type::hasType('json_document')) {
             Type::addType('json_document', JsonDocumentType::class);
             // @phpstan-ignore-next-line
-            Type::getType('json_document')->setSerializer(
-                new Serializer([new BackedEnumNormalizer(), new UidNormalizer(), new DateTimeNormalizer(), new ArrayDenormalizer(), new ObjectNormalizer()], [new JsonEncoder()])
-            );
+            $jsonDocumentType = Type::getType('json_document');
+            if ($jsonDocumentType instanceof JsonDocumentType) {
+                $jsonDocumentType->setSerializer(
+                    new Serializer([new BackedEnumNormalizer(), new UidNormalizer(), new DateTimeNormalizer(), new ArrayDenormalizer(), new ObjectNormalizer()], [new JsonEncoder()])
+                );
+            }
         }
         // @codeCoverageIgnoreEnd
     }

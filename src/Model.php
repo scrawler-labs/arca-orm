@@ -515,7 +515,7 @@ class Model implements \Stringable, \IteratorAggregate, \ArrayAccess
     {
         if ('boolean' === $type) {
             return ($val) ? 1 : 0;
-        }
+        }      
 
         return Type::getType($type)->convertToDatabaseValue($val, $this->connection->getDatabasePlatform());
     }

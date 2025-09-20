@@ -38,9 +38,7 @@ final class WriteManager
      * Save model into database.
      *
      * @template T of mixed
-     *
      * @return T
-     *
      * @throws InvalidIdException
      */
     public function save(Model $model): mixed
@@ -51,10 +49,9 @@ final class WriteManager
 
         $this->ensureTableExists($model);
 
-        $id = $this->executeInTransaction(function () use ($model) {
+        $id = $this->executeInTransaction(function() use ($model) {
             $id = $this->createRecords($model);
             $model->set(self::ID_FIELD, $id);
-
             return $id;
         });
 
@@ -83,16 +80,20 @@ final class WriteManager
 
     private function executeInTransaction(callable $callback): mixed
     {
-        $this->connection->beginTransaction();
-        try {
-            $result = $callback();
-            $this->connection->commit();
-
-            return $result;
-        } catch (\Exception $e) {
-            $this->connection->rollBack();
-            throw $e;
+        if (!$this->connection->isTransactionActive()) {
+            $this->connection->beginTransaction();
+            try {
+                $result = $callback();
+                $this->connection->commit();
+                return $result;
+            } catch (\Exception $e) {
+                $this->connection->rollBack();
+                throw $e;
+            }
         }
+        
+        // If already in transaction, just execute the callback
+        return $callback();
     }
 
     /**
@@ -189,11 +190,11 @@ final class WriteManager
             $this->createTable($foreign);
         }
 
-        $this->executeInTransaction(function () use ($model) {
+        $this->executeInTransaction(function() use ($model) {
             foreach ($model->getForeignModels(self::RELATION_ONE_TO_ONE) as $foreign) {
                 $id = $this->createRecords($foreign);
                 $this->finalizeModel($foreign);
-                $name = $foreign->getName().self::ID_SUFFIX;
+                $name = $foreign->getName() . self::ID_SUFFIX;
                 $model->$name = $id;
             }
         });
@@ -206,12 +207,12 @@ final class WriteManager
     {
         $id = $model->getId();
         foreach ($model->getForeignModels(self::RELATION_ONE_TO_MANY) as $foreign) {
-            $key = $model->getName().self::ID_SUFFIX;
+            $key = $model->getName() . self::ID_SUFFIX;
             $foreign->$key = $id;
             $this->createTable($foreign, $this->createConstraintsOtm($model));
         }
 
-        $this->executeInTransaction(function () use ($model) {
+        $this->executeInTransaction(function() use ($model) {
             foreach ($model->getForeignModels(self::RELATION_ONE_TO_MANY) as $foreign) {
                 $this->createRecords($foreign);
                 $this->finalizeModel($foreign);
@@ -226,10 +227,10 @@ final class WriteManager
     {
         $id = $model->getId();
         foreach ($model->getForeignModels(self::RELATION_MANY_TO_MANY) as $foreign) {
-            $model_id = $model->getName().self::ID_SUFFIX;
-            $foreign_id = $foreign->getName().self::ID_SUFFIX;
+            $model_id = $model->getName() . self::ID_SUFFIX;
+            $foreign_id = $foreign->getName() . self::ID_SUFFIX;
             $relational_table = $this->modelManager->create(
-                $model->getName().'_'.$foreign->getName()
+                $model->getName() . '_' . $foreign->getName()
             );
 
             $default_id = $this->config->isUsingUUID() ? '' : 0;
@@ -243,16 +244,16 @@ final class WriteManager
             );
         }
 
-        $this->executeInTransaction(function () use ($model, $id) {
+        $this->executeInTransaction(function() use ($model, $id) {
             foreach ($model->getForeignModels(self::RELATION_MANY_TO_MANY) as $foreign) {
                 $rel_id = $this->createRecords($foreign);
                 $this->finalizeModel($foreign);
 
-                $model_id = $model->getName().self::ID_SUFFIX;
-                $foreign_id = $foreign->getName().self::ID_SUFFIX;
+                $model_id = $model->getName() . self::ID_SUFFIX;
+                $foreign_id = $foreign->getName() . self::ID_SUFFIX;
 
                 $relational_table = $this->modelManager->create(
-                    $model->getName().'_'.$foreign->getName()
+                    $model->getName() . '_' . $foreign->getName()
                 );
                 $relational_table->$model_id = $id;
                 $relational_table->$foreign_id = $rel_id;

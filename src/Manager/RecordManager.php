@@ -47,13 +47,25 @@ final class RecordManager
      */
     private function executeInTransaction(callable $callback): mixed
     {
-        $this->connection->beginTransaction();
+        // Check if we're already in a transaction
+        $isNestedTransaction = $this->connection->isTransactionActive();
+
         try {
+            if (!$isNestedTransaction) {
+                $this->connection->beginTransaction();
+            }
+
             $result = $callback();
-            $this->connection->commit();
+
+            if (!$isNestedTransaction) {
+                $this->connection->commit();
+            }
             return $result;
+
         } catch (\Exception $e) {
-            $this->connection->rollBack();
+            if (!$isNestedTransaction && $this->connection->isTransactionActive()) {
+                $this->connection->rollBack();
+            }
             throw $e;
         }
     }
@@ -63,16 +75,16 @@ final class RecordManager
      */
     public function insert(Model $model): mixed
     {
-        return $this->executeInTransaction(function() use ($model) {
+        return $this->executeInTransaction(function () use ($model) {
             if ($this->config->isUsingUUID()) {
                 $model->set(self::ID_COLUMN, Uuid::uuid4()->toString());
             }
-            
+
             $this->connection->insert(
-                $model->getName(), 
+                $model->getName(),
                 $model->getSelfProperties()
             );
-            
+
             if ($this->config->isUsingUUID()) {
                 return $model->get(self::ID_COLUMN);
             }
@@ -86,7 +98,7 @@ final class RecordManager
      */
     public function update(Model $model): mixed
     {
-        return $this->executeInTransaction(function() use ($model) {
+        return $this->executeInTransaction(function () use ($model) {
             $this->connection->update(
                 $model->getName(),
                 $model->getSelfProperties(),
@@ -101,7 +113,7 @@ final class RecordManager
      */
     public function delete(Model $model): mixed
     {
-        return $this->executeInTransaction(function() use ($model) {
+        return $this->executeInTransaction(function () use ($model) {
             $this->connection->delete(
                 $model->getName(),
                 [self::ID_COLUMN => $model->getId()]
@@ -115,7 +127,7 @@ final class RecordManager
      */
     public function getById(string $table, mixed $id): ?Model
     {
-        return $this->executeInTransaction(function() use ($table, $id) {
+        return $this->executeInTransaction(function () use ($table, $id) {
             return $this->createQueryBuilder()
                 ->select(self::ALL_COLUMNS)
                 ->from($table, self::DEFAULT_ALIAS)
@@ -130,7 +142,7 @@ final class RecordManager
      */
     public function getAll(string $tableName): Collection
     {
-        return $this->executeInTransaction(function() use ($tableName) {
+        return $this->executeInTransaction(function () use ($tableName) {
             return $this->createQueryBuilder()
                 ->select(self::ALL_COLUMNS)
                 ->from($tableName, self::DEFAULT_ALIAS)
