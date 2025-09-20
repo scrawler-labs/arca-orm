@@ -11,13 +11,18 @@ require_once __DIR__.'/Datasets/DatabaseTest.php';
 function db($uuid = 'ID')
 {
     $useUUID = 'UUID' == $uuid;
-    static $dbUUID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('UUID'));
-
-    static $dbID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('ID'));
+    static $dbUUID = null;
+    static $dbID = null;
 
     if ($useUUID) {
+        if ($dbUUID === null) {
+            $dbUUID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('UUID'));
+        }
         return $dbUUID;
     } else {
+        if ($dbID === null) {
+            $dbID = Scrawler\Arca\Facade\Database::connect(getConnectionParams('ID'));
+        }
         return $dbID;
     }
 }
@@ -51,7 +56,13 @@ function getConnectionParams($uuid = 'ID', $withUUID = true): array
     };
     
     if ($withUUID) {
-        $config['useUUID'] = 'UUID' == $uuid;
+        // Handle different ways of specifying UUID mode
+        $useUUID = match($uuid) {
+            'UUID', true => true,
+            'ID', 'false', false => false,
+            default => false
+        };
+        $config['useUUID'] = $useUUID;
     }
 
     return $config;
