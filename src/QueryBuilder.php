@@ -31,7 +31,7 @@ final class QueryBuilder extends DoctrineQueryBuilder
         Connection $connection,
         private readonly ModelManager $modelManager,
     ) {
-        $this->SchemaManager = $connection->createSchemaManager();
+        $this->schemaManager = $connection->createSchemaManager();
         parent::__construct($connection);
     }
 
