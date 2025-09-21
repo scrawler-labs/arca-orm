@@ -291,7 +291,16 @@ function compareTableSchemas(string $tableName, Doctrine\DBAL\Schema\Table $expe
 function cleanupTableManagerTestTables(): void
 {
     try {
-        db()->getConnection()->executeStatement('DROP TABLE IF EXISTS user CASCADE; ');
+        $connection = db()->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        
+        if ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+            $connection->executeStatement('DROP TABLE IF EXISTS user;');
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+            $connection->executeStatement('DROP TABLE IF EXISTS "user" CASCADE;');
+        } else {
+            $connection->executeStatement('DROP TABLE IF EXISTS user CASCADE;');
+        }
     } catch (Exception) {
         // Ignore cleanup errors
     }
@@ -417,17 +426,42 @@ function cleanupTestTables(string $useUUID): void
 {
     try {
         $connection = db($useUUID)->getConnection();
-        $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+        $platform = $connection->getDatabasePlatform();
+        
+        // Disable foreign key checks if supported
+        if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+            $connection->executeStatement('PRAGMA foreign_keys = OFF;');
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+            // PostgreSQL doesn't have a global foreign key disable,
+            // but CASCADE in DROP statements handles dependencies
+        }
 
         // Get all existing tables first
         $tables = $connection->createSchemaManager()->listTableNames();
 
         // Drop all tables to ensure complete cleanup
         foreach ($tables as $table) {
-            $connection->executeStatement("DROP TABLE IF EXISTS {$table} CASCADE;");
+            if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
+                $connection->executeStatement("DROP TABLE IF EXISTS {$table} CASCADE;");
+            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+                $connection->executeStatement("DROP TABLE IF EXISTS {$table};");
+            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+                $connection->executeStatement("DROP TABLE IF EXISTS \"{$table}\" CASCADE;");
+            } else {
+                $connection->executeStatement("DROP TABLE IF EXISTS {$table} CASCADE;");
+            }
         }
 
-        $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+        // Re-enable foreign key checks if supported
+        if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+            $connection->executeStatement('PRAGMA foreign_keys = ON;');
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+            // No global setting to re-enable for PostgreSQL
+        }
     } catch (Exception) {
         // Ignore cleanup errors
     }
@@ -442,17 +476,41 @@ function cleanupAllTestTables(): void
     foreach (['UUID', 'ID'] as $config) {
         try {
             $connection = db($config)->getConnection();
-            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+            $platform = $connection->getDatabasePlatform();
+            
+            // Disable foreign key checks if supported
+            if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
+                $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+                $connection->executeStatement('PRAGMA foreign_keys = OFF;');
+            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+                // PostgreSQL doesn't have a global foreign key disable
+            }
 
             // Get all existing tables first
             $tables = $connection->createSchemaManager()->listTableNames();
 
             // Drop all tables to ensure complete cleanup
             foreach ($tables as $table) {
-                $connection->executeStatement("DROP TABLE IF EXISTS {$table} CASCADE;");
+                if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
+                    $connection->executeStatement("DROP TABLE IF EXISTS {$table} CASCADE;");
+                } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+                    $connection->executeStatement("DROP TABLE IF EXISTS {$table};");
+                } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+                    $connection->executeStatement("DROP TABLE IF EXISTS \"{$table}\" CASCADE;");
+                } else {
+                    $connection->executeStatement("DROP TABLE IF EXISTS {$table} CASCADE;");
+                }
             }
 
-            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+            // Re-enable foreign key checks if supported
+            if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
+                $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+                $connection->executeStatement('PRAGMA foreign_keys = ON;');
+            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
+                // No global setting to re-enable for PostgreSQL
+            }
         } catch (Exception) {
             // Ignore cleanup errors
         }
