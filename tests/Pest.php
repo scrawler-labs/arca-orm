@@ -7,8 +7,7 @@ require_once __DIR__.'/TestHelpers.php';
 
 // Include datasets
 require_once __DIR__.'/Datasets/DatabaseTest.php';
-require_once __DIR__.'/IdDB.php';
-require_once __DIR__.'/UuidDB.php';
+require_once __DIR__.'/TestDB.php';
 
 
 function db($uuid = 'ID')
@@ -17,9 +16,9 @@ function db($uuid = 'ID')
     
 
     if ($useUUID) {
-        return UuidDB::getInstance();
+        return TestDB::getUuidInstance();
     } else {
-        return IdDB::getInstance();
+        return TestDB::getIdInstance();
     }
 }
 
